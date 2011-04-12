@@ -24,7 +24,9 @@ typedef enum {
     L_DEFINITION_SEPARATOR_SYMBOL
 } LToken;
 
+LInput* lexer_input_init_buffer(unsigned char *grammar, unsigned int length);
 LInput* lexer_input_init(char *pathname);
+void lexer_input_close(LInput *input);
 LToken lexer_input_next(LInput *input);
 
 #endif //LEXER_H

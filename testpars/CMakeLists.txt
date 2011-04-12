@@ -6,6 +6,10 @@ include_directories(${GLIB_INCLUDE_DIR})
 include_directories(${GLIB_INCLUDE_DIRS})
 
 add_executable(testpars testpars.c)
+add_executable(test_lexer test_lexer.c)
 
 target_link_libraries(testpars ${GLIB_LIBRARIES} pars)
+target_link_libraries(test_lexer ${GLIB_LIBRARIES} lexer)
+
+file(COPY test_ebnf_grammar.txt DESTINATION .)
 

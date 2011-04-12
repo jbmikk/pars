@@ -1,34 +1,45 @@
 #include "lexer.h"
 #include "cmemory.h"
 
-void lexer_input_fill(LInput *input, unsigned int size)
+LInput* lexer_input_init_buffer(unsigned char *grammar, unsigned int length)
 {
-    input->buffer_size = fread(input->buffer, 1, size, input->file);
+    LInput *input;
+
+    input = c_new(LInput,1);
+    input->file = NULL;
+    input->eof = 0;
     input->buffer_index = 0;
+    input->buffer_size = length;
+    input->buffer = grammar;
+    return input;
 }
 
 LInput* lexer_input_init(char *pathname)
 {
-    LInput *input;
+    LInput *input = NULL;
     FILE *file;
-    unsigned int file_size;
-
-    input = c_new(LInput,1);
+    unsigned char *buffer;
+    unsigned int length;
 
     file = fopen(pathname, "rb");
-    input->file = file;
-    input->eof = 0;
 
     if(file)
     {
-        input->is_open = 1;
         fseek(file, 0, SEEK_END);
-        file_size = ftell(file);
+        length = ftell(file);
         fseek(file, 0, SEEK_SET);
-        input->buffer = c_new(unsigned char, file_size);
-        lexer_input_fill(input, file_size);
+        buffer = c_new(unsigned char, length);
+        length = fread(buffer, 1, length, file);
+        input = lexer_input_init_buffer(buffer, length);
+        input->file = file;
     }
     return input;
+}
+
+void lexer_input_close(LInput *input)
+{
+    c_delete(input->buffer);
+    c_delete(input);
 }
 
 LToken lexer_input_next(LInput *input)
