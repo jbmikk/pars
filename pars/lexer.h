@@ -10,7 +10,6 @@ typedef struct _LInput {
     unsigned char *buffer;
     size_t buffer_size;
     unsigned int buffer_index;
-    unsigned int current;
 } LInput;
 
 typedef enum {

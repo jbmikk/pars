@@ -38,7 +38,8 @@ LInput* lexer_input_init(char *pathname)
 
 void lexer_input_close(LInput *input)
 {
-    c_delete(input->buffer);
+    if(input->file != NULL)
+        c_delete(input->buffer);
     c_delete(input);
 }
 
@@ -47,13 +48,14 @@ LToken lexer_input_next(LInput *input)
     LToken token;
     unsigned char c;
 
-    #define NEXT (input->buffer[input->buffer_index++])
-    #define END (input->buffer_index >= input->buffer_size)
+    #define CURRENT (input->buffer[input->buffer_index])
+    #define NEXT (input->buffer[++input->buffer_index])
+    #define END (input->buffer_index >= input->buffer_size-1)
 
     #define BETWEEN(V, A, B) (V >= A && V <= B)
     #define IS_SPACE(V) (V == ' ' || V == '\t' || V == '\n')
 
-    c = input->current;
+    c = CURRENT;
 
     if (IS_SPACE(c)) {
         while(!END)
@@ -95,7 +97,6 @@ LToken lexer_input_next(LInput *input)
         }
         token = L_TERMINAL_STRING;
     }
-    input->current = c;
     return  token;
 }
 
