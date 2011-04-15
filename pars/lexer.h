@@ -13,14 +13,16 @@ typedef struct _LInput {
 } LInput;
 
 typedef enum {
+    L_DEFINING_SYMBOL = '=',
+    L_CONCATENATE_SYMBOL = ',',
+    L_TERMINATOR_SYMBOL = ';',
+    L_DEFINITION_SEPARATOR_SYMBOL = '|',
+    L_START_GROUP_SYMBOL = '(',
+    L_END_GROUP_SYMBOL = ')',
     L_WHITE_SPACE = 256,
     L_INTEGER,
     L_IDENTIFIER,
-    L_TERMINAL_STRING,
-    L_DEFINING_SYMBOL,
-    L_CONCATENATE_SYMBOL,
-    L_TERMINATOR_SYMBOL,
-    L_DEFINITION_SEPARATOR_SYMBOL
+    L_TERMINAL_STRING
 } LToken;
 
 LInput* lexer_input_init_buffer(unsigned char *grammar, unsigned int length);

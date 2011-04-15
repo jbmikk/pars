@@ -55,6 +55,8 @@ LToken lexer_input_next(LInput *input)
     #define BETWEEN(V, A, B) (V >= A && V <= B)
     #define IS_SPACE(V) (V == ' ' || V == '\t' || V == '\n')
 
+next_token:
+
     c = CURRENT;
 
     if (IS_SPACE(c)) {
@@ -75,8 +77,7 @@ LToken lexer_input_next(LInput *input)
         }
         token = L_IDENTIFIER;
     }
-    else if (BETWEEN(c, '0', '9'))
-    {
+    else if (BETWEEN(c, '0', '9')) {
         while(!END)
         {
             c = NEXT;
@@ -85,18 +86,28 @@ LToken lexer_input_next(LInput *input)
         }
         token = L_INTEGER;
     }
-    else if (c == '"')
-    {
-        while(!END)
-        {
+    else if (c == '"') {
+        while(!END) {
             unsigned char prev;
             prev = c;
             c = NEXT;
-            if(c == '"' && prev != '\\')
+            if(c == '"' && prev != '\\') {
+                NEXT;
                 break;
+            }
         }
         token = L_TERMINAL_STRING;
     }
+    else {
+        token = c;
+        if(!END) {
+            NEXT;
+        }
+    }
+
+    if(token == L_WHITE_SPACE)
+        goto next_token;
+
     return  token;
 }
 
