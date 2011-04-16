@@ -43,14 +43,24 @@ void lexer_input_close(LInput *input)
     c_delete(input);
 }
 
+unsigned int lexer_input_get_index(LInput *input)
+{
+    return input->buffer_index;
+}
+
+void lexer_input_set_index(LInput *input, unsigned int index)
+{
+    input->buffer_index = index;
+}
+
 LToken lexer_input_next(LInput *input)
 {
     LToken token;
     unsigned char c;
 
     #define CURRENT (input->buffer[input->buffer_index])
-    #define NEXT (input->buffer[++input->buffer_index])
-    #define END (input->buffer_index >= input->buffer_size-1)
+    #define NEXT (++input->buffer_index)
+    #define END(V) (input->buffer_index >= input->buffer_size-V)
 
     #define BETWEEN(V, A, B) (V >= A && V <= B)
     #define IS_SPACE(V) (V == ' ' || V == '\t' || V == '\n')
@@ -59,38 +69,53 @@ next_token:
 
     c = CURRENT;
 
-    if (IS_SPACE(c)) {
-        while(!END)
+    if (END(0)) {
+        token = L_EOF;
+    }
+    else if (IS_SPACE(c)) {
+        while(1)
         {
-            c = NEXT;
+            NEXT;
+            if(END(0))
+                break;
+            c = CURRENT;
             if(!IS_SPACE(c))
                 break;
         }
         token = L_WHITE_SPACE;
     }
     else if (BETWEEN(c, 'a', 'z') || BETWEEN(c, 'A', 'Z')) {
-        while(!END)
+        while(1)
         {
-            c = NEXT;
+            NEXT;
+            if(END(0))
+                break;
+            c = CURRENT;
             if(!BETWEEN(c, 'a', 'z') && !BETWEEN(c, 'A', 'Z') && !BETWEEN(c, '0', '9'))
                 break;
         }
         token = L_IDENTIFIER;
     }
     else if (BETWEEN(c, '0', '9')) {
-        while(!END)
+        while(1)
         {
-            c = NEXT;
+            NEXT;
+            if(END(0))
+                break;
+            c = CURRENT;
             if(!BETWEEN(c, '0', '9'))
                 break;
         }
         token = L_INTEGER;
     }
     else if (c == '"') {
-        while(!END) {
+        while(1) {
             unsigned char prev;
             prev = c;
-            c = NEXT;
+            NEXT;
+            if(END(0))
+                break;
+            c = CURRENT;
             if(c == '"' && prev != '\\') {
                 NEXT;
                 break;
@@ -100,9 +125,7 @@ next_token:
     }
     else {
         token = c;
-        if(!END) {
-            NEXT;
-        }
+        NEXT;
     }
 
     if(token == L_WHITE_SPACE)

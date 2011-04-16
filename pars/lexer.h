@@ -13,6 +13,7 @@ typedef struct _LInput {
 } LInput;
 
 typedef enum {
+    L_EOF = 0,
     L_DEFINING_SYMBOL = '=',
     L_CONCATENATE_SYMBOL = ',',
     L_TERMINATOR_SYMBOL = ';',
@@ -28,6 +29,8 @@ typedef enum {
 LInput* lexer_input_init_buffer(unsigned char *grammar, unsigned int length);
 LInput* lexer_input_init(char *pathname);
 void lexer_input_close(LInput *input);
+unsigned int lexer_input_get_index(LInput *input);
+void lexer_input_set_index(LInput *input, unsigned int index);
 LToken lexer_input_next(LInput *input);
 
 #endif //LEXER_H

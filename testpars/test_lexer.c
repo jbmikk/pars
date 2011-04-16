@@ -13,7 +13,7 @@ typedef struct {
 
 #define I_INTEGER "1234"
 #define I_IDENTIFIER "anIdentifier"
-#define I_TERMINAL_STRING"\"terminalString\""
+#define I_TERMINAL_STRING "\"terminalString\""
 #define I_RULE_ONE "one = \"1\",(\"a\"|\"b\")"
 
 void setup(Fixture *fix, gconstpointer data){
@@ -67,6 +67,7 @@ void lexer_input_next__whole_rule(Fixture *fix, gconstpointer data){
     g_assert_cmpint(lexer_input_next(fix->input_rule_one), ==, L_DEFINITION_SEPARATOR_SYMBOL);
     g_assert_cmpint(lexer_input_next(fix->input_rule_one), ==, L_TERMINAL_STRING);
     g_assert_cmpint(lexer_input_next(fix->input_rule_one), ==, L_END_GROUP_SYMBOL);
+    g_assert_cmpint(lexer_input_next(fix->input_rule_one), ==, L_EOF);
 }
 
 int main(int argc, char** argv){
