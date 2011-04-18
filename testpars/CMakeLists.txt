@@ -14,4 +14,5 @@ target_link_libraries(test_lexer ${GLIB_LIBRARIES} lexer)
 target_link_libraries(test_ebnf_parser ${GLIB_LIBRARIES} ebnf_parser)
 
 file(COPY test_ebnf_grammar.txt DESTINATION .)
+file(COPY test.sh DESTINATION .)
 
