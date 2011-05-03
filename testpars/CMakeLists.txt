@@ -1,3 +1,4 @@
+include_directories("${PROJECT_SOURCE_DIR}/clib")
 include_directories("${PROJECT_SOURCE_DIR}/pars")
 
 find_package(GLIB REQUIRED)
@@ -8,10 +9,12 @@ include_directories(${GLIB_INCLUDE_DIRS})
 add_executable(testpars testpars.c)
 add_executable(test_lexer test_lexer.c)
 add_executable(test_ebnf_parser test_ebnf_parser.c)
+add_executable(test_fsm test_fsm.c)
 
 target_link_libraries(testpars ${GLIB_LIBRARIES} pars)
 target_link_libraries(test_lexer ${GLIB_LIBRARIES} lexer)
 target_link_libraries(test_ebnf_parser ${GLIB_LIBRARIES} ebnf_parser)
+target_link_libraries(test_fsm ${GLIB_LIBRARIES} fsm)
 
 file(COPY test_ebnf_grammar.txt DESTINATION .)
 file(COPY test.sh DESTINATION .)
