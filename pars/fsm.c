@@ -3,9 +3,35 @@
 #include "cmemory.h"
 #include "cradixtree.h"
 
-#define STATE_INIT(V, T) (\
-        (V).type = (T)\
+#define STATE_INIT(V, T, R) (\
+        (V).type = (T),\
+        (V).reduction = (R)\
     )
+
+#define NONE 0
+#include <stdio.h>
+void stack_init(Stack *stack)
+{
+    stack->top = NULL;
+}
+
+void stack_push(Stack *stack, State *state)
+{
+    SNode *node = c_new(SNode, 1);
+    node->state = state;
+    node->next = stack->top;
+    stack->top = node;
+}
+
+State *stack_pop(Stack *stack)
+{
+    SNode *top = stack->top;
+    State *state = top->state;
+    stack->top = top->next;
+    c_delete(top);
+    return state;
+}
+
 
 void _symbol_to_buffer(unsigned char *buffer, unsigned int *size, int symbol)
 {
@@ -38,9 +64,9 @@ void frag_init(Frag *frag)
 {
     State *begin = c_new(State, 1);
     State *final = c_new(State, 1);
-    STATE_INIT(*begin, ACTION_TYPE_SHIFT);
+    STATE_INIT(*begin, ACTION_TYPE_SHIFT, NONE);
     NODE_INIT(begin->next, 0, 0, NULL);
-    STATE_INIT(*final, ACTION_TYPE_SHIFT);
+    STATE_INIT(*final, ACTION_TYPE_SHIFT, NONE);
     NODE_INIT(final->next, 0, 0, NULL);
     frag->begin = begin;
     frag->current = begin;
@@ -58,30 +84,70 @@ Frag *fsm_get_frag(Fsm *fsm, unsigned char *name, int length)
     return frag;
 }
 
-Frag *fsm_set_start(Fsm *fsm, unsigned char *name, int length)
+State *fsm_get_state(Fsm *fsm, unsigned char *name, int length)
 {
-    Frag *frag = fsm_get_frag(fsm, name, length);
-    fsm->start = frag->begin;
+    Frag *frag = c_radix_tree_get(&fsm->rules, name, length);
+    return frag->begin;
 }
 
-void frag_add_action(Frag *frag, int symbol, int action)
+Frag *fsm_set_start(Fsm *fsm, unsigned char *name, int length, int symbol)
+{
+    Frag *frag = fsm_get_frag(fsm, name, length);
+    fsm->start = frag->begin;//should not use frag->begin
+    frag->current = frag->begin; //should not have to do this
+    frag_add_accept(frag, symbol);
+}
+
+State *_frag_add_action(Frag *frag, int symbol, int action, int reduction, State *state)
 {
     unsigned char buffer[sizeof(int)];
     unsigned int size;
     _symbol_to_buffer(buffer, &size, symbol);
 
-    State *state = c_new(State, 1);
-    STATE_INIT(*state, action);
+    if(state == NULL)
+    {
+        state = c_new(State, 1);
+        STATE_INIT(*state, action, reduction);
+    }
 
     c_radix_tree_set(&frag->current->next, buffer, size, state);
-    if(action == ACTION_TYPE_SHIFT)
-        frag->current = state;
+    return state;
+}
+
+void frag_add_accept(Frag *frag, int symbol)
+{
+    State *state = _frag_add_action(frag, symbol, ACTION_TYPE_ACCEPT, NONE, NULL);
+    frag->current = state;
+}
+
+void frag_add_shift(Frag *frag, int symbol)
+{
+    State *state = _frag_add_action(frag, symbol, ACTION_TYPE_SHIFT, NONE, NULL);
+    frag->current = state;
+}
+
+void frag_add_context_shift(Frag *frag, int symbol)
+{
+    State *state = _frag_add_action(frag, symbol, ACTION_TYPE_CONTEXT_SHIFT, NONE, NULL);
+    frag->current = state;
+}
+
+void frag_add_include(Frag *frag, State *state)
+{
+    //should merge state's follow set in current state
+}
+
+void frag_add_reduce(Frag *frag, int symbol, int reduction)
+{
+    _frag_add_action(frag, symbol, ACTION_TYPE_REDUCE, reduction, NULL);
 }
 
 Session *fsm_start_session(Fsm *fsm)
 {
     Session *session = c_new(Session, 1);
     session->current = fsm->start;
+    stack_init(&session->stack);
+    stack_push(&session->stack, session->current);
     return session;
 }
 
@@ -89,17 +155,24 @@ void session_match(Session *session, int symbol)
 {
     unsigned char buffer[sizeof(int)];
     unsigned int size;
-    _symbol_to_buffer(buffer, &size, symbol);
 
+match_next:
+    _symbol_to_buffer(buffer, &size, symbol);
     State *state = c_radix_tree_get(&session->current->next, buffer, size);
     switch(state->type)
     {
+        case ACTION_TYPE_CONTEXT_SHIFT:
+            stack_push(&session->stack, session->current);
+            session->current = state;
+            break;
         case ACTION_TYPE_ACCEPT:
         case ACTION_TYPE_SHIFT:
             session->current = state;
             break;
         case ACTION_TYPE_REDUCE:
-            //TODO: stack
+            session->current = stack_pop(&session->stack);
+            symbol = state->reduction;
+            goto match_next;
             break;
         default:
             break;
