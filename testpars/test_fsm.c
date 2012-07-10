@@ -78,7 +78,7 @@ void session_match__reduce_shift(Fixture *fix, gconstpointer data){
     session_match(session, '+');
     session_match(session, '2');
     session_match(session, '\0');
-    g_assert(frag != NULL);
+    g_assert(session->current->type == ACTION_TYPE_ACCEPT);
 }
 
 int main(int argc, char** argv){
