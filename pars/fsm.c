@@ -10,6 +10,15 @@
 
 #define NONE 0
 #include <stdio.h>
+
+#define FSM_TRACE 1
+
+#ifdef FSM_TRACE
+#define trace(M, T, S, A) printf("\n\ttrace: %i %s '%c' (%i) -> %s", (unsigned int)T, M, (char)S, S, A);
+#else
+#define trace(M, T, S, A)
+#endif
+
 void stack_init(Stack *stack)
 {
     stack->top = NULL;
@@ -73,6 +82,11 @@ void frag_init(Frag *frag)
     frag->final = final;
 }
 
+void frag_rewind(Frag *frag)
+{
+    frag->current = frag->begin;
+}
+
 Frag *fsm_get_frag(Fsm *fsm, unsigned char *name, int length)
 {
     Frag *frag = c_radix_tree_get(&fsm->rules, name, length);
@@ -104,6 +118,7 @@ State *_frag_add_action_buffer(Frag *frag, unsigned char *buffer, unsigned int s
     {
         state = c_new(State, 1);
         STATE_INIT(*state, action, reduction);
+		//trace("init", state, action, "");
     }
 
     c_radix_tree_set(&frag->current->next, buffer, size, state);
@@ -162,6 +177,44 @@ Session *fsm_start_session(Fsm *fsm)
     return session;
 }
 
+
+State *session_test(Session *session, int symbol)
+{
+    unsigned char buffer[sizeof(int)];
+    unsigned int size;
+    _symbol_to_buffer(buffer, &size, symbol);
+	State *state;
+	State *prev;
+
+    state = c_radix_tree_get(&session->current->next, buffer, size);
+
+    switch(state->type)
+    {
+        case ACTION_TYPE_CONTEXT_SHIFT:
+			trace("test", session->current, symbol, "context shift");
+            break;
+        case ACTION_TYPE_ACCEPT:
+			trace("test", session->current, symbol, "accept");
+            break;
+        case ACTION_TYPE_SHIFT:
+			trace("test", session->current, symbol, "shift");
+            break;
+        case ACTION_TYPE_REDUCE:
+			/*
+			prev = session->current;
+            session->current = stack_pop(&session->stack);
+			state = session_test(session, state->reduction);
+			state = session_test(session, symbol);
+            stack_push(&session->stack, prev);
+			*/
+			trace("test", session->current, symbol, "reduce");
+            break;
+        default:
+            break;
+    }
+	return state;
+}
+
 void session_match(Session *session, int symbol)
 {
     unsigned char buffer[sizeof(int)];
@@ -176,20 +229,28 @@ rematch:
 	if(state == NULL)
 	{
 		//Should jump to error state or throw exception?
+		if(session->current->type != ACTION_TYPE_ACCEPT)
+			trace("match", session->current, symbol, "error");
 		return;
 	}
 
     switch(state->type)
     {
         case ACTION_TYPE_CONTEXT_SHIFT:
+			trace("match", session->current, symbol, "context shift");
             stack_push(&session->stack, session->current);
             session->current = state;
             break;
         case ACTION_TYPE_ACCEPT:
+			trace("match", session->current, symbol, "accept");
+            session->current = state;
+            break;
         case ACTION_TYPE_SHIFT:
+			trace("match", session->current, symbol, "shift");
             session->current = state;
             break;
         case ACTION_TYPE_REDUCE:
+			trace("match", session->current, symbol, "reduce");
             session->current = stack_pop(&session->stack);
 			session_match(session, state->reduction);
             goto rematch; // same as session_match(session, symbol);

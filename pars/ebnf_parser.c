@@ -3,6 +3,7 @@
 #include <setjmp.h>
 
 #include "lexer.h"
+#include "fsm.h"
 
 jmp_buf on_error;
 
@@ -20,101 +21,81 @@ void match(LInput *input, LToken token)
     }
 }
 
-#define NEXT(V) (\
-        V = lexer_input_get_index(input),\
-        lexer_input_next(input)\
-    )
-
-#define RESTORE(V) lexer_input_set_index(input, V);
-
-#define ERROR(V) parse_error(input, V)
-
-void ebnf_parse_expression(LInput *input, E_HANDLER)
+void init_ebnf_parser(Fsm *fsm)
 {
-    unsigned int i;
-    switch(NEXT(i)) {
-    case L_TERMINAL_STRING:
-        handler(E_TERMINAL_STRING);
-        break;
-    case L_IDENTIFIER:
-        handler(E_IDENTIFIER);
-        break;
-    default:
-        ERROR(i);
-    }
+	Frag *frag;
+	Frag *e_frag;
+
+    fsm_init(fsm);
+
+	//Expression
+    e_frag = fsm_get_frag(fsm, "expression", 10);
+    frag_add_context_shift(e_frag, L_IDENTIFIER);
+    frag_add_reduce(e_frag, L_CONCATENATE_SYMBOL, E_EXPRESSION);
+    frag_add_reduce(e_frag, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
+    frag_add_reduce(e_frag, L_END_GROUP_SYMBOL, E_EXPRESSION);
+    frag_add_reduce(e_frag, L_TERMINATOR_SYMBOL, E_EXPRESSION);
+	frag_rewind(e_frag);
+    frag_add_context_shift(e_frag, L_TERMINAL_STRING);
+    frag_add_reduce(e_frag, L_CONCATENATE_SYMBOL, E_EXPRESSION);
+    frag_add_reduce(e_frag, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
+    frag_add_reduce(e_frag, L_END_GROUP_SYMBOL, E_EXPRESSION);
+    frag_add_reduce(e_frag, L_TERMINATOR_SYMBOL, E_EXPRESSION);
+	frag_rewind(e_frag);
+    frag_add_context_shift(e_frag, L_START_GROUP_SYMBOL);
+	
+	//Single Definition
+    frag = fsm_get_frag(fsm, "single_definition", 17);
+    frag_add_followset(frag, fsm_get_state(fsm, "expression", 10));
+    frag_add_context_shift(frag, E_EXPRESSION);
+    frag_add_reduce(frag, L_DEFINITION_SEPARATOR_SYMBOL, E_SINGLE_DEFINITION);
+    frag_add_reduce(frag, L_TERMINATOR_SYMBOL, E_SINGLE_DEFINITION);
+    frag_add_reduce(frag, L_END_GROUP_SYMBOL, E_SINGLE_DEFINITION);
+    frag_add_shift(frag, L_CONCATENATE_SYMBOL);
+    frag_add_followset(frag, fsm_get_state(fsm, "single_definition", 17));
+    frag_add_reduce(frag, E_SINGLE_DEFINITION, E_SINGLE_DEFINITION);
+
+	//Definitions List
+    frag = fsm_get_frag(fsm, "definitions_list", 16);
+    frag_add_followset(frag, fsm_get_state(fsm, "single_definition", 17));
+    frag_add_context_shift(frag, E_SINGLE_DEFINITION);
+    frag_add_reduce(frag, L_TERMINATOR_SYMBOL, E_DEFINITIONS_LIST);
+    frag_add_reduce(frag, L_END_GROUP_SYMBOL, E_DEFINITIONS_LIST);
+    frag_add_shift(frag, L_DEFINITION_SEPARATOR_SYMBOL);
+    frag_add_followset(frag, fsm_get_state(fsm, "definitions_list", 16));
+    frag_add_shift(frag, E_DEFINITIONS_LIST);
+    frag_add_reduce(frag, L_TERMINATOR_SYMBOL, E_DEFINITIONS_LIST);
+    frag_add_reduce(frag, L_END_GROUP_SYMBOL, E_DEFINITIONS_LIST);
+
+	//Finish Expression
+    frag_add_followset(e_frag, fsm_get_state(fsm, "definitions_list", 16));
+    frag_add_shift(e_frag, E_DEFINITIONS_LIST);
+    frag_add_shift(e_frag, L_END_GROUP_SYMBOL);
+    frag_add_reduce(e_frag, L_CONCATENATE_SYMBOL, E_EXPRESSION);
+    frag_add_reduce(e_frag, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
+    frag_add_reduce(e_frag, L_END_GROUP_SYMBOL, E_EXPRESSION);
+    frag_add_reduce(e_frag, L_TERMINATOR_SYMBOL, E_EXPRESSION);
+
+	//Non Terminal Declaration
+    frag = fsm_get_frag(fsm, "non_terminal_declaration", 24);
+    frag_add_context_shift(frag, L_IDENTIFIER);
+    frag_add_shift(frag, L_DEFINING_SYMBOL);
+    frag_add_followset(frag, fsm_get_state(fsm, "definitions_list", 16));
+    frag_add_shift(frag, E_DEFINITIONS_LIST);
+    frag_add_shift(frag, L_TERMINATOR_SYMBOL);
+    frag_add_reduce(frag, L_IDENTIFIER, E_NON_TERMINAL_DECLARATION);
+    frag_add_reduce(frag, L_EOF, E_NON_TERMINAL_DECLARATION);
+	
+	//Syntax
+    frag = fsm_get_frag(fsm, "syntax", 6);
+    frag_add_followset(frag, fsm_get_state(fsm, "non_terminal_declaration", 24));
+    frag_add_context_shift(frag, E_NON_TERMINAL_DECLARATION);
+    frag_add_reduce(frag, L_EOF, E_SYNTAX);
+    frag_add_followset(frag, fsm_get_state(fsm, "syntax", 6));
+    frag_add_shift(frag, E_SYNTAX);
+    frag_add_reduce(frag, L_EOF, E_SYNTAX);
+
+    //fsm_set_start(fsm, "definitions_list", 16, E_SINGLE_DEFINITION);
+    fsm_set_start(fsm, "syntax", 6, E_SYNTAX);
 }
 
-void ebnf_parse_single_definition(LInput *input, E_HANDLER)
-{
-    unsigned int i;
-begin:
-    ebnf_parse_expression(input, handler);
-    switch(NEXT(i)) {
-    case L_CONCATENATE_SYMBOL:
-        //parse next expression
-        goto begin;
-        break;
-    case L_EOF:
-        ERROR(i);
-        break;
-    default:
-        handler(E_SINGLE_DEFINITION);
-        RESTORE(i);
-    }
-}
-
-void ebnf_parse_definition_list(LInput *input, E_HANDLER)
-{
-    unsigned int i;
-begin:
-    ebnf_parse_single_definition(input, handler);
-    switch(NEXT(i)) {
-    case L_DEFINITION_SEPARATOR_SYMBOL:
-        //parse next single rule
-        goto begin;
-        break;
-    case L_EOF:
-        ERROR(i);
-        break;
-    default:
-        handler(E_DEFINITION_LIST);
-        RESTORE(i);
-    }
-}
-
-void ebnf_parse_syntax_rule(LInput *input, E_HANDLER)
-{
-    match(input, L_IDENTIFIER);
-    match(input, L_DEFINING_SYMBOL);
-    ebnf_parse_definition_list(input, handler);
-    match(input, L_TERMINATOR_SYMBOL);
-    handler(E_SYNTAX_RULE);
-}
-
-void ebnf_parse_syntax(LInput *input, E_HANDLER)
-{
-    unsigned int i;
-begin:
-    switch(NEXT(i)) {
-    case L_EOF:
-        //end
-        handler(E_SYNTAX);
-        break;
-    default:
-        RESTORE(i);
-        ebnf_parse_syntax_rule(input, handler);
-        goto begin;
-    }
-}
-
-int ebnf_start_parsing(LInput *input, E_HANDLER)
-{
-    if(setjmp(on_error) != 0) {
-        return -1;
-    }
-    else
-    {
-        ebnf_parse_syntax(input, handler);
-        return 0;
-    }
-}

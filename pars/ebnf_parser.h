@@ -6,12 +6,11 @@
 #define E_HANDLER void (handler)(int token)
 
 typedef enum {
-    E_TERMINAL_STRING,
-    E_IDENTIFIER,
-    E_SINGLE_DEFINITION,
-    E_DEFINITION_LIST,
-    E_SYNTAX_RULE,
-    E_SYNTAX
+    E_EXPRESSION = -1,
+    E_SINGLE_DEFINITION = -2,
+    E_DEFINITIONS_LIST = -3,
+    E_NON_TERMINAL_DECLARATION = -4,
+    E_SYNTAX = -5
 } EToken;
 
 int ebnf_start_parsing(LInput *input, E_HANDLER);
