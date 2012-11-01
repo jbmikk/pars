@@ -159,6 +159,13 @@ void session_match(Session *session, int symbol)
 match_next:
     _symbol_to_buffer(buffer, &size, symbol);
     State *state = c_radix_tree_get(&session->current->next, buffer, size);
+
+	if(state == NULL)
+	{
+		//Should jump to error state or throw exception?
+		return;
+	}
+
     switch(state->type)
     {
         case ACTION_TYPE_CONTEXT_SHIFT:
