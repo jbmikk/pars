@@ -15,6 +15,20 @@ typedef struct _CDataNode {
     cpointer data;
 } CDataNode;
 
+typedef struct _CIterator {
+    cpointer key;
+    cuchar size;
+    cpointer data;
+} CIterator;
+
+typedef struct _CScanStatus {
+    cpointer key;
+    cuchar size;
+    cuint index;
+    cuint subindex;
+    cuint type;
+} CScanStatus;
+
 #define NODE_INIT(V, T, S, C) ((V).type=T,(V).size=S,(V).child=C)
 
 #endif // CSTRUCT
