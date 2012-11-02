@@ -53,7 +53,7 @@ void frag_init(Frag *frag);
 void frag_add_accept(Frag *frag, int symbol);
 void frag_add_shift(Frag *frag, int symbol);
 void frag_add_context_shift(Frag *frag, int symbol);
-void frag_add_include(Frag *frag, State *state);
+void frag_add_followset(Frag *frag, State *state);
 void frag_add_reduce(Frag *frag, int symbol, int reduction);
 Frag *fsm_set_start(Fsm *fsm, unsigned char *name, int length, int symbol);
 Session *fsm_start_session(Fsm *fsm);

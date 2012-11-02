@@ -98,12 +98,8 @@ Frag *fsm_set_start(Fsm *fsm, unsigned char *name, int length, int symbol)
     frag_add_accept(frag, symbol);
 }
 
-State *_frag_add_action(Frag *frag, int symbol, int action, int reduction, State *state)
+State *_frag_add_action_buffer(Frag *frag, unsigned char *buffer, unsigned int size, int action, int reduction, State *state)
 {
-    unsigned char buffer[sizeof(int)];
-    unsigned int size;
-    _symbol_to_buffer(buffer, &size, symbol);
-
     if(state == NULL)
     {
         state = c_new(State, 1);
@@ -112,6 +108,15 @@ State *_frag_add_action(Frag *frag, int symbol, int action, int reduction, State
 
     c_radix_tree_set(&frag->current->next, buffer, size, state);
     return state;
+}
+
+State *_frag_add_action(Frag *frag, int symbol, int action, int reduction, State *state)
+{
+    unsigned char buffer[sizeof(int)];
+    unsigned int size;
+    _symbol_to_buffer(buffer, &size, symbol);
+
+    return _frag_add_action_buffer(frag, buffer, size, action, reduction, state);
 }
 
 void frag_add_accept(Frag *frag, int symbol)
@@ -132,9 +137,15 @@ void frag_add_context_shift(Frag *frag, int symbol)
     frag->current = state;
 }
 
-void frag_add_include(Frag *frag, State *state)
+void frag_add_followset(Frag *frag, State *state)
 {
-    //should merge state's follow set in current state
+	State *s;
+	CIterator it;
+    c_radix_tree_iterator_init(&(state->next), &it);
+	while((s = (State *)c_radix_tree_iterator_next(&(state->next), &it)) != NULL) {
+		_frag_add_action_buffer(frag, it.key, it.size, 0, 0, s);
+	}
+    c_radix_tree_iterator_dispose(&(state->next), &it);
 }
 
 void frag_add_reduce(Frag *frag, int symbol, int reduction)
@@ -155,10 +166,12 @@ void session_match(Session *session, int symbol)
 {
     unsigned char buffer[sizeof(int)];
     unsigned int size;
-
-match_next:
+	int prev_symbol = 0;
+	State *state;
     _symbol_to_buffer(buffer, &size, symbol);
-    State *state = c_radix_tree_get(&session->current->next, buffer, size);
+
+rematch:
+    state = c_radix_tree_get(&session->current->next, buffer, size);
 
 	if(state == NULL)
 	{
@@ -178,8 +191,8 @@ match_next:
             break;
         case ACTION_TYPE_REDUCE:
             session->current = stack_pop(&session->stack);
-            symbol = state->reduction;
-            goto match_next;
+			session_match(session, state->reduction);
+            goto rematch; // same as session_match(session, symbol);
             break;
         default:
             break;

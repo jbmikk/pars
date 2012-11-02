@@ -65,7 +65,7 @@ void session_match__reduce_shift(Fixture *fix, gconstpointer data){
     frag_add_reduce(frag, '+', 'N');
 
     frag = fsm_get_frag(&fix->fsm, "sum", 3);
-    frag_add_include(frag, fsm_get_state(&fix->fsm, "number", 6));
+    frag_add_followset(frag, fsm_get_state(&fix->fsm, "number", 6));
     frag_add_context_shift(frag, 'N');
     frag_add_shift(frag, '+');
     frag_add_shift(frag, '2');
