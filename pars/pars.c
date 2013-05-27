@@ -32,3 +32,9 @@ PGrammar *pars_load_grammar(char *pathname)
     }
     return grammar;
 }
+
+#ifndef LIBRARY
+int main(int argc, char** argv){
+    return 0;
+}
+#endif

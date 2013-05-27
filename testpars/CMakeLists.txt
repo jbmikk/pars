@@ -11,7 +11,7 @@ add_executable(test_lexer test_lexer.c)
 add_executable(test_ebnf_parser test_ebnf_parser.c)
 add_executable(test_fsm test_fsm.c)
 
-target_link_libraries(testpars ${GLIB_LIBRARIES} pars)
+target_link_libraries(testpars ${GLIB_LIBRARIES} parslib)
 target_link_libraries(test_lexer ${GLIB_LIBRARIES} lexer)
 target_link_libraries(test_ebnf_parser ${GLIB_LIBRARIES} ebnf_parser)
 target_link_libraries(test_fsm ${GLIB_LIBRARIES} fsm)

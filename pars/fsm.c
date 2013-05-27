@@ -11,8 +11,6 @@
 #define NONE 0
 #include <stdio.h>
 
-#define FSM_TRACE 1
-
 #ifdef FSM_TRACE
 #define trace(M, T, S, A) printf("\n\ttrace: %i %s '%c' (%i) -> %s", (unsigned int)T, M, (char)S, S, A);
 #else
