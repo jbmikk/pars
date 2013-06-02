@@ -16,6 +16,11 @@ target_link_libraries(test_lexer ${GLIB_LIBRARIES} lexer)
 target_link_libraries(test_ebnf_parser ${GLIB_LIBRARIES} ebnf_parser)
 target_link_libraries(test_fsm ${GLIB_LIBRARIES} fsm)
 
-file(COPY test_ebnf_grammar.txt DESTINATION .)
+message(STATUS "Copy Grammars")
+file(COPY grammars DESTINATION .)
+file(GLOB files "grammars/*")
+foreach(filename ${files})
+	file(COPY ${filename} DESTINATION "./grammars")
+endforeach()
 file(COPY test.sh DESTINATION .)
 

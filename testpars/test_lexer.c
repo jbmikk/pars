@@ -30,7 +30,7 @@ void teardown(Fixture *fix, gconstpointer data){
 }
 
 void lexer_input_init__existent_file(Fixture *fix, gconstpointer data){
-    LInput *input = lexer_input_init("test_ebnf_grammar.txt");
+    LInput *input = lexer_input_init("grammars/test_ebnf_grammar.txt");
     g_assert(input != NULL);
     lexer_input_close(input);
 }
