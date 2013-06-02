@@ -28,10 +28,15 @@ LInput* lexer_input_init(char *pathname)
         fseek(file, 0, SEEK_END);
         length = ftell(file);
         fseek(file, 0, SEEK_SET);
-        buffer = c_new(unsigned char, length);
-        length = fread(buffer, 1, length, file);
-        input = lexer_input_init_buffer(buffer, length);
-        input->file = file;
+		if(length > 0) {
+			buffer = c_new(unsigned char, length);
+			length = fread(buffer, 1, length, file);
+		} else {
+			buffer = NULL;
+		}
+		input = lexer_input_init_buffer(buffer, length);
+		input->file = file;
+		input->is_open = 1;
     }
     return input;
 }
@@ -67,12 +72,15 @@ LToken lexer_input_next(LInput *input)
 
 next_token:
 
-    c = CURRENT;
 
     if (END(0)) {
         token = L_EOF;
+		input->eof = 1;
+		goto eof;
     }
-    else if (IS_SPACE(c)) {
+
+    c = CURRENT;
+    if (IS_SPACE(c)) {
         while(1)
         {
             NEXT;
@@ -131,6 +139,7 @@ next_token:
     if(token == L_WHITE_SPACE)
         goto next_token;
 
+eof:
     return  token;
 }
 
