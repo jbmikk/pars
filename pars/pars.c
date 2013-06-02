@@ -3,19 +3,16 @@
 #include "lexer.h"
 
 #include <stddef.h>
-
-void _pars_parse_rule(PGrammar *grammar, LInput *input)
-{
-    while (!input->eof) {
-        lexer_input_next(input);
-        //_pars_parse_rule(grammar, input);
-    }
-}
+#include <stdio.h>
 
 void _pars_parse_grammar(PGrammar *grammar, LInput *input)
 {
+	Fsm ebnf;
+	init_ebnf_parser(&ebnf);
+    Session *session = fsm_start_session(&ebnf);
     while (!input->eof) {
-        _pars_parse_rule(grammar, input);
+		LToken token = lexer_input_next(input);
+		session_match(session, token);
     }
 }
 
@@ -26,15 +23,25 @@ PGrammar *pars_load_grammar(char *pathname)
 
     input = lexer_input_init(pathname);
 
-    if(input->is_open) {
-        grammar = c_new(PGrammar,1);
-        _pars_parse_grammar(grammar, input);
-    }
+	if(input) {
+		if(input->is_open) {
+			grammar = c_new(PGrammar,1);
+			_pars_parse_grammar(grammar, input);
+		} else {
+			printf("Could not open grammar file\n");
+		}
+	} else {
+		printf("Grammar file not found\n");
+	}
     return grammar;
 }
 
 #ifndef LIBRARY
 int main(int argc, char** argv){
+	if(argc > 1) {
+		printf("Loading grammar\n");
+		pars_load_grammar(argv[1]);
+	}
     return 0;
 }
 #endif
