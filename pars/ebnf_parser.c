@@ -53,7 +53,10 @@ void init_ebnf_parser(Fsm *fsm)
     frag_add_reduce(frag, L_END_GROUP_SYMBOL, E_SINGLE_DEFINITION);
     frag_add_shift(frag, L_CONCATENATE_SYMBOL);
     frag_add_followset(frag, fsm_get_state(fsm, "single_definition", 17));
-    frag_add_reduce(frag, E_SINGLE_DEFINITION, E_SINGLE_DEFINITION);
+    frag_add_shift(frag, E_SINGLE_DEFINITION);
+    frag_add_reduce(frag, L_DEFINITION_SEPARATOR_SYMBOL, E_SINGLE_DEFINITION);
+    frag_add_reduce(frag, L_TERMINATOR_SYMBOL, E_SINGLE_DEFINITION);
+    frag_add_reduce(frag, L_END_GROUP_SYMBOL, E_SINGLE_DEFINITION);
 
 	//Definitions List
     frag = fsm_get_frag(fsm, "definitions_list", 16);
