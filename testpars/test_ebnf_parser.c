@@ -167,9 +167,11 @@ void ebnf_start_parsing__syntax(Fixture *fix, gconstpointer data){
 
     state = session_test(session, L_EOF);
     g_assert(state->type == ACTION_TYPE_REDUCE);
-    g_assert(state->reduction == E_NON_TERMINAL_DECLARATION); //OK?
+	//First reduction only, not recursive
+    g_assert(state->reduction == E_NON_TERMINAL_DECLARATION); 
 
     session_match(session, L_EOF);
+    g_assert(session->current->type == ACTION_TYPE_ACCEPT);
 }
 
 int main(int argc, char** argv){
