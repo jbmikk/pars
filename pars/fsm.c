@@ -17,26 +17,27 @@
 #define trace(M, T, S, A)
 #endif
 
-void stack_init(Stack *stack)
+void session_init(Session *session)
 {
-    stack->top = NULL;
+	session->stack.top = NULL;
 }
 
-void stack_push(Stack *stack, State *state)
+void session_push(Session *session)
 {
-    SNode *node = c_new(SNode, 1);
-    node->state = state;
-    node->next = stack->top;
-    stack->top = node;
+	SNode *node = c_new(SNode, 1);
+	node->state = session->current;
+	node->index = session->index;
+	node->next = session->stack.top;
+	session->stack.top = node;
 }
 
-State *stack_pop(Stack *stack)
+void session_pop(Session *session)
 {
-    SNode *top = stack->top;
-    State *state = top->state;
-    stack->top = top->next;
-    c_delete(top);
-    return state;
+	SNode *top = session->stack.top;
+	session->current = top->state;
+	session->index = top->index;
+	session->stack.top = top->next;
+	c_delete(top);
 }
 
 
@@ -170,13 +171,13 @@ Session *fsm_start_session(Fsm *fsm)
 {
     Session *session = c_new(Session, 1);
     session->current = fsm->start;
-    stack_init(&session->stack);
-    stack_push(&session->stack, session->current);
+	session_init(session);
+	session_push(session);
     return session;
 }
 
 
-State *session_test(Session *session, int symbol)
+State *session_test(Session *session, int symbol, int index)
 {
     unsigned char buffer[sizeof(int)];
     unsigned int size;
@@ -198,13 +199,6 @@ State *session_test(Session *session, int symbol)
 			trace("test", session->current, symbol, "shift");
             break;
         case ACTION_TYPE_REDUCE:
-			/*
-			prev = session->current;
-            session->current = stack_pop(&session->stack);
-			state = session_test(session, state->reduction);
-			state = session_test(session, symbol);
-            stack_push(&session->stack, prev);
-			*/
 			trace("test", session->current, symbol, "reduce");
             break;
         default:
@@ -213,7 +207,7 @@ State *session_test(Session *session, int symbol)
 	return state;
 }
 
-void session_match(Session *session, int symbol)
+void session_match(Session *session, int symbol, int index)
 {
     unsigned char buffer[sizeof(int)];
     unsigned int size;
@@ -236,7 +230,7 @@ rematch:
     {
         case ACTION_TYPE_CONTEXT_SHIFT:
 			trace("match", session->current, symbol, "context shift");
-            stack_push(&session->stack, session->current);
+			session_push(session);
             session->current = state;
             break;
         case ACTION_TYPE_ACCEPT:
@@ -249,8 +243,8 @@ rematch:
             break;
         case ACTION_TYPE_REDUCE:
 			trace("match", session->current, symbol, "reduce");
-            session->current = stack_pop(&session->stack);
-			session_match(session, state->reduction);
+			session_pop(session);
+			session_match(session, state->reduction, session->index);
             goto rematch; // same as session_match(session, symbol);
             break;
         default:

@@ -28,6 +28,7 @@ typedef struct _Fsm {
 
 typedef struct _SNode {
     State *state;
+	int index;
     struct _SNode *next;
 } SNode;
 
@@ -37,12 +38,13 @@ typedef struct _Stack {
 
 typedef struct _Session {
     State *current;
+	int index;
     Stack stack;
 } Session;
 
-void stack_init(Stack *stack);
-void stack_push(Stack *stack, State *state);
-State *stack_pop(Stack *stack);
+void session_init(Session *session);
+void session_push(Session *session);
+void session_pop(Session *session);
 
 void fsm_init(Fsm *fsm);
 void fsm_dispose(Fsm *fsm);
@@ -58,7 +60,7 @@ void frag_add_followset(Frag *frag, State *state);
 void frag_add_reduce(Frag *frag, int symbol, int reduction);
 Frag *fsm_set_start(Fsm *fsm, unsigned char *name, int length, int symbol);
 Session *fsm_start_session(Fsm *fsm);
-void session_match(Session *session, int symbol);
-State *session_test(Session *session, int symbol);
+void session_match(Session *session, int symbol, int index);
+State *session_test(Session *session, int symbol, int index);
 
 #endif //FSM_H

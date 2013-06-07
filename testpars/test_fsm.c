@@ -4,6 +4,8 @@
 
 #include "fsm.h"
 
+#define MATCH(S, I) session_match(S, I, 0);
+
 typedef struct {
     Fsm fsm;
 } Fixture;
@@ -40,9 +42,9 @@ void session_match__shift(Fixture *fix, gconstpointer data){
     fsm_set_start(&fix->fsm, "name", 4, 'N');
 
     Session *session = fsm_start_session(&fix->fsm);
-    session_match(session, 'a');
-    session_match(session, 'b');
-    session_match(session, '.');
+	MATCH(session, 'a');
+	MATCH(session, 'b');
+	MATCH(session, '.');
     g_assert(frag != NULL);
     g_assert(session->current->type == ACTION_TYPE_CONTEXT_SHIFT);
 }
@@ -54,8 +56,8 @@ void session_match__reduce(Fixture *fix, gconstpointer data){
 
     fsm_set_start(&fix->fsm, "number", 6, 'N');
     Session *session = fsm_start_session(&fix->fsm);
-    session_match(session, '1');
-    session_match(session, '\0');
+	MATCH(session, '1');
+	MATCH(session, '\0');
     g_assert(session->current->type == ACTION_TYPE_ACCEPT);
 }
 
@@ -74,10 +76,10 @@ void session_match__reduce_shift(Fixture *fix, gconstpointer data){
     fsm_set_start(&fix->fsm, "sum", 3, 'S');
 
     Session *session = fsm_start_session(&fix->fsm);
-    session_match(session, '1');
-    session_match(session, '+');
-    session_match(session, '2');
-    session_match(session, '\0');
+	MATCH(session, '1');
+	MATCH(session, '+');
+	MATCH(session, '2');
+	MATCH(session, '\0');
     g_assert(session->current->type == ACTION_TYPE_ACCEPT);
 }
 

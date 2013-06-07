@@ -12,7 +12,7 @@ void _pars_parse_grammar(PGrammar *grammar, LInput *input)
     Session *session = fsm_start_session(&ebnf);
     while (!input->eof) {
 		LToken token = lexer_input_next(input);
-		session_match(session, token);
+		session_match(session, token, lexer_input_get_index(input));
     }
 }
 
