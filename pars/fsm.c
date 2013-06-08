@@ -20,6 +20,7 @@
 void session_init(Session *session)
 {
 	session->stack.top = NULL;
+	session->index = 0;
 }
 
 void session_push(Session *session)
@@ -171,13 +172,18 @@ Session *fsm_start_session(Fsm *fsm)
 {
     Session *session = c_new(Session, 1);
     session->current = fsm->start;
+	session->reduce_handler = NULL;
 	session_init(session);
 	session_push(session);
     return session;
 }
 
+Session *session_on_reduce(Session *session, FSM_EVENT(reduce_handler))
+{
+	session->reduce_handler = reduce_handler;
+}
 
-State *session_test(Session *session, int symbol, int index)
+State *session_test(Session *session, int symbol, unsigned int index)
 {
     unsigned char buffer[sizeof(int)];
     unsigned int size;
@@ -207,17 +213,17 @@ State *session_test(Session *session, int symbol, int index)
 	return state;
 }
 
-void session_match(Session *session, int symbol, int index)
+void session_match(Session *session, int symbol, unsigned int index)
 {
     unsigned char buffer[sizeof(int)];
     unsigned int size;
 	int prev_symbol = 0;
 	State *state;
     _symbol_to_buffer(buffer, &size, symbol);
+	session->index = index;
 
 rematch:
     state = c_radix_tree_get(&session->current->next, buffer, size);
-
 	if(state == NULL)
 	{
 		//Should jump to error state or throw exception?
@@ -244,6 +250,8 @@ rematch:
         case ACTION_TYPE_REDUCE:
 			trace("match", session->current, symbol, "reduce");
 			session_pop(session);
+			if(session->reduce_handler)
+				session->reduce_handler(state->reduction, session->index, index - session->index);
 			session_match(session, state->reduction, session->index);
             goto rematch; // same as session_match(session, symbol);
             break;

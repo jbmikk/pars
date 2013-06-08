@@ -9,6 +9,8 @@
 #define ACTION_TYPE_CONTEXT_SHIFT 3
 #define ACTION_TYPE_ACCEPT 4
 
+#define FSM_EVENT(N) void (*N)(int symbol, unsigned int index, unsigned int length)
+
 typedef struct _State {
     char type;
     int reduction;
@@ -38,8 +40,9 @@ typedef struct _Stack {
 
 typedef struct _Session {
     State *current;
-	int index;
+	unsigned int index;
     Stack stack;
+	FSM_EVENT(reduce_handler);
 } Session;
 
 void session_init(Session *session);
@@ -60,7 +63,8 @@ void frag_add_followset(Frag *frag, State *state);
 void frag_add_reduce(Frag *frag, int symbol, int reduction);
 Frag *fsm_set_start(Fsm *fsm, unsigned char *name, int length, int symbol);
 Session *fsm_start_session(Fsm *fsm);
-void session_match(Session *session, int symbol, int index);
-State *session_test(Session *session, int symbol, int index);
+Session *session_on_reduce(Session *session, FSM_EVENT(reduce_handler));
+void session_match(Session *session, int symbol, unsigned int index);
+State *session_test(Session *session, int symbol, unsigned int index);
 
 #endif //FSM_H
