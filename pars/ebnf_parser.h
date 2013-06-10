@@ -1,9 +1,8 @@
 #ifndef EBNF_PARSER_H
 #define EBNF_PARSER_H
 
+#include "fsm.h"
 #include "lexer.h"
-
-#define E_HANDLER void (handler)(int token)
 
 typedef enum {
     E_EXPRESSION = -1,
@@ -13,6 +12,6 @@ typedef enum {
     E_SYNTAX = -5
 } EToken;
 
-int ebnf_start_parsing(LInput *input, E_HANDLER);
+void init_ebnf_fsm(Fsm *fsm);
 
 #endif //EBNF_PARSER_H

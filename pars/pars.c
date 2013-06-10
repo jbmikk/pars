@@ -1,39 +1,39 @@
 #include "pars.h"
 #include "cmemory.h"
 #include "lexer.h"
+#include "fsm.h"
+#include "ebnf_parser.h"
+#include "processor.h"
 
 #include <stddef.h>
 #include <stdio.h>
 
-void _pars_parse_grammar(PGrammar *grammar, LInput *input)
+void _pars_parse_grammar(Processor *processor, LInput *input)
 {
-	Fsm ebnf;
-	init_ebnf_parser(&ebnf);
-    Session *session = fsm_start_session(&ebnf);
-    while (!input->eof) {
-		LToken token = lexer_input_next(input);
-		session_match(session, token, lexer_input_get_index(input));
-    }
+    Fsm *fsm = c_new(Fsm, 1);
+	init_ebnf_fsm(fsm);
+	processor_init(processor, fsm);
+	processor_run(processor, input);
 }
 
-PGrammar *pars_load_grammar(char *pathname)
+Processor *pars_load_grammar(char *pathname)
 {
     LInput *input;
-    PGrammar *grammar = NULL;
+    Processor *processor = NULL;
 
     input = lexer_input_init(pathname);
 
 	if(input) {
 		if(input->is_open) {
-			grammar = c_new(PGrammar,1);
-			_pars_parse_grammar(grammar, input);
+			processor = c_new(Processor,1);
+			_pars_parse_grammar(processor, input);
 		} else {
 			printf("Could not open grammar file\n");
 		}
 	} else {
 		printf("Grammar file not found\n");
 	}
-    return grammar;
+    return processor;
 }
 
 #ifndef LIBRARY

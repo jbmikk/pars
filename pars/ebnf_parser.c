@@ -2,9 +2,6 @@
 
 #include <setjmp.h>
 
-#include "lexer.h"
-#include "fsm.h"
-
 jmp_buf on_error;
 
 void parse_error(LInput *input, unsigned int index)
@@ -21,7 +18,7 @@ void match(LInput *input, LToken token)
     }
 }
 
-void init_ebnf_parser(Fsm *fsm)
+void init_ebnf_fsm(Fsm *fsm)
 {
 	Frag *frag;
 	Frag *e_frag;
@@ -101,4 +98,3 @@ void init_ebnf_parser(Fsm *fsm)
     //fsm_set_start(fsm, "definitions_list", 16, E_SINGLE_DEFINITION);
     fsm_set_start(fsm, "syntax", 6, E_SYNTAX);
 }
-

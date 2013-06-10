@@ -28,7 +28,7 @@ void setup(Fixture *fix, gconstpointer data){
     token_index = 0;
     diff = 0;
     count = 0;
-	init_ebnf_parser(&fix->fsm);
+	init_ebnf_fsm(&fix->fsm);
 }
 
 void teardown(Fixture *fix, gconstpointer data){
