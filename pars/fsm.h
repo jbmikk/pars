@@ -2,6 +2,7 @@
 #define FSM_H
 
 #include "cstruct.h"
+#include "event.h"
 
 #define ACTION_TYPE_START 0
 #define ACTION_TYPE_SHIFT 1
@@ -9,8 +10,6 @@
 #define ACTION_TYPE_CONTEXT_SHIFT 3
 #define ACTION_TYPE_ACCEPT 4
 #define ACTION_TYPE_ERROR 5
-
-#define FSM_EVENT(N) void (*N)(int symbol, unsigned int index, unsigned int length)
 
 typedef struct _State {
     char type;
@@ -43,8 +42,15 @@ typedef struct _Session {
     State *current;
 	unsigned int index;
     Stack stack;
-	FSM_EVENT(reduce_handler);
+	EventListener reduce_listener;
 } Session;
+
+typedef struct _ReduceArgs{
+	int symbol;
+	unsigned int index;
+	unsigned int length;
+} ReduceArgs;
+
 
 void session_init(Session *session);
 void session_push(Session *session);
@@ -64,7 +70,7 @@ void frag_add_followset(Frag *frag, State *state);
 void frag_add_reduce(Frag *frag, int symbol, int reduction);
 Frag *fsm_set_start(Fsm *fsm, unsigned char *name, int length, int symbol);
 Session *fsm_start_session(Fsm *fsm);
-Session *session_on_reduce(Session *session, FSM_EVENT(reduce_handler));
+Session *session_on_reduce(Session *session, EventListener(reduce_listener));
 void session_match(Session *session, int symbol, unsigned int index);
 State *session_test(Session *session, int symbol, unsigned int index);
 

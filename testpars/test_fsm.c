@@ -12,13 +12,7 @@ typedef struct {
     Fsm fsm;
 } Fixture;
 
-typedef struct {
-	int symbol;
-	unsigned int index;
-	unsigned int length;
-} Reduction;
-
-Reduction reduction;
+ReduceArgs reduction;
 
 void setup(Fixture *fix, gconstpointer data){
     fsm_init(&fix->fsm);
@@ -93,10 +87,8 @@ void session_match__reduce_shift(Fixture *fix, gconstpointer data){
     g_assert(session->current->type == ACTION_TYPE_ACCEPT);
 }
 
-void reduce_handler(int symbol, unsigned int index, unsigned int length) {
-	reduction.symbol = symbol;
-	reduction.index = index;
-	reduction.length = length;
+int reduce_handler(void *target, void *args) {
+	reduction = *((ReduceArgs *)args);
 }
 
 void session_match__reduce_handler(Fixture *fix, gconstpointer data){
@@ -122,7 +114,10 @@ void session_match__reduce_handler(Fixture *fix, gconstpointer data){
 	fsm_set_start(&fix->fsm, "sum", 3, 'S');
 
 	Session *session = fsm_start_session(&fix->fsm);
-	session_on_reduce(session, &reduce_handler);
+	EventListener listener;
+	listener.target = NULL;
+	listener.handler = reduce_handler;
+	session_on_reduce(session, listener);
 	MATCH_AT(session, '1', 0);
 	MATCH_AT(session, '+', 1);
 	g_assert_cmpint(reduction.symbol, ==, 'N');

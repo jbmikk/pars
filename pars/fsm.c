@@ -187,15 +187,15 @@ Session *fsm_start_session(Fsm *fsm)
 {
     Session *session = c_new(Session, 1);
     session->current = fsm->start;
-	session->reduce_handler = NULL;
+	session->reduce_listener.handler = NULL;
 	session_init(session);
 	session_push(session);
     return session;
 }
 
-Session *session_on_reduce(Session *session, FSM_EVENT(reduce_handler))
+Session *session_on_reduce(Session *session, EventListener reduce_listener)
 {
-	session->reduce_handler = reduce_handler;
+	session->reduce_listener = reduce_listener;
 }
 
 State *session_test(Session *session, int symbol, unsigned int index)
@@ -282,8 +282,11 @@ rematch:
         case ACTION_TYPE_REDUCE:
 			trace("match", session->current, symbol, "reduce");
 			session_pop(session);
-			if(session->reduce_handler)
-				session->reduce_handler(state->reduction, session->index, index - session->index);
+			ReduceArgs args;
+			args.symbol = state->reduction;
+			args.index = session->index;
+			args.length = index - session->index;
+			TRY_TRIGGER(session->reduce_listener, &args);
 			session_match(session, state->reduction, session->index);
             goto rematch; // same as session_match(session, symbol);
             break;
