@@ -98,3 +98,17 @@ void init_ebnf_fsm(Fsm *fsm)
     //fsm_set_start(fsm, "definitions_list", 16, E_SINGLE_DEFINITION);
     fsm_set_start(fsm, "syntax", 6, E_SYNTAX);
 }
+
+int reduce_handler(void *target, void *args) {
+	Processor *proc = (Processor *)target;
+	ReduceArgs *red = (ReduceArgs *)args;
+
+}
+
+void init_ebnf_interpreter(Processor *processor)
+{
+	EventListener listener;
+	listener.target = processor;
+	listener.handler = reduce_handler;
+	processor->reduce_listener = listener;
+}

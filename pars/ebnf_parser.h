@@ -3,6 +3,7 @@
 
 #include "fsm.h"
 #include "lexer.h"
+#include "processor.h"
 
 typedef enum {
     E_EXPRESSION = -1,
@@ -13,5 +14,6 @@ typedef enum {
 } EToken;
 
 void init_ebnf_fsm(Fsm *fsm);
+void init_ebnf_interpreter(Processor *processor);
 
 #endif //EBNF_PARSER_H

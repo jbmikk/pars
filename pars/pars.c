@@ -13,6 +13,7 @@ void _pars_parse_grammar(Processor *processor, LInput *input)
     Fsm *fsm = c_new(Fsm, 1);
 	init_ebnf_fsm(fsm);
 	processor_init(processor, fsm);
+	init_ebnf_interpreter(processor);
 	processor_run(processor, input);
 }
 
