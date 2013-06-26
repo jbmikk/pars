@@ -4,9 +4,11 @@
 #include "event.h"
 #include "lexer.h"
 #include "fsm.h"
+#include "ast.h"
 
 typedef struct _Processor {
     Fsm *fsm;
+	Ast ast;
     EventListener reduce_listener;
 } Processor;
 
