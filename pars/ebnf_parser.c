@@ -1,4 +1,6 @@
 #include "ebnf_parser.h"
+#include "ast.h"
+#include "processor.h"
 
 #include <setjmp.h>
 
@@ -103,12 +105,13 @@ int reduce_handler(void *target, void *args) {
 	Processor *proc = (Processor *)target;
 	ReduceArgs *red = (ReduceArgs *)args;
 
+	ast_add(&proc->ast, red->symbol, red->index, red->length);
 }
 
-void init_ebnf_interpreter(Processor *processor)
+void init_ebnf_interpreter(Processor *processor, Fsm *fsm)
 {
 	EventListener listener;
 	listener.target = processor;
 	listener.handler = reduce_handler;
-	processor->reduce_listener = listener;
+	processor_init(processor, fsm, listener);
 }

@@ -12,7 +12,7 @@ typedef struct _Processor {
     EventListener reduce_listener;
 } Processor;
 
-void processor_init(Processor *processor, Fsm *fsm);
+void processor_init(Processor *processor, Fsm *fsm, EventListener listener);
 void processor_run(Processor *processor, LInput *input);
 
 #endif //PROCESSOR_H

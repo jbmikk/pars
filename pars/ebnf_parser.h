@@ -14,6 +14,6 @@ typedef enum {
 } EToken;
 
 void init_ebnf_fsm(Fsm *fsm);
-void init_ebnf_interpreter(Processor *processor);
+void init_ebnf_interpreter(Processor *processor, Fsm *fsm);
 
 #endif //EBNF_PARSER_H

@@ -6,7 +6,10 @@ add_library (ebnf_parser ebnf_parser.c)
 
 add_library (fsm fsm.c)
 
+add_library (ast ast.c)
+
 add_library (processor processor.c)
+
 
 if(ENABLE_FSM_TRACE)
 	set_target_properties(fsm PROPERTIES COMPILE_FLAGS -DFSM_TRACE)
@@ -19,7 +22,7 @@ add_executable (pars pars.c)
 
 target_link_libraries(lexer cmemory)
 target_link_libraries(fsm cradixtree)
-target_link_libraries(ebnf_parser fsm lexer)
+target_link_libraries(ebnf_parser fsm lexer ast processor)
 target_link_libraries(parslib cmemory lexer ebnf_parser processor)
 target_link_libraries(pars cmemory lexer ebnf_parser processor)
 
