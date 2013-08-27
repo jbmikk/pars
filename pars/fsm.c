@@ -118,6 +118,7 @@ State *_frag_add_action_buffer(Frag *frag, unsigned char *buffer, unsigned int s
     {
         state = c_new(State, 1);
         STATE_INIT(*state, action, reduction);
+		NODE_INIT(state->next, 0, 0, NULL);
 		//trace("init", state, action, "");
     }
 
