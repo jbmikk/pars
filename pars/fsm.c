@@ -207,6 +207,18 @@ State *session_test(Session *session, int symbol, unsigned int index)
 	State *prev;
 
     state = c_radix_tree_get(&session->current->next, buffer, size);
+	if(state == NULL)
+	{
+		//Should jump to error state or throw exception?
+		if(session->current->type != ACTION_TYPE_ACCEPT) {
+			trace("test", session->current, symbol, "error");
+			State *error = c_new(State, 1);
+			STATE_INIT(*error, ACTION_TYPE_ERROR, NONE);
+			NODE_INIT(error->next, 0, 0, NULL);
+			session->current = error;
+		}
+		return session->current;
+	}
 
     switch(state->type)
     {
@@ -242,8 +254,13 @@ rematch:
 	if(state == NULL)
 	{
 		//Should jump to error state or throw exception?
-		if(session->current->type != ACTION_TYPE_ACCEPT)
+		if(session->current->type != ACTION_TYPE_ACCEPT) {
 			trace("match", session->current, symbol, "error");
+			State *error = c_new(State, 1);
+			STATE_INIT(*error, ACTION_TYPE_ERROR, NONE);
+			NODE_INIT(error->next, 0, 0, NULL);
+			session->current = error;
+		}
 		return;
 	}
 

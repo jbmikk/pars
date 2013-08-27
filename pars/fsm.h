@@ -8,6 +8,7 @@
 #define ACTION_TYPE_REDUCE 2
 #define ACTION_TYPE_CONTEXT_SHIFT 3
 #define ACTION_TYPE_ACCEPT 4
+#define ACTION_TYPE_ERROR 5
 
 #define FSM_EVENT(N) void (*N)(int symbol, unsigned int index, unsigned int length)
 
