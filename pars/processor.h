@@ -9,7 +9,7 @@
 typedef struct _Processor {
     Fsm *fsm;
 	Ast ast;
-    EventListener reduce_listener;
+    EventListener fsm_listener;
 } Processor;
 
 void processor_init(Processor *processor, Fsm *fsm, EventListener listener);

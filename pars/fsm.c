@@ -187,15 +187,15 @@ Session *fsm_start_session(Fsm *fsm)
 {
     Session *session = c_new(Session, 1);
     session->current = fsm->start;
-	session->reduce_listener.handler = NULL;
+	session->listener.handler = NULL;
 	session_init(session);
 	session_push(session);
     return session;
 }
 
-Session *session_on_reduce(Session *session, EventListener reduce_listener)
+Session *session_set_listener(Session *session, EventListener listener)
 {
-	session->reduce_listener = reduce_listener;
+	session->listener = listener;
 }
 
 State *session_test(Session *session, int symbol, unsigned int index)
@@ -268,6 +268,9 @@ rematch:
     {
         case ACTION_TYPE_CONTEXT_SHIFT:
 			trace("match", session->current, symbol, "context shift");
+			FsmArgs cargs;
+			cargs.index = session->index;
+			TRY_TRIGGER(EVENT_CONTEXT_SHIFT, session->listener, &cargs);
 			session_push(session);
             session->current = state;
             break;
@@ -282,11 +285,11 @@ rematch:
         case ACTION_TYPE_REDUCE:
 			trace("match", session->current, symbol, "reduce");
 			session_pop(session);
-			ReduceArgs args;
-			args.symbol = state->reduction;
-			args.index = session->index;
-			args.length = index - session->index;
-			TRY_TRIGGER(session->reduce_listener, &args);
+			FsmArgs rargs;
+			rargs.symbol = state->reduction;
+			rargs.index = session->index;
+			rargs.length = index - session->index;
+			TRY_TRIGGER(EVENT_REDUCE, session->listener, &rargs);
 			session_match(session, state->reduction, session->index);
             goto rematch; // same as session_match(session, symbol);
             break;

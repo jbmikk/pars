@@ -11,6 +11,9 @@
 #define ACTION_TYPE_ACCEPT 4
 #define ACTION_TYPE_ERROR 5
 
+#define EVENT_REDUCE 1
+#define EVENT_CONTEXT_SHIFT 2
+
 typedef struct _State {
     char type;
     int reduction;
@@ -42,14 +45,14 @@ typedef struct _Session {
     State *current;
 	unsigned int index;
     Stack stack;
-	EventListener reduce_listener;
+	EventListener listener;
 } Session;
 
-typedef struct _ReduceArgs{
+typedef struct _FsmArgs{
 	int symbol;
 	unsigned int index;
 	unsigned int length;
-} ReduceArgs;
+} FsmArgs;
 
 
 void session_init(Session *session);
@@ -70,7 +73,7 @@ void frag_add_followset(Frag *frag, State *state);
 void frag_add_reduce(Frag *frag, int symbol, int reduction);
 Frag *fsm_set_start(Fsm *fsm, unsigned char *name, int length, int symbol);
 Session *fsm_start_session(Fsm *fsm);
-Session *session_on_reduce(Session *session, EventListener(reduce_listener));
+Session *session_set_listener(Session *session, EventListener(listener));
 void session_match(Session *session, int symbol, unsigned int index);
 State *session_test(Session *session, int symbol, unsigned int index);
 

@@ -101,17 +101,24 @@ void init_ebnf_fsm(Fsm *fsm)
     fsm_set_start(fsm, "syntax", 6, E_SYNTAX);
 }
 
-int reduce_handler(void *target, void *args) {
+int event_handler(int type, void *target, void *args) {
 	Processor *proc = (Processor *)target;
-	ReduceArgs *red = (ReduceArgs *)args;
+	FsmArgs *red = (FsmArgs *)args;
 
-	ast_add(&proc->ast, red->symbol, red->index, red->length);
+	switch(type) {
+	case EVENT_REDUCE:
+		ast_close(&proc->ast, red->index, red->length, red->symbol);
+		break;
+	case EVENT_CONTEXT_SHIFT:
+		ast_open(&proc->ast, red->index, red->length, red->symbol);
+		break;
+	}
 }
 
 void init_ebnf_interpreter(Processor *processor, Fsm *fsm)
 {
 	EventListener listener;
 	listener.target = processor;
-	listener.handler = reduce_handler;
+	listener.handler = event_handler;
 	processor_init(processor, fsm, listener);
 }
