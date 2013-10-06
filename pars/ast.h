@@ -1,10 +1,24 @@
 #ifndef AST_H
 #define AST_H
 
+#include "cradixtree.h"
+
+typedef struct _AstNode {
+	unsigned int index;
+	unsigned int length;
+	CNode children;
+	struct _AstNode *parent;
+} AstNode;
+
 typedef struct _Ast {
+	AstNode root;
+	AstNode *current;
+	AstNode *previous;
 } Ast;
 
 void ast_init(Ast *ast);
-void ast_add(Ast *ast, int symbol, unsigned int index, unsigned int length);
+void ast_open(Ast *ast, unsigned int index, unsigned int length, int push_previous);
+void ast_close(Ast *ast, unsigned int index, unsigned int length, int symbol);
+void ast_push(Ast *ast);
 
 #endif //AST_H
