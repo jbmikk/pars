@@ -28,7 +28,7 @@ void ast_open(Ast *ast, unsigned int index, unsigned int length, int symbol)
 		unsigned char buffer[sizeof(int)];
 		unsigned int size;
 		_symbol_to_buffer(buffer, &size, index);
-		if(ast->previous->index == index)
+		if(previous->index == index)
 			previous->parent = node;
 		c_radix_tree_set(&previous->parent->children, buffer, size, previous);
 	}
