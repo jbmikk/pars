@@ -16,7 +16,7 @@ void ast_node_init(AstNode *node, AstNode *parent, unsigned int index)
 	node->index = index;
 }
 
-void ast_open(Ast *ast, unsigned int index, unsigned int length, int symbol)
+void ast_open(Ast *ast, unsigned int index, unsigned int length)
 {
 	AstNode *node = c_new(AstNode, 1);
 	//node = ast.root;
@@ -38,6 +38,8 @@ void ast_open(Ast *ast, unsigned int index, unsigned int length, int symbol)
 void ast_close(Ast *ast, unsigned int index, unsigned int length, int symbol)
 {
 	AstNode *node = ast->current;
+
+	node->symbol = symbol;
 
 	ast->previous = node;
 	ast->current = node->parent;
