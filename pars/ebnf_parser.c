@@ -110,7 +110,7 @@ int event_handler(int type, void *target, void *args) {
 		ast_close(&proc->ast, red->index, red->length, red->symbol);
 		break;
 	case EVENT_CONTEXT_SHIFT:
-		ast_open(&proc->ast, red->index, red->length);
+		ast_open(&proc->ast, red->index);
 		break;
 	}
 }
