@@ -231,6 +231,42 @@ void c_radix_tree_set(CNode *tree, cchar *string, cuint length, cpointer data)
     data_node->data = data;
 }
 
+init_status(CScanStatus *status, CScanStatus *poststatus, cchar *string, cuint length)
+{
+	status->index = 0;
+	status->subindex = 0;
+	status->key = string;
+	status->size = length;
+	if(string != NULL)
+		status->type = S_FETCHNEXT;
+	else
+		status->type = S_DEFAULT;
+
+	poststatus->key = c_new(char, 1);
+	poststatus->size = 0;
+	poststatus->index = 0;
+	poststatus->subindex = 0;
+}
+
+cpointer *c_radix_tree_get_next(CNode *tree, cchar *string, cuint length)
+{
+	CDataNode *res;
+	CScanStatus status;
+	CScanStatus poststatus;
+
+	init_status(&status, &poststatus, string, length);
+
+	res = c_radix_tree_scan(tree, &status, &poststatus);
+
+	c_delete(poststatus.key);
+
+	if(res != NULL) {
+		return res->data;
+	} else {
+		return NULL;
+	}
+}
+
 void c_radix_tree_iterator_init(CNode *tree, CIterator *iterator)
 {
 	iterator->key = NULL;
@@ -248,22 +284,8 @@ cpointer *c_radix_tree_iterator_next(CNode *tree, CIterator *iterator)
 	CDataNode *res;
 	CScanStatus status;
 	CScanStatus poststatus;
-	status.index = 0;
-	status.subindex = 0;
 
-	if(iterator->key != NULL) {
-		status.key = iterator->key;
-		status.size = iterator->size;
-		status.type = S_FETCHNEXT;
-	} else {
-		status.key = NULL;
-		status.size = 0;
-		status.type = S_DEFAULT;
-	}
-	poststatus.key = c_new(char, 1);
-	poststatus.size = 0;
-	poststatus.index = 0;
-	poststatus.subindex = 0;
+	init_status(&status, &poststatus, iterator->key, iterator->size);
 
 	res = c_radix_tree_scan(tree, &status, &poststatus);
 
