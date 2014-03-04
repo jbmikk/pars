@@ -1,6 +1,7 @@
 #include "ast.h"
 
 #include "cmemory.h"
+#include "symbols.h"
 
 void ast_init(Ast *ast)
 {
@@ -27,7 +28,7 @@ void ast_open(Ast *ast, unsigned int index)
 		ast->previous = NULL;
 		unsigned char buffer[sizeof(int)];
 		unsigned int size;
-		_symbol_to_buffer(buffer, &size, previous->index);
+		symbol_to_buffer(buffer, &size, previous->index);
 		if(previous->index == node->index)
 			previous->parent = node;
 		c_radix_tree_set(&previous->parent->children, buffer, size, previous);

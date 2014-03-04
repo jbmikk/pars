@@ -2,6 +2,7 @@
 
 #include "cmemory.h"
 #include "cradixtree.h"
+#include "symbols.h"
 
 #define STATE_INIT(V, T, R) (\
         (V).type = (T),\
@@ -39,36 +40,6 @@ void session_pop(Session *session)
 	session->index = top->index;
 	session->stack.top = top->next;
 	c_delete(top);
-}
-
-
-void _symbol_to_buffer(unsigned char *buffer, unsigned int *size, int symbol)
-{
-    int remainder = symbol;
-    int i;
-
-    for (i = 0; i < sizeof(int); i++) {
-        buffer[i] = remainder & 0xFF;
-        remainder >>= 8;
-        if(remainder == 0)
-        {
-            i++;
-            break;
-        }
-    }
-    *size = i;
-}
-
-int _buffer_to_symbol(unsigned char *buffer, unsigned int size)
-{
-	int symbol = 0;
-	int i;
-
-	for (i = 0; i < size; i++) {
-		symbol <<= 8;
-		symbol = symbol | buffer[i];
-	}
-	return symbol;
 }
 
 void fsm_init(Fsm *fsm)
@@ -142,7 +113,7 @@ State *_frag_add_action(Frag *frag, int symbol, int action, int reduction, State
 {
     unsigned char buffer[sizeof(int)];
     unsigned int size;
-    _symbol_to_buffer(buffer, &size, symbol);
+    symbol_to_buffer(buffer, &size, symbol);
 
 	trace("add", state, symbol, "action");
     return _frag_add_action_buffer(frag, buffer, size, action, reduction, state);
@@ -173,7 +144,7 @@ void frag_add_followset(Frag *frag, State *state)
     c_radix_tree_iterator_init(&(state->next), &it);
 	while((s = (State *)c_radix_tree_iterator_next(&(state->next), &it)) != NULL) {
 		_frag_add_action_buffer(frag, it.key, it.size, 0, 0, s);
-		trace("add", state, _buffer_to_symbol(it.key, it.size), "follow");
+		trace("add", state, buffer_to_symbol(it.key, it.size), "follow");
 	}
     c_radix_tree_iterator_dispose(&(state->next), &it);
 }
@@ -202,7 +173,7 @@ State *session_test(Session *session, int symbol, unsigned int index)
 {
     unsigned char buffer[sizeof(int)];
     unsigned int size;
-    _symbol_to_buffer(buffer, &size, symbol);
+    symbol_to_buffer(buffer, &size, symbol);
 	State *state;
 	State *prev;
 
@@ -246,7 +217,7 @@ void session_match(Session *session, int symbol, unsigned int index)
     unsigned int size;
 	int prev_symbol = 0;
 	State *state;
-    _symbol_to_buffer(buffer, &size, symbol);
+    symbol_to_buffer(buffer, &size, symbol);
 	session->index = index;
 
 rematch:
