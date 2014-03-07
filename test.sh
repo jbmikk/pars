@@ -17,6 +17,7 @@ cd testpars
 ./test_lexer
 ./test_ebnf_parser
 ./test_fsm
+./test_ast
 cd ..
 
 cd ..
