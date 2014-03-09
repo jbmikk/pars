@@ -120,12 +120,44 @@ void ast_sibling_nodes(Fixture *fix, gconstpointer data){
 	ast_cursor_dispose(&cursor);
 }
 
+void ast_same_index_nodes(Fixture *fix, gconstpointer data){
+	AstCursor cursor;
+	AstNode *root, *outer, *inner, *last;
+
+	ast_open(&fix->ast, 1);
+	ast_close(&fix->ast, 4, 3, 123);
+	ast_open(&fix->ast, 1);
+	ast_close(&fix->ast, 5, 4, 456);
+	ast_done(&fix->ast);
+
+	ast_cursor_init(&cursor, &fix->ast);
+	root = ast_cursor_depth_next(&cursor);
+	outer = ast_cursor_depth_next(&cursor);
+	inner = ast_cursor_depth_next(&cursor);
+	last = ast_cursor_depth_next(&cursor);
+
+	g_assert(outer != NULL);
+	g_assert_cmpint(outer->index, ==, 1);
+	g_assert_cmpint(outer->length, ==, 4);
+	g_assert_cmpint(outer->symbol, ==, 456);
+
+	g_assert(inner!= NULL);
+	g_assert_cmpint(inner->index, ==, 1);
+	g_assert_cmpint(inner->length, ==, 3);
+	g_assert_cmpint(inner->symbol, ==, 123);
+
+	g_assert(last == NULL);
+
+	ast_cursor_dispose(&cursor);
+}
+
 int main(int argc, char** argv){
 	g_test_init(&argc, &argv, NULL);
 	g_test_add("/Ast/depth_next", Fixture, NULL, setup, ast_empty, teardown);
 	g_test_add("/Ast/depth_next", Fixture, NULL, setup, ast_single_node, teardown);
 	g_test_add("/Ast/depth_next", Fixture, NULL, setup, ast_nested_nodes, teardown);
 	g_test_add("/Ast/depth_next", Fixture, NULL, setup, ast_sibling_nodes, teardown);
+	g_test_add("/Ast/depth_next", Fixture, NULL, setup, ast_same_index_nodes, teardown);
 	return g_test_run();
 }
 
