@@ -14,5 +14,6 @@ typedef struct _Processor {
 
 void processor_init(Processor *processor, Fsm *fsm, EventListener listener);
 void processor_run(Processor *processor, LInput *input);
+int processor_fsm_ast_mapper(int type, void *target, void *args);
 
 #endif //PROCESSOR_H

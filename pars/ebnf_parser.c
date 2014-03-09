@@ -1,6 +1,4 @@
 #include "ebnf_parser.h"
-#include "ast.h"
-#include "processor.h"
 
 #include <setjmp.h>
 
@@ -20,7 +18,7 @@ void match(LInput *input, LToken token)
     }
 }
 
-void init_ebnf_fsm(Fsm *fsm)
+void ebnf_init_fsm(Fsm *fsm)
 {
 	Frag *frag;
 	Frag *e_frag;
@@ -99,26 +97,4 @@ void init_ebnf_fsm(Fsm *fsm)
 
     //fsm_set_start(fsm, "definitions_list", 16, E_SINGLE_DEFINITION);
     fsm_set_start(fsm, "syntax", 6, E_SYNTAX);
-}
-
-int event_handler(int type, void *target, void *args) {
-	Processor *proc = (Processor *)target;
-	FsmArgs *red = (FsmArgs *)args;
-
-	switch(type) {
-	case EVENT_REDUCE:
-		ast_close(&proc->ast, red->index, red->length, red->symbol);
-		break;
-	case EVENT_CONTEXT_SHIFT:
-		ast_open(&proc->ast, red->index);
-		break;
-	}
-}
-
-void init_ebnf_interpreter(Processor *processor, Fsm *fsm)
-{
-	EventListener listener;
-	listener.target = processor;
-	listener.handler = event_handler;
-	processor_init(processor, fsm, listener);
 }

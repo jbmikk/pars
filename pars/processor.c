@@ -1,5 +1,19 @@
 #include "processor.h"
 
+int processor_fsm_ast_mapper(int type, void *target, void *args) {
+	Processor *proc = (Processor *)target;
+	FsmArgs *red = (FsmArgs *)args;
+
+	switch(type) {
+	case EVENT_REDUCE:
+		ast_close(&proc->ast, red->index, red->length, red->symbol);
+		break;
+	case EVENT_CONTEXT_SHIFT:
+		ast_open(&proc->ast, red->index);
+		break;
+	}
+}
+
 void processor_init(Processor *processor, Fsm *fsm, EventListener listener)
 {
 	processor->fsm = fsm;

@@ -11,8 +11,14 @@
 void _pars_parse_grammar(Processor *processor, LInput *input)
 {
     Fsm *fsm = c_new(Fsm, 1);
-	init_ebnf_fsm(fsm);
-	init_ebnf_interpreter(processor, fsm);
+	ebnf_init_fsm(fsm);
+
+	EventListener listener;
+	listener.target = processor;
+	listener.handler = processor_fsm_ast_mapper;
+
+	processor_init(processor, fsm, listener);
+
 	processor_run(processor, input);
 }
 
