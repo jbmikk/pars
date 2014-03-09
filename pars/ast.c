@@ -54,6 +54,9 @@ void ast_close(Ast *ast, unsigned int index, unsigned int length, int symbol)
 	node->length = length;
 	node->symbol = symbol;
 
+	if(ast->previous != NULL) {
+		ast_bind_to_parent(ast->previous);
+	}
 	ast->previous = node;
 	ast->current = node->parent;
 }
