@@ -108,6 +108,15 @@ AstNode *ast_cursor_depth_next(AstCursor *cursor)
 	return node;
 }
 
+AstNode *ast_cursor_depth_next_symbol(AstCursor *cursor, int symbol)
+{
+	AstNode * node;
+	do {
+		node = ast_cursor_depth_next(cursor);
+	} while(node != NULL && node->symbol != symbol);
+	return node;
+}
+
 void ast_cursor_dispose(AstCursor *cursor)
 {
 	cursor->ast = NULL;
