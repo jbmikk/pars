@@ -29,6 +29,11 @@ typedef struct _CScanStatus {
     cuint type;
 } CScanStatus;
 
+typedef struct _SNode {
+	cpointer data;
+	struct _SNode *next;
+} SNode;
+
 #define NODE_INIT(V, T, S, C) ((V).type=T,(V).size=S,(V).child=C)
 
 #endif // CSTRUCT
