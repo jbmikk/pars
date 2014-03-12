@@ -26,7 +26,7 @@ void session_init(Session *session)
 
 void session_push(Session *session)
 {
-	SNode *node = c_new(SNode, 1);
+	SessionNode *node = c_new(SessionNode, 1);
 	node->state = session->current;
 	node->index = session->index;
 	node->next = session->stack.top;
@@ -35,7 +35,7 @@ void session_push(Session *session)
 
 void session_pop(Session *session)
 {
-	SNode *top = session->stack.top;
+	SessionNode *top = session->stack.top;
 	session->current = top->state;
 	session->index = top->index;
 	session->stack.top = top->next;

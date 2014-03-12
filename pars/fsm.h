@@ -31,14 +31,14 @@ typedef struct _Fsm {
     CNode rules;
 } Fsm;
 
-typedef struct _SNode {
+typedef struct _SessionNode {
     State *state;
 	int index;
-    struct _SNode *next;
-} SNode;
+    struct _SessionNode *next;
+} SessionNode;
 
 typedef struct _Stack {
-    SNode *top;
+    SessionNode *top;
 } Stack;
 
 typedef struct _Session {
