@@ -88,6 +88,18 @@ void ast_cursor_init(AstCursor *cursor, Ast *ast)
 {
 	cursor->ast = ast;
 	cursor->current = NULL;
+	cursor->stack = NULL;
+}
+
+void ast_cursor_push(AstCursor *cursor) 
+{
+	cursor->stack = stack_push(cursor->stack, cursor->current);
+}
+
+void ast_cursor_pop(AstCursor *cursor) 
+{
+	cursor->current = (AstNode *)cursor->stack->data;
+	cursor->stack = stack_pop(cursor->stack);
 }
 
 AstNode *ast_cursor_depth_next(AstCursor *cursor)
@@ -121,4 +133,6 @@ void ast_cursor_dispose(AstCursor *cursor)
 {
 	cursor->ast = NULL;
 	cursor->current = NULL;
+	stack_dispose(cursor->stack);
+	cursor->stack = NULL;
 }

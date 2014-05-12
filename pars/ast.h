@@ -2,6 +2,7 @@
 #define AST_H
 
 #include "cradixtree.h"
+#include "stack.h"
 
 typedef struct _AstNode {
 	unsigned int index;
@@ -20,6 +21,7 @@ typedef struct _Ast {
 typedef struct _AstCursor {
 	Ast *ast;
 	AstNode *current;
+	SNode *stack;
 } AstCursor;
 
 void ast_init(Ast *ast);

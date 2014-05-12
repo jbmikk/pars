@@ -183,6 +183,56 @@ void ast_next_symbol(Fixture *fix, gconstpointer data){
 	ast_cursor_dispose(&cursor);
 }
 
+void ast_push_pop_state(Fixture *fix, gconstpointer data){
+	AstCursor cursor;
+	AstNode *sibling1, *sibling2, *sibling2again, *sibling3, *last;
+
+	ast_open(&fix->ast, 1);
+	ast_open(&fix->ast, 2);
+	ast_close(&fix->ast, 3, 1, 123);
+	ast_open(&fix->ast, 4);
+	ast_close(&fix->ast, 5, 1, 456);
+	ast_close(&fix->ast, 6, 5, 789);
+	ast_done(&fix->ast);
+
+	ast_cursor_init(&cursor, &fix->ast);
+
+	//Skip root
+	ast_cursor_depth_next(&cursor);
+
+	sibling1 = ast_cursor_depth_next(&cursor);
+	ast_cursor_push(&cursor);
+
+	sibling2 = ast_cursor_depth_next(&cursor);
+	sibling3 = ast_cursor_depth_next(&cursor);
+	ast_cursor_pop(&cursor);
+
+	sibling2again = ast_cursor_depth_next(&cursor);
+
+	g_assert(sibling1 != NULL);
+	g_assert_cmpint(sibling1->index, ==, 1);
+	g_assert_cmpint(sibling1->length, ==, 5);
+	g_assert_cmpint(sibling1->symbol, ==, 789);
+
+	g_assert(sibling2 != NULL);
+	g_assert_cmpint(sibling2->index, ==, 2);
+	g_assert_cmpint(sibling2->length, ==, 1);
+	g_assert_cmpint(sibling2->symbol, ==, 123);
+
+	g_assert(sibling3 != NULL);
+	g_assert_cmpint(sibling3->index, ==, 4);
+	g_assert_cmpint(sibling3->length, ==, 1);
+	g_assert_cmpint(sibling3->symbol, ==, 456);
+
+	g_assert(sibling2again != NULL);
+	g_assert(sibling2again == sibling2);
+	g_assert_cmpint(sibling2again->index, ==, 2);
+	g_assert_cmpint(sibling2again->length, ==, 1);
+	g_assert_cmpint(sibling2again->symbol, ==, 123);
+
+	ast_cursor_dispose(&cursor);
+}
+
 int main(int argc, char** argv){
 	g_test_init(&argc, &argv, NULL);
 	g_test_add("/Ast/depth_next", Fixture, NULL, setup, ast_empty, teardown);
@@ -191,6 +241,7 @@ int main(int argc, char** argv){
 	g_test_add("/Ast/depth_next", Fixture, NULL, setup, ast_sibling_nodes, teardown);
 	g_test_add("/Ast/depth_next", Fixture, NULL, setup, ast_same_index_nodes, teardown);
 	g_test_add("/Ast/depth_next_symbol", Fixture, NULL, setup, ast_next_symbol, teardown);
+	g_test_add("/Ast/push_pop_state", Fixture, NULL, setup, ast_push_pop_state, teardown);
 	return g_test_run();
 }
 
