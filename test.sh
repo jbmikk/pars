@@ -21,3 +21,6 @@ cd testpars
 cd ..
 
 cd ..
+
+# test with valgrind 
+# valgrind -v --suppressions=suppressions.supp --leak-check=full build/testclib/test_cbsearch

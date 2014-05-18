@@ -1,0 +1,8 @@
+{
+   glib_leak
+   Memcheck:Leak
+   fun:*
+   ...
+   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.3600.0
+   ...
+}
