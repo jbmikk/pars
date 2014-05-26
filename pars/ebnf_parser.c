@@ -98,3 +98,18 @@ void ebnf_init_fsm(Fsm *fsm)
     //fsm_set_start(fsm, "definitions_list", 16, E_SINGLE_DEFINITION);
     fsm_set_start(fsm, "syntax", 6, E_SYNTAX);
 }
+
+int ebnf_fsm_ast_handler(int type, void *target, void *args) {
+	Ast *ast = (Ast *)target;
+	FsmArgs *red = (FsmArgs *)args;
+
+	switch(type) {
+	case EVENT_REDUCE:
+		ast_close(ast, red->index, red->length, red->symbol);
+		break;
+	case EVENT_CONTEXT_SHIFT:
+		ast_open(ast, red->index);
+		break;
+	}
+}
+
