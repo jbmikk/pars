@@ -1,5 +1,7 @@
 #include "ebnf_parser.h"
 
+#include "cmemory.h"
+
 #include <setjmp.h>
 
 jmp_buf on_error;
@@ -113,3 +115,32 @@ int ebnf_fsm_ast_handler(int type, void *target, void *args) {
 	}
 }
 
+void ebnf_input_to_ast(Ast *ast, LInput *input)
+{
+    Fsm *ebnf_fsm = c_new(Fsm, 1);
+
+	EventListener ebnf_listener;
+	ebnf_listener.target = ast;
+	ebnf_listener.handler = ebnf_fsm_ast_handler;
+
+	ebnf_init_fsm(ebnf_fsm);
+	ast_init(ast);
+
+    Session *session = fsm_start_session(ebnf_fsm);
+	session_set_listener(session, ebnf_listener);
+
+    while (!input->eof) {
+		LToken token = lexer_input_next(input);
+		session_match(session, token, lexer_input_get_index(input));
+    }
+}
+
+void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
+{
+	AstCursor cursor;
+	AstNode *node;
+
+	ast_cursor_init(&cursor, ast);
+	node = ast_cursor_depth_next(&cursor);
+	ast_cursor_dispose(&cursor);
+}
