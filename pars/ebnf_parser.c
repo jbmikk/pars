@@ -138,12 +138,33 @@ void ebnf_input_to_ast(Ast *ast, Input *input)
 	ast_done(ast);
 }
 
+void ebnf_build_definitions_list(Fsm *fsm, AstCursor *cursor)
+{
+}
+
+void ebnf_build_non_terminal_declaration(Fsm *fsm, AstCursor *cursor)
+{
+	AstNode *node;
+	node = ast_cursor_depth_next_symbol(cursor, L_IDENTIFIER);
+	node = ast_cursor_depth_next_symbol(cursor, E_DEFINITIONS_LIST);
+	//node->index
+	//node->length
+    //frag = fsm_get_frag(fsm, "single_definition", 17);
+	ebnf_build_definitions_list(fsm, cursor);
+}	
+
 void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
 {
 	AstCursor cursor;
 	AstNode *node;
 
 	ast_cursor_init(&cursor, ast);
-	node = ast_cursor_depth_next(&cursor);
+
+	while(ast_cursor_depth_next_symbol(&cursor, E_NON_TERMINAL_DECLARATION)) {
+		ast_cursor_push(&cursor);
+		ebnf_build_non_terminal_declaration(fsm, &cursor);
+		ast_cursor_pop(&cursor);
+	}
+
 	ast_cursor_dispose(&cursor);
 }
