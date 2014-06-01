@@ -6,17 +6,17 @@
 
 jmp_buf on_error;
 
-void parse_error(LInput *input, unsigned int index)
+void parse_error(Input *input, unsigned int index)
 {
     longjmp(on_error, 1);
 }
 
-void match(LInput *input, LToken token)
+void match(Input *input, LToken token)
 {
     LToken t;
     t = lexer_input_next(input);
     if(t != token) {
-        parse_error(input, lexer_input_get_index(input));
+		parse_error(input, input_get_index(input));
     }
 }
 
@@ -115,7 +115,7 @@ int ebnf_fsm_ast_handler(int type, void *target, void *args) {
 	}
 }
 
-void ebnf_input_to_ast(Ast *ast, LInput *input)
+void ebnf_input_to_ast(Ast *ast, Input *input)
 {
     Fsm *ebnf_fsm = c_new(Fsm, 1);
 
@@ -131,7 +131,7 @@ void ebnf_input_to_ast(Ast *ast, LInput *input)
 
     while (!input->eof) {
 		LToken token = lexer_input_next(input);
-		session_match(session, token, lexer_input_get_index(input));
+		session_match(session, token, input_get_index(input));
     }
 }
 

@@ -1,6 +1,6 @@
 #include "pars.h"
 #include "cmemory.h"
-#include "lexer.h"
+#include "input.h"
 #include "fsm.h"
 #include "ebnf_parser.h"
 
@@ -9,11 +9,11 @@
 
 Ast *pars_load_grammar(char *pathname)
 {
-    LInput *input;
+	Input *input;
 	Ast *ast;
     Fsm *fsm = c_new(Fsm, 1);
 
-    input = lexer_input_init(pathname);
+	input = input_init(pathname);
 
 	if(input) {
 		if(input->is_open) {

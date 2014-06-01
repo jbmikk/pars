@@ -1,5 +1,7 @@
 include_directories("${PROJECT_SOURCE_DIR}/clib")
 
+add_library (input input.c)
+
 add_library (lexer lexer.c)
 
 add_library (ebnf_parser ebnf_parser.c)
@@ -20,10 +22,11 @@ set_target_properties(parslib PROPERTIES COMPILE_FLAGS -DLIBRARY)
 
 add_executable (pars pars.c)
 
-target_link_libraries(lexer cmemory)
+target_link_libraries(input cmemory)
+target_link_libraries(lexer input)
 target_link_libraries(fsm cradixtree symbols)
 target_link_libraries(ast cradixtree symbols stack)
 target_link_libraries(ebnf_parser fsm lexer ast)
-target_link_libraries(parslib cmemory lexer ebnf_parser)
-target_link_libraries(pars cmemory lexer ebnf_parser)
+target_link_libraries(parslib cmemory input ebnf_parser)
+target_link_libraries(pars cmemory input ebnf_parser)
 
