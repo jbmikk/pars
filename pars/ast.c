@@ -12,11 +12,12 @@ void ast_node_init(AstNode *node, AstNode *parent, unsigned int index)
 	node->index = index;
 }
 
-void ast_init(Ast *ast)
+void ast_init(Ast *ast, Input *input)
 {
 	ast_node_init(&ast->root, NULL, 0);
 	ast->current = &ast->root;
 	ast->previous = NULL;
+	ast->input = input;
 }
 
 void ast_dispose(Ast *ast)

@@ -124,7 +124,7 @@ void ebnf_input_to_ast(Ast *ast, Input *input)
 	ebnf_listener.handler = ebnf_fsm_ast_handler;
 
 	ebnf_init_fsm(ebnf_fsm);
-	ast_init(ast);
+	ast_init(ast, input);
 
     Session *session = fsm_start_session(ebnf_fsm);
 	session_set_listener(session, ebnf_listener);

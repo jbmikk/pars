@@ -10,7 +10,7 @@ typedef struct {
 } Fixture;
 
 void setup(Fixture *fix, gconstpointer data){
-	ast_init(&fix->ast);
+	ast_init(&fix->ast, NULL);
 }
 
 void teardown(Fixture *fix, gconstpointer data){

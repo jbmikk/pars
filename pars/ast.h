@@ -3,6 +3,7 @@
 
 #include "cradixtree.h"
 #include "stack.h"
+#include "input.h"
 
 typedef struct _AstNode {
 	unsigned int index;
@@ -16,6 +17,7 @@ typedef struct _Ast {
 	AstNode root;
 	AstNode *current;
 	AstNode *previous;
+	Input *input;
 } Ast;
 
 typedef struct _AstCursor {
@@ -24,7 +26,7 @@ typedef struct _AstCursor {
 	SNode *stack;
 } AstCursor;
 
-void ast_init(Ast *ast);
+void ast_init(Ast *ast, Input *input);
 void ast_dispose(Ast *ast);
 void ast_open(Ast *ast, unsigned int index);
 void ast_close(Ast *ast, unsigned int index, unsigned int length, int symbol);
