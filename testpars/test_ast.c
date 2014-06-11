@@ -3,14 +3,18 @@
 #include <glib.h>
 #include <stdio.h>
 
+#include "input.h"
 #include "ast.h"
+
+unsigned char *buffer = "this is a test";
 
 typedef struct {
 	Ast ast;
 } Fixture;
 
 void setup(Fixture *fix, gconstpointer data){
-	ast_init(&fix->ast, NULL);
+	Input *input = input_init_buffer(buffer, strlen(buffer));
+	ast_init(&fix->ast, input);
 }
 
 void teardown(Fixture *fix, gconstpointer data){
@@ -233,6 +237,43 @@ void ast_push_pop_state(Fixture *fix, gconstpointer data){
 	ast_cursor_dispose(&cursor);
 }
 
+void ast_cursor_get_strings(Fixture *fix, gconstpointer data){
+	AstCursor cursor;
+	AstNode *sibling1, *sibling2, *sibling3, * sibling4;
+	unsigned char *string;
+	int length, diff;
+
+	ast_open(&fix->ast, 0); // this is a test
+	ast_open(&fix->ast, 5); // is
+	ast_close(&fix->ast, 6, 2, 123);
+	ast_open(&fix->ast, 8); // a
+	ast_close(&fix->ast, 8, 1, 456);
+	ast_close(&fix->ast, 13, 14, 789);
+	ast_done(&fix->ast);
+
+	ast_cursor_init(&cursor, &fix->ast);
+
+	//Skip root
+	ast_cursor_depth_next(&cursor);
+
+	sibling1 = ast_cursor_depth_next(&cursor);
+	ast_cursor_get_string(&cursor, &string, &length);
+	diff = strncmp(string, "this is a test", strlen("this is a test"));
+	g_assert(diff == 0);
+
+	sibling2 = ast_cursor_depth_next(&cursor);
+	ast_cursor_get_string(&cursor, &string, &length);
+	diff = strncmp(string, "is", strlen("is"));
+	g_assert(diff == 0);
+
+	sibling3 = ast_cursor_depth_next(&cursor);
+	ast_cursor_get_string(&cursor, &string, &length);
+	diff = strncmp(string, "a", strlen("a"));
+	g_assert(diff == 0);
+
+	ast_cursor_dispose(&cursor);
+}
+
 int main(int argc, char** argv){
 	g_test_init(&argc, &argv, NULL);
 	g_test_add("/Ast/depth_next", Fixture, NULL, setup, ast_empty, teardown);
@@ -242,6 +283,7 @@ int main(int argc, char** argv){
 	g_test_add("/Ast/depth_next", Fixture, NULL, setup, ast_same_index_nodes, teardown);
 	g_test_add("/Ast/depth_next_symbol", Fixture, NULL, setup, ast_next_symbol, teardown);
 	g_test_add("/Ast/push_pop_state", Fixture, NULL, setup, ast_push_pop_state, teardown);
+	g_test_add("/Ast/get_strings", Fixture, NULL, setup, ast_cursor_get_strings, teardown);
 	return g_test_run();
 }
 

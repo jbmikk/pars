@@ -130,6 +130,12 @@ AstNode *ast_cursor_depth_next_symbol(AstCursor *cursor, int symbol)
 	return node;
 }
 
+void ast_cursor_get_string(AstCursor *cursor, unsigned char **str, int *length)
+{
+	*str = cursor->ast->input->buffer + cursor->current->index;
+	*length = cursor->current->length;
+}
+
 void ast_cursor_dispose(AstCursor *cursor)
 {
 	cursor->ast = NULL;

@@ -34,6 +34,7 @@ void ast_done(Ast *ast);
 void ast_cursor_init(AstCursor *cursor, Ast *ast);
 AstNode *ast_cursor_depth_next(AstCursor *cursor);
 AstNode *ast_cursor_depth_next_symbol(AstCursor *cursor, int symbol);
+void ast_cursor_get_string(AstCursor *cursor, unsigned char **str, int *length);
 void ast_cursor_dispose(AstCursor *cursor);
 
 #endif //AST_H

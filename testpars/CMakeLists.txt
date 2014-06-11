@@ -18,7 +18,7 @@ target_link_libraries(test_input ${GLIB_LIBRARIES} input)
 target_link_libraries(test_lexer ${GLIB_LIBRARIES} lexer)
 target_link_libraries(test_ebnf_parser ${GLIB_LIBRARIES} ebnf_parser)
 target_link_libraries(test_fsm ${GLIB_LIBRARIES} fsm)
-target_link_libraries(test_ast ${GLIB_LIBRARIES} ast)
+target_link_libraries(test_ast ${GLIB_LIBRARIES} ast input)
 
 message(STATUS "Copy Grammars")
 file(COPY grammars DESTINATION .)
