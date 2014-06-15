@@ -138,33 +138,37 @@ void ebnf_input_to_ast(Ast *ast, Input *input)
 	ast_done(ast);
 }
 
-void ebnf_build_definitions_list(Fsm *fsm, AstCursor *cursor)
+void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur)
 {
 }
 
-void ebnf_build_non_terminal_declaration(Fsm *fsm, AstCursor *cursor)
+void ebnf_build_non_terminal_declaration(FsmCursor *f_cur, AstCursor *a_cur)
 {
 	AstNode *node;
-	node = ast_cursor_depth_next_symbol(cursor, L_IDENTIFIER);
-	node = ast_cursor_depth_next_symbol(cursor, E_DEFINITIONS_LIST);
-	//node->index
-	//node->length
-    //frag = fsm_get_frag(fsm, "single_definition", 17);
-	ebnf_build_definitions_list(fsm, cursor);
+	unsigned char *string;
+	int length;
+
+	node = ast_cursor_depth_next_symbol(a_cur, L_IDENTIFIER);
+	node = ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);
+	ast_cursor_get_string(a_cur, &string, &length);
+	fsm_cursor_set(f_cur, string, length);
+	ebnf_build_definitions_list(f_cur, a_cur);
 }	
 
 void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
 {
-	AstCursor cursor;
+	AstCursor a_cur;
+	FsmCursor f_cur;
 	AstNode *node;
 
-	ast_cursor_init(&cursor, ast);
+	ast_cursor_init(&a_cur, ast);
+	fsm_cursor_init(&f_cur, fsm);
 
-	while(ast_cursor_depth_next_symbol(&cursor, E_NON_TERMINAL_DECLARATION)) {
-		ast_cursor_push(&cursor);
-		ebnf_build_non_terminal_declaration(fsm, &cursor);
-		ast_cursor_pop(&cursor);
+	while(ast_cursor_depth_next_symbol(&a_cur, E_NON_TERMINAL_DECLARATION)) {
+		ast_cursor_push(&a_cur);
+		ebnf_build_non_terminal_declaration(&f_cur, &a_cur);
+		ast_cursor_pop(&a_cur);
 	}
 
-	ast_cursor_dispose(&cursor);
+	ast_cursor_dispose(&a_cur);
 }
