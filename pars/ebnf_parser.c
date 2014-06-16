@@ -133,6 +133,7 @@ void ebnf_input_to_ast(Ast *ast, Input *input)
 		LToken token = lexer_input_next(input);
 		session_match(session, token, input_get_index(input));
     }
+	ast_done(ast);
 }
 
 void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
