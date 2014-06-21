@@ -18,6 +18,14 @@ typedef enum {
 	L_TERMINAL_STRING
 } LToken;
 
-LToken lexer_input_next(Input *input);
+typedef struct _Lexer {
+	unsigned int index;
+	unsigned int length;
+	int symbol;
+	Input *input;
+} Lexer;
+
+void lexer_init(Lexer *lexer, Input *input);
+void lexer_next(Lexer *lexer);
 
 #endif //LEXER_H

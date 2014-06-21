@@ -11,15 +11,6 @@ void parse_error(Input *input, unsigned int index)
     longjmp(on_error, 1);
 }
 
-void match(Input *input, LToken token)
-{
-    LToken t;
-    t = lexer_input_next(input);
-    if(t != token) {
-		parse_error(input, input_get_index(input));
-    }
-}
-
 void ebnf_init_fsm(Fsm *fsm)
 {
 	Frag *frag;
@@ -117,12 +108,14 @@ int ebnf_fsm_ast_handler(int type, void *target, void *args) {
 
 void ebnf_input_to_ast(Ast *ast, Input *input)
 {
-    Fsm *ebnf_fsm = c_new(Fsm, 1);
+	Lexer lexer;
+	Fsm *ebnf_fsm = c_new(Fsm, 1);
 
 	EventListener ebnf_listener;
 	ebnf_listener.target = ast;
 	ebnf_listener.handler = ebnf_fsm_ast_handler;
 
+	lexer_init(&lexer, input);
 	ebnf_init_fsm(ebnf_fsm);
 	ast_init(ast, input);
 
@@ -130,8 +123,12 @@ void ebnf_input_to_ast(Ast *ast, Input *input)
 	session_set_listener(session, ebnf_listener);
 
     while (!input->eof) {
-		LToken token = lexer_input_next(input);
-		session_match(session, token, input_get_index(input));
+		lexer_next(&lexer);
+		session_match(session, lexer.symbol, lexer.index);
+		if(session->current->type == ACTION_TYPE_ERROR) {
+			printf("Error parsing grammar at index: %i\n", session->index);
+			break;
+		}
     }
 	ast_done(ast);
 }

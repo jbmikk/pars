@@ -1,23 +1,31 @@
 #include "lexer.h"
 
-LToken lexer_input_next(Input *input)
+void lexer_init(Lexer *lexer, Input *input)
+{
+	lexer->input = input;
+	lexer->index = 0;
+	lexer->length = 0;
+	lexer->symbol = 0;
+}
+
+void lexer_next(Lexer *lexer)
 {
 	LToken token;
 	unsigned char c;
 
-#define CURRENT (input->buffer[input->buffer_index])
-#define NEXT (++input->buffer_index)
-#define END(V) (input->buffer_index >= input->buffer_size-V)
+#define CURRENT (lexer->input->buffer[lexer->input->buffer_index])
+#define NEXT (++lexer->input->buffer_index)
+#define END(V) (lexer->input->buffer_index >= lexer->input->buffer_size-V)
 
 #define BETWEEN(V, A, B) (V >= A && V <= B)
 #define IS_SPACE(V) (V == ' ' || V == '\t' || V == '\n')
 
 next_token:
-
+	lexer->index = lexer->input->buffer_index;
 
 	if (END(0)) {
 		token = L_EOF;
-		input->eof = 1;
+		lexer->input->eof = 1;
 		goto eof;
 	}
 
@@ -82,6 +90,6 @@ next_token:
 		goto next_token;
 
 eof:
-	return  token;
+	lexer->symbol = token;
 }
 
