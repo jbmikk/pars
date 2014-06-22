@@ -124,6 +124,7 @@ void session_match__reduce_handler(Fixture *fix, gconstpointer data){
 	g_assert_cmpint(reduction.symbol, ==, 'N');
 	g_assert_cmpint(reduction.index, ==, 0);
 	g_assert_cmpint(reduction.length, ==, 1);
+	g_assert_cmpint(session->index, ==, 1);
 	MATCH_AT(session, 'w', 2);
 	MATCH_AT(session, 'o', 3);
 	MATCH_AT(session, 'r', 4);

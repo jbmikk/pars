@@ -218,9 +218,9 @@ void session_match(Session *session, int symbol, unsigned int index)
 	int prev_symbol = 0;
 	State *state;
     symbol_to_buffer(buffer, &size, symbol);
-	session->index = index;
 
 rematch:
+	session->index = index;
     state = c_radix_tree_get(&session->current->next, buffer, size);
 	if(state == NULL)
 	{
