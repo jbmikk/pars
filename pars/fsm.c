@@ -13,7 +13,7 @@
 #include <stdio.h>
 
 #ifdef FSM_TRACE
-#define trace(M, T, S, A) printf("\n\ttrace: %i %s '%c' (%i) -> %s", (unsigned int)T, M, (char)S, S, A);
+#define trace(M, T, S, A) printf("trace: %i %s '%c' (%i) -> %s\n", (unsigned int)T, M, (char)S, S, A);
 #else
 #define trace(M, T, S, A)
 #endif

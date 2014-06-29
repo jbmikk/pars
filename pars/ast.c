@@ -5,6 +5,12 @@
 
 #include <stdio.h>
 
+#ifdef AST_TRACE
+#define trace(N, A, T, I, L) printf("ast: %i, %s: %c, at: %i, length: %i \n", N, A, (char)T, I, L);
+#else
+#define trace(N, A, T, I, L)
+#endif
+
 void ast_node_init(AstNode *node, AstNode *parent, unsigned int index)
 {
 	NODE_INIT(node->children, 0, 0, NULL);
@@ -38,9 +44,11 @@ void ast_open(Ast *ast, unsigned int index)
 	AstNode *node = c_new(AstNode, 1);
 	ast_node_init(node, ast->current, index);
 
+	trace(node, "open", '?', index, 0);
 	if(ast->previous != NULL) {
 		AstNode *previous = ast->previous;
 		ast->previous = NULL;
+		trace(previous, "previous", '?', previous->index, 0);
 		if(previous->index == node->index)
 			previous->parent = node;
 		ast_bind_to_parent(previous);
@@ -55,6 +63,7 @@ void ast_close(Ast *ast, unsigned int index, unsigned int length, int symbol)
 	node->length = length;
 	node->symbol = symbol;
 
+	trace(node, "close", symbol, index, length);
 	if(ast->previous != NULL) {
 		ast_bind_to_parent(ast->previous);
 	}

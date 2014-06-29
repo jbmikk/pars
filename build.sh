@@ -8,7 +8,7 @@ echo TRACES = $TRACES
 echo ""
 echo "CMAKE:"
 echo "------"
-cmake .. -DENABLE_FSM_TRACE=$TRACES
+cmake .. -DENABLE_FSM_TRACE=$TRACES -DENABLE_AST_TRACE=$TRACES
 
 echo ""
 echo "MAKE:"

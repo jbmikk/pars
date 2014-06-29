@@ -17,6 +17,10 @@ if(ENABLE_FSM_TRACE)
 	set_target_properties(fsm PROPERTIES COMPILE_FLAGS -DFSM_TRACE)
 endif(ENABLE_FSM_TRACE)
 
+if(ENABLE_AST_TRACE)
+	set_target_properties(ast PROPERTIES COMPILE_FLAGS -DAST_TRACE)
+endif(ENABLE_AST_TRACE)
+
 add_library (parslib pars.c)
 set_target_properties(parslib PROPERTIES COMPILE_FLAGS -DLIBRARY)
 
