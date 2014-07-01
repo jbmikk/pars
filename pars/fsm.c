@@ -55,14 +55,10 @@ void fsm_dispose(Fsm *fsm)
 void frag_init(Frag *frag)
 {
     State *begin = c_new(State, 1);
-    State *final = c_new(State, 1);
     STATE_INIT(*begin, ACTION_TYPE_SHIFT, NONE);
     NODE_INIT(begin->next, 0, 0, NULL);
-    STATE_INIT(*final, ACTION_TYPE_SHIFT, NONE);
-    NODE_INIT(final->next, 0, 0, NULL);
     frag->begin = begin;
     frag->current = begin;
-    frag->final = final;
 }
 
 void frag_rewind(Frag *frag)

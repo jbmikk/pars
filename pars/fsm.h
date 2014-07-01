@@ -23,7 +23,6 @@ typedef struct _State {
 typedef struct _Frag {
     State *begin;
     State *current;
-    State *final;
 } Frag;
 
 typedef struct _Fsm {
