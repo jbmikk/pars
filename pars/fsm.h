@@ -20,15 +20,16 @@ typedef struct _State {
     CNode next;
 } State;
 
-typedef struct _Frag {
-    State *begin;
-    State *current;
-} Frag;
-
 typedef struct _Fsm {
     State *start;
     CNode rules;
 } Fsm;
+
+typedef struct _FsmCursor {
+	Fsm *fsm;
+	State *begin;
+	State *current;
+} FsmCursor;
 
 typedef struct _SessionNode {
     State *state;
@@ -60,17 +61,18 @@ void session_pop(Session *session);
 
 void fsm_init(Fsm *fsm);
 void fsm_dispose(Fsm *fsm);
-Frag *fsm_get_frag(Fsm *fsm, unsigned char *name, int length);
 State *fsm_get_state(Fsm *fsm, unsigned char *name, int length);
 
-void frag_init(Frag *frag);
-void frag_rewind(Frag *frag);
-void frag_add_accept(Frag *frag, int symbol);
-void frag_add_shift(Frag *frag, int symbol);
-void frag_add_context_shift(Frag *frag, int symbol);
-void frag_add_followset(Frag *frag, State *state);
-void frag_add_reduce(Frag *frag, int symbol, int reduction);
-Frag *fsm_set_start(Fsm *fsm, unsigned char *name, int length, int symbol);
+void fsm_cursor_init(FsmCursor *cur, Fsm *fsm);
+void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length);
+void fsm_cursor_set(FsmCursor *cur, unsigned char *name, int length);
+void fsm_cursor_rewind(FsmCursor *cur);
+
+void fsm_cursor_add_shift(FsmCursor *cur, int symbol);
+void fsm_cursor_add_context_shift(FsmCursor *cur, int symbol);
+void fsm_cursor_add_followset(FsmCursor *cur, State *state);
+void fsm_cursor_add_reduce(FsmCursor *cur, int symbol, int reduction);
+FsmCursor *fsm_set_start(Fsm *fsm, unsigned char *name, int length, int symbol);
 Session *fsm_start_session(Fsm *fsm);
 Session *session_set_listener(Session *session, EventListener(listener));
 void session_match(Session *session, int symbol, unsigned int index);

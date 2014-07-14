@@ -13,83 +13,88 @@ void parse_error(Input *input, unsigned int index)
 
 void ebnf_init_fsm(Fsm *fsm)
 {
-	Frag *frag;
-	Frag *e_frag;
+	FsmCursor cur;
+	FsmCursor e_cur;
 
-    fsm_init(fsm);
+	fsm_init(fsm);
 
 	//Expression
-    e_frag = fsm_get_frag(fsm, "expression", 10);
-    frag_add_context_shift(e_frag, L_IDENTIFIER);
-    frag_add_reduce(e_frag, L_CONCATENATE_SYMBOL, E_EXPRESSION);
-    frag_add_reduce(e_frag, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
-    frag_add_reduce(e_frag, L_END_GROUP_SYMBOL, E_EXPRESSION);
-    frag_add_reduce(e_frag, L_TERMINATOR_SYMBOL, E_EXPRESSION);
-	frag_rewind(e_frag);
-    frag_add_context_shift(e_frag, L_TERMINAL_STRING);
-    frag_add_reduce(e_frag, L_CONCATENATE_SYMBOL, E_EXPRESSION);
-    frag_add_reduce(e_frag, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
-    frag_add_reduce(e_frag, L_END_GROUP_SYMBOL, E_EXPRESSION);
-    frag_add_reduce(e_frag, L_TERMINATOR_SYMBOL, E_EXPRESSION);
-	frag_rewind(e_frag);
-    frag_add_context_shift(e_frag, L_START_GROUP_SYMBOL);
-	
+	fsm_cursor_init(&e_cur, fsm);
+	fsm_cursor_set(&e_cur, "expression", 10);
+	fsm_cursor_add_context_shift(&e_cur, L_IDENTIFIER);
+	fsm_cursor_add_reduce(&e_cur, L_CONCATENATE_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&e_cur, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&e_cur, L_END_GROUP_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&e_cur, L_TERMINATOR_SYMBOL, E_EXPRESSION);
+	fsm_cursor_rewind(&e_cur);
+	fsm_cursor_add_context_shift(&e_cur, L_TERMINAL_STRING);
+	fsm_cursor_add_reduce(&e_cur, L_CONCATENATE_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&e_cur, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&e_cur, L_END_GROUP_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&e_cur, L_TERMINATOR_SYMBOL, E_EXPRESSION);
+	fsm_cursor_rewind(&e_cur);
+	fsm_cursor_add_context_shift(&e_cur, L_START_GROUP_SYMBOL);
+
 	//Single Definition
-    frag = fsm_get_frag(fsm, "single_definition", 17);
-    frag_add_followset(frag, fsm_get_state(fsm, "expression", 10));
-    frag_add_context_shift(frag, E_EXPRESSION);
-    frag_add_reduce(frag, L_DEFINITION_SEPARATOR_SYMBOL, E_SINGLE_DEFINITION);
-    frag_add_reduce(frag, L_TERMINATOR_SYMBOL, E_SINGLE_DEFINITION);
-    frag_add_reduce(frag, L_END_GROUP_SYMBOL, E_SINGLE_DEFINITION);
-    frag_add_shift(frag, L_CONCATENATE_SYMBOL);
-    frag_add_followset(frag, fsm_get_state(fsm, "single_definition", 17));
-    frag_add_shift(frag, E_SINGLE_DEFINITION);
-    frag_add_reduce(frag, L_DEFINITION_SEPARATOR_SYMBOL, E_SINGLE_DEFINITION);
-    frag_add_reduce(frag, L_TERMINATOR_SYMBOL, E_SINGLE_DEFINITION);
-    frag_add_reduce(frag, L_END_GROUP_SYMBOL, E_SINGLE_DEFINITION);
+	fsm_cursor_init(&cur, fsm);
+	fsm_cursor_set(&cur, "single_definition", 17);
+	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "expression", 10));
+	fsm_cursor_add_context_shift(&cur, E_EXPRESSION);
+	fsm_cursor_add_reduce(&cur, L_DEFINITION_SEPARATOR_SYMBOL, E_SINGLE_DEFINITION);
+	fsm_cursor_add_reduce(&cur, L_TERMINATOR_SYMBOL, E_SINGLE_DEFINITION);
+	fsm_cursor_add_reduce(&cur, L_END_GROUP_SYMBOL, E_SINGLE_DEFINITION);
+	fsm_cursor_add_shift(&cur, L_CONCATENATE_SYMBOL);
+	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "single_definition", 17));
+	fsm_cursor_add_shift(&cur, E_SINGLE_DEFINITION);
+	fsm_cursor_add_reduce(&cur, L_DEFINITION_SEPARATOR_SYMBOL, E_SINGLE_DEFINITION);
+	fsm_cursor_add_reduce(&cur, L_TERMINATOR_SYMBOL, E_SINGLE_DEFINITION);
+	fsm_cursor_add_reduce(&cur, L_END_GROUP_SYMBOL, E_SINGLE_DEFINITION);
 
 	//Definitions List
-    frag = fsm_get_frag(fsm, "definitions_list", 16);
-    frag_add_followset(frag, fsm_get_state(fsm, "single_definition", 17));
-    frag_add_context_shift(frag, E_SINGLE_DEFINITION);
-    frag_add_reduce(frag, L_TERMINATOR_SYMBOL, E_DEFINITIONS_LIST);
-    frag_add_reduce(frag, L_END_GROUP_SYMBOL, E_DEFINITIONS_LIST);
-    frag_add_shift(frag, L_DEFINITION_SEPARATOR_SYMBOL);
-    frag_add_followset(frag, fsm_get_state(fsm, "definitions_list", 16));
-    frag_add_shift(frag, E_DEFINITIONS_LIST);
-    frag_add_reduce(frag, L_TERMINATOR_SYMBOL, E_DEFINITIONS_LIST);
-    frag_add_reduce(frag, L_END_GROUP_SYMBOL, E_DEFINITIONS_LIST);
+	fsm_cursor_init(&cur, fsm);
+	fsm_cursor_set(&cur, "definitions_list", 16);
+	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "single_definition", 17));
+	fsm_cursor_add_context_shift(&cur, E_SINGLE_DEFINITION);
+	fsm_cursor_add_reduce(&cur, L_TERMINATOR_SYMBOL, E_DEFINITIONS_LIST);
+	fsm_cursor_add_reduce(&cur, L_END_GROUP_SYMBOL, E_DEFINITIONS_LIST);
+	fsm_cursor_add_shift(&cur, L_DEFINITION_SEPARATOR_SYMBOL);
+	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "definitions_list", 16));
+	fsm_cursor_add_shift(&cur, E_DEFINITIONS_LIST);
+	fsm_cursor_add_reduce(&cur, L_TERMINATOR_SYMBOL, E_DEFINITIONS_LIST);
+	fsm_cursor_add_reduce(&cur, L_END_GROUP_SYMBOL, E_DEFINITIONS_LIST);
 
 	//Finish Expression
-    frag_add_followset(e_frag, fsm_get_state(fsm, "definitions_list", 16));
-    frag_add_shift(e_frag, E_DEFINITIONS_LIST);
-    frag_add_shift(e_frag, L_END_GROUP_SYMBOL);
-    frag_add_reduce(e_frag, L_CONCATENATE_SYMBOL, E_EXPRESSION);
-    frag_add_reduce(e_frag, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
-    frag_add_reduce(e_frag, L_END_GROUP_SYMBOL, E_EXPRESSION);
-    frag_add_reduce(e_frag, L_TERMINATOR_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_followset(&e_cur, fsm_get_state(fsm, "definitions_list", 16));
+	fsm_cursor_add_shift(&e_cur, E_DEFINITIONS_LIST);
+	fsm_cursor_add_shift(&e_cur, L_END_GROUP_SYMBOL);
+	fsm_cursor_add_reduce(&e_cur, L_CONCATENATE_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&e_cur, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&e_cur, L_END_GROUP_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&e_cur, L_TERMINATOR_SYMBOL, E_EXPRESSION);
 
 	//Non Terminal Declaration
-    frag = fsm_get_frag(fsm, "non_terminal_declaration", 24);
-    frag_add_context_shift(frag, L_IDENTIFIER);
-    frag_add_shift(frag, L_DEFINING_SYMBOL);
-    frag_add_followset(frag, fsm_get_state(fsm, "definitions_list", 16));
-    frag_add_shift(frag, E_DEFINITIONS_LIST);
-    frag_add_shift(frag, L_TERMINATOR_SYMBOL);
-    frag_add_reduce(frag, L_IDENTIFIER, E_NON_TERMINAL_DECLARATION);
-    frag_add_reduce(frag, L_EOF, E_NON_TERMINAL_DECLARATION);
-	
-	//Syntax
-    frag = fsm_get_frag(fsm, "syntax", 6);
-    frag_add_followset(frag, fsm_get_state(fsm, "non_terminal_declaration", 24));
-    frag_add_context_shift(frag, E_NON_TERMINAL_DECLARATION);
-    frag_add_reduce(frag, L_EOF, E_SYNTAX);
-    frag_add_followset(frag, fsm_get_state(fsm, "syntax", 6));
-    frag_add_shift(frag, E_SYNTAX);
-    frag_add_reduce(frag, L_EOF, E_SYNTAX);
+	fsm_cursor_init(&cur, fsm);
+	fsm_cursor_set(&cur, "non_terminal_declaration", 24);
+	fsm_cursor_add_context_shift(&cur, L_IDENTIFIER);
+	fsm_cursor_add_shift(&cur, L_DEFINING_SYMBOL);
+	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "definitions_list", 16));
+	fsm_cursor_add_shift(&cur, E_DEFINITIONS_LIST);
+	fsm_cursor_add_shift(&cur, L_TERMINATOR_SYMBOL);
+	fsm_cursor_add_reduce(&cur, L_IDENTIFIER, E_NON_TERMINAL_DECLARATION);
+	fsm_cursor_add_reduce(&cur, L_EOF, E_NON_TERMINAL_DECLARATION);
 
-    //fsm_set_start(fsm, "definitions_list", 16, E_SINGLE_DEFINITION);
-    fsm_set_start(fsm, "syntax", 6, E_SYNTAX);
+	//Syntax
+	fsm_cursor_init(&cur, fsm);
+	fsm_cursor_set(&cur, "syntax", 6);
+	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "non_terminal_declaration", 24));
+	fsm_cursor_add_context_shift(&cur, E_NON_TERMINAL_DECLARATION);
+	fsm_cursor_add_reduce(&cur, L_EOF, E_SYNTAX);
+	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "syntax", 6));
+	fsm_cursor_add_shift(&cur, E_SYNTAX);
+	fsm_cursor_add_reduce(&cur, L_EOF, E_SYNTAX);
+
+	//fsm_set_start(fsm, "definitions_list", 16, E_SINGLE_DEFINITION);
+	fsm_cursor_set_start(&cur, "syntax", 6, E_SYNTAX);
 }
 
 int ebnf_fsm_ast_handler(int type, void *target, void *args) {
@@ -119,17 +124,17 @@ void ebnf_input_to_ast(Ast *ast, Input *input)
 	ebnf_init_fsm(ebnf_fsm);
 	ast_init(ast, input);
 
-    Session *session = fsm_start_session(ebnf_fsm);
+	Session *session = fsm_start_session(ebnf_fsm);
 	session_set_listener(session, ebnf_listener);
 
-    while (!input->eof) {
+	while (!input->eof) {
 		lexer_next(&lexer);
 		session_match(session, lexer.symbol, lexer.index);
 		if(session->current->type == ACTION_TYPE_ERROR) {
 			printf("Error parsing grammar at index: %i\n", session->index);
 			break;
 		}
-    }
+	}
 	ast_done(ast);
 }
 

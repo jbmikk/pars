@@ -9,82 +9,99 @@
 #define MATCH_AT(S, Y, I) session_match(S, Y, I);
 
 typedef struct {
-    Fsm fsm;
+	Fsm fsm;
 } Fixture;
 
 FsmArgs reduction;
 
 void setup(Fixture *fix, gconstpointer data){
-    fsm_init(&fix->fsm);
+	fsm_init(&fix->fsm);
 }
 
 void teardown(Fixture *fix, gconstpointer data){
-    fsm_dispose(&fix->fsm);
+	fsm_dispose(&fix->fsm);
 }
 
-void fsm_get_frag__single_get(Fixture *fix, gconstpointer data){
-    Frag *frag = fsm_get_frag(&fix->fsm, "name", 4);
-    g_assert(frag != NULL);
+void fsm_cursor_set__single_get(Fixture *fix, gconstpointer data){
+	FsmCursor cur;
+	fsm_cursor_init(&cur, &fix->fsm);
+	fsm_cursor_set(&cur, "name", 4);
+	g_assert(cur.current != NULL);
 }
 
-void fsm_get_frag__two_gets(Fixture *fix, gconstpointer data){
-    Frag *frag1 = fsm_get_frag(&fix->fsm, "rule1", 4);
-    Frag *frag2 = fsm_get_frag(&fix->fsm, "rule2", 4);
-    Frag *frag3 = fsm_get_frag(&fix->fsm, "rule1", 4);
-    g_assert(frag1 != NULL);
-    g_assert(frag2 != NULL);
-    g_assert(frag3 != NULL);
-    g_assert(frag1 == frag3);
+void fsm_cursor_set__two_gets(Fixture *fix, gconstpointer data){
+	FsmCursor cur;
+	fsm_cursor_init(&cur, &fix->fsm);
+
+	fsm_cursor_set(&cur, "rule1", 5);
+	State *state1 = cur.current;
+	fsm_cursor_set(&cur, "rule2", 5);
+	State *state2 = cur.current;
+	fsm_cursor_set(&cur, "rule1", 5);
+	State *state3 = cur.current;
+
+	g_assert(state1 != NULL);
+	g_assert(state2 != NULL);
+	g_assert(state3 != NULL);
+	g_assert(state1 == state3);
 }
 
 void session_match__shift(Fixture *fix, gconstpointer data){
-    Frag *frag = fsm_get_frag(&fix->fsm, "name", 4);
-    frag_add_shift(frag, 'a');
-    frag_add_shift(frag, 'b');
-    frag_add_context_shift(frag, '.');
+	FsmCursor cur;
+	fsm_cursor_init(&cur, &fix->fsm);
 
-    fsm_set_start(&fix->fsm, "name", 4, 'N');
+	fsm_cursor_set(&cur, "name", 4);
+	fsm_cursor_add_shift(&cur, 'a');
+	fsm_cursor_add_shift(&cur, 'b');
+	fsm_cursor_add_context_shift(&cur, '.');
 
-    Session *session = fsm_start_session(&fix->fsm);
+	fsm_cursor_set_start(&cur, "name", 4, 'N');
+
+	Session *session = fsm_start_session(&fix->fsm);
 	MATCH(session, 'a');
 	MATCH(session, 'b');
 	MATCH(session, '.');
-    g_assert(frag != NULL);
-    g_assert(session->current->type == ACTION_TYPE_CONTEXT_SHIFT);
+	g_assert(session->current->type == ACTION_TYPE_CONTEXT_SHIFT);
 }
 
 void session_match__reduce(Fixture *fix, gconstpointer data){
-    Frag *frag = fsm_get_frag(&fix->fsm, "number", 6);
-    frag_add_context_shift(frag, '1');
-    frag_add_reduce(frag, '\0', 'N');
+	FsmCursor cur;
+	fsm_cursor_init(&cur, &fix->fsm);
 
-    fsm_set_start(&fix->fsm, "number", 6, 'N');
-    Session *session = fsm_start_session(&fix->fsm);
+	fsm_cursor_set(&cur, "number", 6);
+	fsm_cursor_add_context_shift(&cur, '1');
+	fsm_cursor_add_reduce(&cur, '\0', 'N');
+
+	fsm_cursor_set_start(&cur, "number", 6, 'N');
+	Session *session = fsm_start_session(&fix->fsm);
 	MATCH(session, '1');
 	MATCH(session, '\0');
-    g_assert(session->current->type == ACTION_TYPE_ACCEPT);
+	g_assert(session->current->type == ACTION_TYPE_ACCEPT);
 }
 
 void session_match__reduce_shift(Fixture *fix, gconstpointer data){
-    Frag *frag = fsm_get_frag(&fix->fsm, "number", 6);
-    frag_add_context_shift(frag, '1');
-    frag_add_reduce(frag, '+', 'N');
+	FsmCursor cur;
+	fsm_cursor_init(&cur, &fix->fsm);
 
-    frag = fsm_get_frag(&fix->fsm, "sum", 3);
-    frag_add_followset(frag, fsm_get_state(&fix->fsm, "number", 6));
-    frag_add_context_shift(frag, 'N');
-    frag_add_shift(frag, '+');
-    frag_add_shift(frag, '2');
-    frag_add_reduce(frag, '\0', 'S');
+	fsm_cursor_set(&cur, "number", 6);
+	fsm_cursor_add_context_shift(&cur, '1');
+	fsm_cursor_add_reduce(&cur, '+', 'N');
 
-    fsm_set_start(&fix->fsm, "sum", 3, 'S');
+	fsm_cursor_set(&cur, "sum", 3);
+	fsm_cursor_add_followset(&cur, fsm_get_state(&fix->fsm, "number", 6));
+	fsm_cursor_add_context_shift(&cur, 'N');
+	fsm_cursor_add_shift(&cur, '+');
+	fsm_cursor_add_shift(&cur, '2');
+	fsm_cursor_add_reduce(&cur, '\0', 'S');
 
-    Session *session = fsm_start_session(&fix->fsm);
+	fsm_cursor_set_start(&cur, "sum", 3, 'S');
+
+	Session *session = fsm_start_session(&fix->fsm);
 	MATCH(session, '1');
 	MATCH(session, '+');
 	MATCH(session, '2');
 	MATCH(session, '\0');
-    g_assert(session->current->type == ACTION_TYPE_ACCEPT);
+	g_assert(session->current->type == ACTION_TYPE_ACCEPT);
 }
 
 int reduce_handler(int type, void *target, void *args) {
@@ -93,26 +110,29 @@ int reduce_handler(int type, void *target, void *args) {
 }
 
 void session_match__reduce_handler(Fixture *fix, gconstpointer data){
-	Frag *frag = fsm_get_frag(&fix->fsm, "number", 6);
-	frag_add_context_shift(frag, '1');
-	frag_add_reduce(frag, '+', 'N');
+	FsmCursor cur;
+	fsm_cursor_init(&cur, &fix->fsm);
 
-	frag = fsm_get_frag(&fix->fsm, "word", 4);
-	frag_add_context_shift(frag, 'w');
-	frag_add_shift(frag, 'o');
-	frag_add_shift(frag, 'r');
-	frag_add_shift(frag, 'd');
-	frag_add_reduce(frag, '\0', 'W');
+	fsm_cursor_set(&cur, "number", 6);
+	fsm_cursor_add_context_shift(&cur, '1');
+	fsm_cursor_add_reduce(&cur, '+', 'N');
 
-	frag = fsm_get_frag(&fix->fsm, "sum", 3);
-	frag_add_followset(frag, fsm_get_state(&fix->fsm, "number", 6));
-	frag_add_context_shift(frag, 'N');
-	frag_add_shift(frag, '+');
-	frag_add_followset(frag, fsm_get_state(&fix->fsm, "word", 4));
-	frag_add_shift(frag, 'W');
-	frag_add_reduce(frag, '\0', 'S');
+	fsm_cursor_set(&cur, "word", 4);
+	fsm_cursor_add_context_shift(&cur, 'w');
+	fsm_cursor_add_shift(&cur, 'o');
+	fsm_cursor_add_shift(&cur, 'r');
+	fsm_cursor_add_shift(&cur, 'd');
+	fsm_cursor_add_reduce(&cur, '\0', 'W');
 
-	fsm_set_start(&fix->fsm, "sum", 3, 'S');
+	fsm_cursor_set(&cur, "sum", 3);
+	fsm_cursor_add_followset(&cur, fsm_get_state(&fix->fsm, "number", 6));
+	fsm_cursor_add_context_shift(&cur, 'N');
+	fsm_cursor_add_shift(&cur, '+');
+	fsm_cursor_add_followset(&cur, fsm_get_state(&fix->fsm, "word", 4));
+	fsm_cursor_add_shift(&cur, 'W');
+	fsm_cursor_add_reduce(&cur, '\0', 'S');
+
+	fsm_cursor_set_start(&cur, "sum", 3, 'S');
 
 	Session *session = fsm_start_session(&fix->fsm);
 	EventListener listener;
@@ -137,13 +157,13 @@ void session_match__reduce_handler(Fixture *fix, gconstpointer data){
 }
 
 int main(int argc, char** argv){
-    g_test_init(&argc, &argv, NULL);
-    g_test_add("/FSM/get_frag", Fixture, NULL, setup, fsm_get_frag__single_get, teardown);
-    g_test_add("/FSM/get_frag", Fixture, NULL, setup, fsm_get_frag__two_gets, teardown);
-    g_test_add("/Session/match", Fixture, NULL, setup, session_match__shift, teardown);
-    g_test_add("/Session/match", Fixture, NULL, setup, session_match__reduce, teardown);
-    g_test_add("/Session/match", Fixture, NULL, setup, session_match__reduce_shift, teardown);
+	g_test_init(&argc, &argv, NULL);
+	g_test_add("/FSM/fsm_cursor", Fixture, NULL, setup, fsm_cursor_set__single_get, teardown);
+	g_test_add("/FSM/fsm_cursor", Fixture, NULL, setup, fsm_cursor_set__two_gets, teardown);
+	g_test_add("/Session/match", Fixture, NULL, setup, session_match__shift, teardown);
+	g_test_add("/Session/match", Fixture, NULL, setup, session_match__reduce, teardown);
+	g_test_add("/Session/match", Fixture, NULL, setup, session_match__reduce_shift, teardown);
 	g_test_add("/Session/match", Fixture, NULL, setup, session_match__reduce_handler, teardown);
-    return g_test_run();
+	return g_test_run();
 }
 

@@ -52,102 +52,100 @@ void fsm_dispose(Fsm *fsm)
     //TODO
 }
 
-void frag_init(Frag *frag)
-{
-    State *begin = c_new(State, 1);
-    STATE_INIT(*begin, ACTION_TYPE_SHIFT, NONE);
-    NODE_INIT(begin->next, 0, 0, NULL);
-    frag->begin = begin;
-    frag->current = begin;
-}
-
-void frag_rewind(Frag *frag)
-{
-    frag->current = frag->begin;
-}
-
-Frag *fsm_get_frag(Fsm *fsm, unsigned char *name, int length)
-{
-    Frag *frag = c_radix_tree_get(&fsm->rules, name, length);
-    if(frag == NULL) {
-        frag = c_new(Frag, 1);
-        frag_init(frag);
-        c_radix_tree_set(&fsm->rules, name, length, frag);
-    }
-    return frag;
-}
-
 State *fsm_get_state(Fsm *fsm, unsigned char *name, int length)
 {
-    Frag *frag = c_radix_tree_get(&fsm->rules, name, length);
-    return frag->begin;
+	return c_radix_tree_get(&fsm->rules, name, length);
 }
 
-Frag *fsm_set_start(Fsm *fsm, unsigned char *name, int length, int symbol)
+void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
 {
-    Frag *frag = fsm_get_frag(fsm, name, length);
-    fsm->start = frag->begin;//should not use frag->begin
-    frag->current = frag->begin; //should not have to do this
-    frag_add_accept(frag, symbol);
+	cur->fsm = fsm;
+	cur->begin = NULL;
+	cur->current = NULL;
 }
 
-State *_frag_add_action_buffer(Frag *frag, unsigned char *buffer, unsigned int size, int action, int reduction, State *state)
+void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length)
 {
-    if(state == NULL)
-    {
-        state = c_new(State, 1);
-        STATE_INIT(*state, action, reduction);
+	cur->begin = fsm_get_state(cur->fsm, name, length);
+	cur->current = cur->begin;
+}
+
+void fsm_cursor_set(FsmCursor *cur, unsigned char *name, int length)
+{
+	State *state = fsm_get_state(cur->fsm, name, length);
+	if(state == NULL) {
+		state = c_new(State, 1);
+		STATE_INIT(*state, ACTION_TYPE_SHIFT, NONE);
+		NODE_INIT(state->next, 0, 0, NULL);
+		c_radix_tree_set(&cur->fsm->rules, name, length, state);
+	}
+	cur->begin = state;
+	cur->current = state;
+}
+
+void fsm_cursor_rewind(FsmCursor *cur)
+{
+	cur->current = cur->begin;
+}
+
+State *_fsm_cursor_add_action_buffer(FsmCursor *cur, unsigned char *buffer, unsigned int size, int action, int reduction, State *state)
+{
+	if(state == NULL)
+	{
+		state = c_new(State, 1);
+		STATE_INIT(*state, action, reduction);
 		NODE_INIT(state->next, 0, 0, NULL);
 		//trace("init", state, action, "");
-    }
+	}
 
-    c_radix_tree_set(&frag->current->next, buffer, size, state);
-    return state;
+	c_radix_tree_set(&cur->current->next, buffer, size, state);
+	return state;
 }
 
-State *_frag_add_action(Frag *frag, int symbol, int action, int reduction, State *state)
+State *_fsm_cursor_add_action(FsmCursor *cur, int symbol, int action, int reduction, State *state)
 {
-    unsigned char buffer[sizeof(int)];
-    unsigned int size;
-    symbol_to_buffer(buffer, &size, symbol);
+	unsigned char buffer[sizeof(int)];
+	unsigned int size;
+	symbol_to_buffer(buffer, &size, symbol);
 
 	trace("add", state, symbol, "action");
-    return _frag_add_action_buffer(frag, buffer, size, action, reduction, state);
+	return _fsm_cursor_add_action_buffer(cur, buffer, size, action, reduction, state);
 }
 
-void frag_add_accept(Frag *frag, int symbol)
+State *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, int symbol)
 {
-    State *state = _frag_add_action(frag, symbol, ACTION_TYPE_ACCEPT, NONE, NULL);
-    frag->current = state;
+	cur->fsm->start = fsm_get_state(cur->fsm, name, length);
+	cur->current = cur->begin; //should not have to do this(rewind?)
+	cur->current = _fsm_cursor_add_action(cur, symbol, ACTION_TYPE_ACCEPT, NONE, NULL);
 }
 
-void frag_add_shift(Frag *frag, int symbol)
+void fsm_cursor_add_shift(FsmCursor *cur, int symbol)
 {
-    State *state = _frag_add_action(frag, symbol, ACTION_TYPE_SHIFT, NONE, NULL);
-    frag->current = state;
+	State *state = _fsm_cursor_add_action(cur, symbol, ACTION_TYPE_SHIFT, NONE, NULL);
+	cur->current = state;
 }
 
-void frag_add_context_shift(Frag *frag, int symbol)
+void fsm_cursor_add_context_shift(FsmCursor *cur, int symbol)
 {
-    State *state = _frag_add_action(frag, symbol, ACTION_TYPE_CONTEXT_SHIFT, NONE, NULL);
-    frag->current = state;
+	State *state = _fsm_cursor_add_action(cur, symbol, ACTION_TYPE_CONTEXT_SHIFT, NONE, NULL);
+	cur->current = state;
 }
 
-void frag_add_followset(Frag *frag, State *state)
+void fsm_cursor_add_followset(FsmCursor *cur, State *state)
 {
 	State *s;
 	CIterator it;
-    c_radix_tree_iterator_init(&(state->next), &it);
+	c_radix_tree_iterator_init(&(state->next), &it);
 	while((s = (State *)c_radix_tree_iterator_next(&(state->next), &it)) != NULL) {
-		_frag_add_action_buffer(frag, it.key, it.size, 0, 0, s);
+		_fsm_cursor_add_action_buffer(cur, it.key, it.size, 0, 0, s);
 		trace("add", state, buffer_to_symbol(it.key, it.size), "follow");
 	}
-    c_radix_tree_iterator_dispose(&(state->next), &it);
+	c_radix_tree_iterator_dispose(&(state->next), &it);
 }
 
-void frag_add_reduce(Frag *frag, int symbol, int reduction)
+void fsm_cursor_add_reduce(FsmCursor *cur, int symbol, int reduction)
 {
-    _frag_add_action(frag, symbol, ACTION_TYPE_REDUCE, reduction, NULL);
+	_fsm_cursor_add_action(cur, symbol, ACTION_TYPE_REDUCE, reduction, NULL);
 }
 
 Session *fsm_start_session(Fsm *fsm)
