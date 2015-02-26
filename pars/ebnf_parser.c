@@ -140,18 +140,20 @@ void ebnf_input_to_ast(Ast *ast, Input *input)
 
 void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur)
 {
+	while(ast_cursor_depth_next_symbol(a_cur, E_SINGLE_DEFINITION)) {
+	}
 }
 
 void ebnf_build_non_terminal_declaration(FsmCursor *f_cur, AstCursor *a_cur)
 {
-	AstNode *node;
 	unsigned char *string;
 	int length;
 
-	node = ast_cursor_depth_next_symbol(a_cur, L_IDENTIFIER);
-	node = ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);
+	ast_cursor_depth_next_symbol(a_cur, L_IDENTIFIER);
 	ast_cursor_get_string(a_cur, &string, &length);
 	fsm_cursor_set(f_cur, string, length);
+
+	ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);
 	ebnf_build_definitions_list(f_cur, a_cur);
 }	
 
@@ -159,7 +161,6 @@ void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
 {
 	AstCursor a_cur;
 	FsmCursor f_cur;
-	AstNode *node;
 
 	ast_cursor_init(&a_cur, ast);
 	fsm_cursor_init(&f_cur, fsm);

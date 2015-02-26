@@ -88,9 +88,6 @@ AstNode *ast_get_next_sibling(AstNode *node) {
 	symbol_to_buffer(buffer, &size, node->index);
 
 	sibling = (AstNode *)c_radix_tree_get_next(&parent->children, buffer, size);
-	if(sibling == NULL && parent->parent != NULL) {
-		sibling = ast_get_next_sibling(parent);
-	}
 	return sibling;
 }
 
@@ -112,22 +109,38 @@ void ast_cursor_pop(AstCursor *cursor)
 	cursor->stack = stack_pop(cursor->stack);
 }
 
+/**
+ * 1 - Get first children
+ * 2 - If no children then get next sibling
+ * 3 - If no next sibling then get parent and go to step 2
+ * 4 - If no parent stop
+ */
 AstNode *ast_cursor_depth_next(AstCursor *cursor)
 {
-	AstNode *node;
+	AstNode *next;
 
 	if(cursor->current == NULL) {
-		node = &cursor->ast->root;
+		next = cursor->current = &cursor->ast->root;
 	} else {
 		//Get first children
 		AstNode *current = cursor->current;
-		node = (AstNode *)c_radix_tree_get_next(&current->children, NULL, 0);
-		if(node == NULL && current->parent != NULL) {
-			node = ast_get_next_sibling(current);
+		AstNode *parent = current->parent;
+		next = (AstNode *)c_radix_tree_get_next(&current->children, NULL, 0);
+		if(next == NULL && parent != NULL) {
+		next_sibling:
+			next = ast_get_next_sibling(current);
+			if(next == NULL && parent->parent != NULL) {
+				current = parent;
+				parent = current->parent;
+				goto next_sibling;
+			} else {
+				cursor->current = next;
+			}
+		} else {
+			cursor->current = next;
 		}
 	}
-	cursor->current = node;
-	return node;
+	return next;
 }
 
 AstNode *ast_cursor_depth_next_symbol(AstCursor *cursor, int symbol)
