@@ -6,7 +6,7 @@ echo ""
 echo "TESTCLIB:"
 echo "---------"
 cd testclib
-./test_cbsearch
+./test_bsearch
 ./test_cradixtree
 cd ..
 
@@ -23,4 +23,4 @@ cd ..
 cd ..
 
 # test with valgrind 
-# valgrind -v --suppressions=suppressions.supp --leak-check=full build/testclib/test_cbsearch
+# valgrind -v --suppressions=suppressions.supp --leak-check=full build/testclib/test_bsearch

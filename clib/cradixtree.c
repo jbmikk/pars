@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "cmemory.h"
-#include "cbsearch.h"
+#include "bsearch.h"
 
 #define NODE_TYPE_LEAF 0
 #define NODE_TYPE_TREE 1
@@ -22,7 +22,7 @@ CNode *c_radix_tree_seek(CNode *tree, CScanStatus *status)
     while(status->index < status->size)
     {
 		if (current->type == NODE_TYPE_TREE){
-			CNode *next = c_bsearch_get(current, ((cchar *)status->key)[i]);
+			CNode *next = bsearch_get(current, ((cchar *)status->key)[i]);
 			if(next == NULL)
 				break;
 			current = next;
@@ -69,7 +69,7 @@ CDataNode *c_radix_tree_scan(CNode *node, CScanStatus *status, CScanStatus *post
 		cuint i = 0;
 
 		if (status->type == S_FETCHNEXT && status->size > 0) {
-			CNode *next = c_bsearch_get(node, key[status->index]);
+			CNode *next = bsearch_get(node, key[status->index]);
 			i = (next-children);
 		} 
 
@@ -139,7 +139,7 @@ CNode *c_radix_tree_build_node(CNode *node, cchar *string, cuint length){
     else if (length == 1)
     {
         NODE_INIT(*node, NODE_TYPE_TREE, 0, NULL);
-        node = c_bsearch_insert(node, string[0]);
+        node = bsearch_insert(node, string[0]);
     }
     return node;
 }
@@ -168,12 +168,12 @@ CDataNode * c_radix_tree_split(CNode *node, cchar *string, cuint length, cuint i
         NODE_INIT(*node, NODE_TYPE_TREE, 0, NULL);
 
         //add branch to hold old suffix and delete old data
-        CNode *branch1 = c_bsearch_insert(node, ((cchar*)old->data)[index]);
+        CNode *branch1 = bsearch_insert(node, ((cchar*)old->data)[index]);
         branch1 = c_radix_tree_build_node(branch1, old->data+index+1, old_size-(index+1));
         NODE_INIT(*branch1, old->cnode.type, old->cnode.size, old->cnode.child);
 
         //add branch to hold new suffix and return new node
-        CNode *branch2 = c_bsearch_insert(node, string[0]);
+        CNode *branch2 = bsearch_insert(node, string[0]);
         branch2 = c_radix_tree_build_node(branch2, string+1, length-1);
 
         NODE_INIT(*branch2, NODE_TYPE_DATA, 0, data_node);
@@ -222,7 +222,7 @@ void c_radix_tree_set(CNode *tree, cchar *string, cuint length, cpointer data)
     }
     else {
         if(node->type == NODE_TYPE_TREE)
-            node = c_bsearch_insert(node, string[status.index++]);
+            node = bsearch_insert(node, string[status.index++]);
         node = c_radix_tree_build_node(node, string+status.index, length-status.index);
         data_node = c_new(CDataNode, 1);
         NODE_INIT(*node, NODE_TYPE_DATA, 0, data_node);

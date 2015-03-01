@@ -6,7 +6,7 @@ echo ""
 echo "TESTCLIB:"
 echo "---------"
 cd testclib
-./test_cbsearch
+./test_bsearch
 ./test_cradixtree
 cd ..
 
