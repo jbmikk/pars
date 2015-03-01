@@ -36,7 +36,7 @@ void ast_bind_to_parent(AstNode *node)
 	unsigned char buffer[sizeof(int)];
 	unsigned int size;
 	symbol_to_buffer(buffer, &size, node->index);
-	c_radix_tree_set(&node->parent->children, buffer, size, node);
+	radix_tree_set(&node->parent->children, buffer, size, node);
 }
 
 void ast_open(Ast *ast, unsigned int index)
@@ -87,7 +87,7 @@ AstNode *ast_get_next_sibling(AstNode *node) {
 	unsigned int size;
 	symbol_to_buffer(buffer, &size, node->index);
 
-	sibling = (AstNode *)c_radix_tree_get_next(&parent->children, buffer, size);
+	sibling = (AstNode *)radix_tree_get_next(&parent->children, buffer, size);
 	return sibling;
 }
 
@@ -125,7 +125,7 @@ AstNode *ast_cursor_depth_next(AstCursor *cursor)
 		//Get first children
 		AstNode *current = cursor->current;
 		AstNode *parent = current->parent;
-		next = (AstNode *)c_radix_tree_get_next(&current->children, NULL, 0);
+		next = (AstNode *)radix_tree_get_next(&current->children, NULL, 0);
 		if(next == NULL && parent != NULL) {
 		next_sibling:
 			next = ast_get_next_sibling(current);

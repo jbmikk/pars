@@ -1,7 +1,7 @@
 #ifndef AST_H
 #define AST_H
 
-#include "cradixtree.h"
+#include "radixtree.h"
 #include "stack.h"
 #include "input.h"
 

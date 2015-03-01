@@ -1,7 +1,7 @@
 #include "fsm.h"
 
 #include "cmemory.h"
-#include "cradixtree.h"
+#include "radixtree.h"
 #include "symbols.h"
 
 #define STATE_INIT(V, T, R) (\
@@ -54,7 +54,7 @@ void fsm_dispose(Fsm *fsm)
 
 State *fsm_get_state(Fsm *fsm, unsigned char *name, int length)
 {
-	return c_radix_tree_get(&fsm->rules, name, length);
+	return radix_tree_get(&fsm->rules, name, length);
 }
 
 void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
@@ -77,7 +77,7 @@ void fsm_cursor_set(FsmCursor *cur, unsigned char *name, int length)
 		state = c_new(State, 1);
 		STATE_INIT(*state, ACTION_TYPE_SHIFT, NONE);
 		NODE_INIT(state->next, 0, 0, NULL);
-		c_radix_tree_set(&cur->fsm->rules, name, length, state);
+		radix_tree_set(&cur->fsm->rules, name, length, state);
 	}
 	cur->begin = state;
 	cur->current = state;
@@ -98,7 +98,7 @@ State *_fsm_cursor_add_action_buffer(FsmCursor *cur, unsigned char *buffer, unsi
 		//trace("init", state, action, "");
 	}
 
-	c_radix_tree_set(&cur->current->next, buffer, size, state);
+	radix_tree_set(&cur->current->next, buffer, size, state);
 	return state;
 }
 
@@ -135,12 +135,12 @@ void fsm_cursor_add_followset(FsmCursor *cur, State *state)
 {
 	State *s;
 	CIterator it;
-	c_radix_tree_iterator_init(&(state->next), &it);
-	while((s = (State *)c_radix_tree_iterator_next(&(state->next), &it)) != NULL) {
+	radix_tree_iterator_init(&(state->next), &it);
+	while((s = (State *)radix_tree_iterator_next(&(state->next), &it)) != NULL) {
 		_fsm_cursor_add_action_buffer(cur, it.key, it.size, 0, 0, s);
 		trace("add", state, buffer_to_symbol(it.key, it.size), "follow");
 	}
-	c_radix_tree_iterator_dispose(&(state->next), &it);
+	radix_tree_iterator_dispose(&(state->next), &it);
 }
 
 void fsm_cursor_add_reduce(FsmCursor *cur, int symbol, int reduction)
@@ -171,7 +171,7 @@ State *session_test(Session *session, int symbol, unsigned int index)
 	State *state;
 	State *prev;
 
-    state = c_radix_tree_get(&session->current->next, buffer, size);
+    state = radix_tree_get(&session->current->next, buffer, size);
 	if(state == NULL)
 	{
 		//Should jump to error state or throw exception?
@@ -215,7 +215,7 @@ void session_match(Session *session, int symbol, unsigned int index)
 
 rematch:
 	session->index = index;
-    state = c_radix_tree_get(&session->current->next, buffer, size);
+    state = radix_tree_get(&session->current->next, buffer, size);
 	if(state == NULL)
 	{
 		//Should jump to error state or throw exception?
