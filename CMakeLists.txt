@@ -6,6 +6,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 option(ENABLE_FSM_TRACE "Enable fsm traces" OFF)
 option(ENABLE_AST_TRACE "Enable ast traces" OFF)
 
+include_directories("${PROJECT_SOURCE_DIR}/vendor/dbg")
+
 add_subdirectory(clib)
 add_subdirectory(testclib)
 add_subdirectory(pars)

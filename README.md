@@ -15,5 +15,6 @@ You need to install the following dependencies:
 * cmake: sudo apt-get install cmake
 * g++: sudo apt-get install g++
 * glib 2.0 dev: sudo apt-get install libglib2.0-dev 
+* run install.sh to install other dependencies from github
 
 Then run build.sh or test.sh
