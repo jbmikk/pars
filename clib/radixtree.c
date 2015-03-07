@@ -147,34 +147,39 @@ CNode *radix_tree_build_node(CNode *node, cchar *string, cuint length){
 /**
  * create split array node in two using a tree node
  */
-CDataNode * radix_tree_split(CNode *node, cchar *string, cuint length, cuint index){
+CDataNode * radix_tree_split_array(CNode *node, CScanStatus *status)
+{
+	unsigned subindex = status->subindex;
+
 	CDataNode *old = node->child, *prefix, *sufix;
-	cuint old_size = node->size;
 	CDataNode *data_node = c_new(CDataNode, 1);
 
-	//make node point to new prefix array, if necessary
-	node = radix_tree_build_node(node, old->data, index);
+	char *old_suffix = old->data+subindex;
+	char *new_suffix = status->key + status->index;
+	unsigned int old_suffix_size = node->size - subindex;
+	unsigned int new_suffix_size = status->size - status->index;
 
-	if (length == 0) {
+	//make node point to new prefix array, if necessary
+	node = radix_tree_build_node(node, old->data, subindex);
+
+	if (new_suffix_size == 0) {
 		NODE_INIT(*node, NODE_TYPE_DATA, 0, data_node);
 		node = &data_node->cnode;
 
-		node = radix_tree_build_node(node, old->data+index, old_size-index);
+		node = radix_tree_build_node(node, old_suffix, old_suffix_size);
 		NODE_INIT(*node, old->cnode.type, old->cnode.size, old->cnode.child);
-	}
-	else
-	{
+	} else {
 		//make node point to new tree node
 		NODE_INIT(*node, NODE_TYPE_TREE, 0, NULL);
 
 		//add branch to hold old suffix and delete old data
-		CNode *branch1 = bsearch_insert(node, ((cchar*)old->data)[index]);
-		branch1 = radix_tree_build_node(branch1, old->data+index+1, old_size-(index+1));
+		CNode *branch1 = bsearch_insert(node, old_suffix[0]);
+		branch1 = radix_tree_build_node(branch1, old_suffix+1, old_suffix_size-1);
 		NODE_INIT(*branch1, old->cnode.type, old->cnode.size, old->cnode.child);
 
 		//add branch to hold new suffix and return new node
-		CNode *branch2 = bsearch_insert(node, string[0]);
-		branch2 = radix_tree_build_node(branch2, string+1, length-1);
+		CNode *branch2 = bsearch_insert(node, new_suffix[0]);
+		branch2 = radix_tree_build_node(branch2, new_suffix+1, new_suffix_size -1);
 
 		NODE_INIT(*branch2, NODE_TYPE_DATA, 0, data_node);
 		NODE_INIT(data_node->cnode, NODE_TYPE_LEAF, 0, NULL);
@@ -216,11 +221,9 @@ void radix_tree_set(CNode *tree, cchar *string, cuint length, cpointer data)
 
 	if (node->type == NODE_TYPE_DATA) {
 		data_node = (CDataNode*)node->child;
-	}
-	else if (node->type == NODE_TYPE_ARRAY) {
-		data_node = radix_tree_split(node, string+status.index, length-status.index, status.subindex);
-	}
-	else {
+	} else if (node->type == NODE_TYPE_ARRAY) {
+		data_node = radix_tree_split_array(node, &status);
+	} else {
 		if(node->type == NODE_TYPE_TREE)
 			node = bsearch_insert(node, string[status.index++]);
 		node = radix_tree_build_node(node, string+status.index, length-status.index);
