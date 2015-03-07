@@ -50,6 +50,10 @@ int main(int argc, char** argv) {
 	g_test_init(&argc, &argv, NULL);
 	g_test_add("/BSearch/set_and_get", BSearchFixture, NULL, bsearch_setup, bsearch__set_and_get, bsearch_teardown);
 	g_test_add("/BSearch/set2_and_get2", BSearchFixture, NULL, bsearch_setup, bsearch__set2_and_get2, bsearch_teardown);
+	//TODO:
+	//delete
+	//set_and_out_of_memory
+	//delete_and_out_of_memory
 	return g_test_run();
 }
 
