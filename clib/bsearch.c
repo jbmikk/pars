@@ -6,15 +6,15 @@
 #include "cmemory.h"
 #include "dbg.h"
 
-CNode *bsearch_get(CNode *parent, cchar key)
+CNode *bsearch_get(CNode *parent, char key)
 {
 	CNode *children = parent->child;
 	CNode *next;
-	cchar left = 0;
-	cchar right = parent->size-1;
+	char left = 0;
+	char right = parent->size-1;
 
 	while(left <= right) {
-		cchar i = left+((right - left)>>1);
+		char i = left+((right - left)>>1);
 		if(children[i].key < key) {
 			left = i+1;
 		} else if(children[i].key > key) {
@@ -27,7 +27,7 @@ CNode *bsearch_get(CNode *parent, cchar key)
 	return NULL;
 }
 
-CNode *bsearch_insert(CNode *parent, cchar key)
+CNode *bsearch_insert(CNode *parent, char key)
 {
 	CNode *new_children;
 	CNode *new_node;
@@ -61,7 +61,7 @@ error:
 	return NULL;
 }
 
-int bsearch_delete(CNode *parent, cchar key)
+int bsearch_delete(CNode *parent, char key)
 {
 	if(bsearch_get(parent, key)!= NULL) {
 		CNode *new_children = NULL;

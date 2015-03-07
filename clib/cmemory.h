@@ -2,14 +2,15 @@
 #define CMEMORY_H
 
 #include <stdlib.h>
-#include "ctypes.h"
+
+#define csize unsigned int
 
 #define c_new(T, N) (T*)c_malloc_n(((csize)sizeof(T))*(N));
 #define c_renew(P, T, N) (T*)c_realloc_n(P, ((csize)sizeof(T))*(N));
-#define c_delete(P) c_free((cpointer)P)
+#define c_delete(P) c_free((void *)P)
 
-cpointer c_malloc_n(csize n);
-cpointer c_realloc_n(cpointer ptr, csize n);
-void c_free(cpointer ptr);
+void *c_malloc_n(csize n);
+void *c_realloc_n(void *ptr, csize n);
+void c_free(void *ptr);
 
 #endif // CMEMORY_H

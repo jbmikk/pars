@@ -2,7 +2,7 @@
 
 #include "cmemory.h"
 
-SNode *stack_push(SNode *node, cpointer ptr)
+SNode *stack_push(SNode *node, void *ptr)
 {
 	SNode *top = c_new(SNode, 1);
 	top->data = ptr;

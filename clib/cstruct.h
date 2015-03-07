@@ -1,36 +1,34 @@
 #ifndef CSTRUCT
 #define CSTRUCT
 
-#include "ctypes.h"
-
 typedef struct _CNode {
-    cpointer child;
-    cchar type;
-    cuchar size;
-    cchar key;
+    void *child;
+    char type;
+    unsigned char size;
+    char key;
 } CNode;
 
 typedef struct _CDataNode {
     CNode cnode;
-    cpointer data;
+    void *data;
 } CDataNode;
 
 typedef struct _CIterator {
-    cpointer key;
-    cuchar size;
-    cpointer data;
+    void *key;
+    unsigned char size;
+    void *data;
 } CIterator;
 
 typedef struct _CScanStatus {
-    cpointer key;
-    cuchar size;
-    cuint index;
-    cuint subindex;
-    cuint type;
+    void *key;
+    unsigned char size;
+    unsigned int index;
+    unsigned int subindex;
+    unsigned int type;
 } CScanStatus;
 
 typedef struct _SNode {
-	cpointer data;
+	void *data;
 	struct _SNode *next;
 } SNode;
 

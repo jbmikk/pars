@@ -34,16 +34,16 @@ void bsearch__set2_and_get2(BSearchFixture* fix, gconstpointer data){
 	CNode d1, d2;
 
 	a1 = bsearch_insert(&fix->cnode, 'a');
-	a1->child = (cpointer) &d1;
+	a1->child = (void *) &d1;
 	b1 = bsearch_insert(&fix->cnode, 'b');
-	b1->child = (cpointer) &d2;
+	b1->child = (void *) &d2;
 	a2 = bsearch_get(&fix->cnode, 'a');
 	b2 = bsearch_get(&fix->cnode, 'b');
 
 	g_assert(a2 != NULL);
-	g_assert(a2->child == (cpointer)&d1);
+	g_assert(a2->child == (void *)&d1);
 	g_assert(b2 != NULL);
-	g_assert(b2->child == (cpointer)&d2);
+	g_assert(b2->child == (void *)&d2);
 }
 
 int main(int argc, char** argv) {

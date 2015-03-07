@@ -18,11 +18,11 @@
 CNode *radix_tree_seek(CNode *tree, CScanStatus *status)
 {
 	CNode *current = tree;
-	cuint i = status->index;
+	unsigned int i = status->index;
 	while(status->index < status->size) {
 
 		if (current->type == NODE_TYPE_TREE) {
-			CNode *next = bsearch_get(current, ((cchar *)status->key)[i]);
+			CNode *next = bsearch_get(current, ((char *)status->key)[i]);
 			if(next == NULL)
 				break;
 			current = next;
@@ -30,11 +30,11 @@ CNode *radix_tree_seek(CNode *tree, CScanStatus *status)
 		} else if (current->type == NODE_TYPE_DATA) {
 			current = current->child;
 		} else if (current->type == NODE_TYPE_ARRAY) {
-			cchar *array = ((CDataNode*)current->child)->data;
+			char *array = ((CDataNode*)current->child)->data;
 			int array_length = current->size;
 			int j;
 			for (j = 0; j < array_length && i < status->size; j++, i++) {
-				if(array[j] != ((cchar *)status->key)[i]) {
+				if(array[j] != ((char *)status->key)[i]) {
 					status->subindex = j;
 					break;
 				}
@@ -64,7 +64,7 @@ CDataNode *radix_tree_scan(CNode *node, CScanStatus *status, CScanStatus *post)
 	if (node->type == NODE_TYPE_TREE) {
 		CNode *children = node->child;
 		CNode *current = NULL;
-		cuint i = 0;
+		unsigned int i = 0;
 
 		if (status->type == S_FETCHNEXT && status->size > 0) {
 			CNode *next = bsearch_get(node, key[status->index]);
@@ -90,7 +90,7 @@ CDataNode *radix_tree_scan(CNode *node, CScanStatus *status, CScanStatus *post)
 			post->size = status->index;
 			result = (CDataNode*)node->child;
 		} else {
-			cuint match = status->index >= status->size;
+			unsigned int match = status->index >= status->size;
 			if(match) {
 				status->type = S_DEFAULT;
 			}
@@ -101,11 +101,11 @@ CDataNode *radix_tree_scan(CNode *node, CScanStatus *status, CScanStatus *post)
 	} else if (node->type == NODE_TYPE_ARRAY) {
 
 		//new index + key
-		cuint offset = status->index;
+		unsigned int offset = status->index;
 		status->index += node->size;
 		post->key = c_renew(post->key, char, status->index);
 
-		cchar *array = ((CDataNode*)node->child)->data;
+		char *array = ((CDataNode*)node->child)->data;
 		memcpy(post->key+offset, array, node->size);
 
 		result = radix_tree_scan(node->child, status, post);
@@ -117,15 +117,15 @@ CDataNode *radix_tree_scan(CNode *node, CScanStatus *status, CScanStatus *post)
 /**
  * Add new child node after given node
  */
-CNode *radix_tree_build_node(CNode *node, cchar *string, cuint length)
+CNode *radix_tree_build_node(CNode *node, char *string, unsigned int length)
 {
 	if(length > 1) {
 		CDataNode* array_node = c_new(CDataNode, 1);
-		cchar *keys = c_malloc_n(length);
+		char *keys = c_malloc_n(length);
 		NODE_INIT(*node, NODE_TYPE_ARRAY, length, array_node);
 
 		//copy array
-		cuint i = 0;
+		unsigned int i = 0;
 		for(i = 0; i < length; i++){
 			keys[i] = string[i];
 		}
@@ -187,7 +187,7 @@ CDataNode * radix_tree_split_array(CNode *node, CScanStatus *status)
 	return data_node;
 }
 
-cpointer radix_tree_get(CNode *tree, cchar *string, cuint length)
+void *radix_tree_get(CNode *tree, char *string, unsigned int length)
 {
 	CScanStatus status;
 	status.index = 0;
@@ -203,7 +203,7 @@ cpointer radix_tree_get(CNode *tree, cchar *string, cuint length)
 	else return NULL;
 }
 
-void radix_tree_set(CNode *tree, cchar *string, cuint length, cpointer data)
+void radix_tree_set(CNode *tree, char *string, unsigned int length, void *data)
 {
 	CDataNode *data_node;
 	CScanStatus status;
@@ -230,7 +230,7 @@ void radix_tree_set(CNode *tree, cchar *string, cuint length, cpointer data)
 	data_node->data = data;
 }
 
-init_status(CScanStatus *status, CScanStatus *poststatus, cchar *string, cuint length)
+init_status(CScanStatus *status, CScanStatus *poststatus, char *string, unsigned int length)
 {
 	status->index = 0;
 	status->subindex = 0;
@@ -247,7 +247,7 @@ init_status(CScanStatus *status, CScanStatus *poststatus, cchar *string, cuint l
 	poststatus->subindex = 0;
 }
 
-cpointer *radix_tree_get_next(CNode *tree, cchar *string, cuint length)
+void **radix_tree_get_next(CNode *tree, char *string, unsigned int length)
 {
 	CDataNode *res;
 	CScanStatus status;
@@ -278,7 +278,7 @@ void radix_tree_iterator_dispose(CNode *tree, CIterator *iterator)
 	c_delete(iterator->key);
 }
 
-cpointer *radix_tree_iterator_next(CNode *tree, CIterator *iterator)
+void **radix_tree_iterator_next(CNode *tree, CIterator *iterator)
 {
 	CDataNode *res;
 	CScanStatus status;

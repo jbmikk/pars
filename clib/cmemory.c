@@ -1,11 +1,11 @@
 #include "cmemory.h"
 
-cpointer c_malloc_n(csize n)
+void *c_malloc_n(csize n)
 {
-    cpointer ptr;
+    void *ptr;
     if(n > 0)
     {
-        ptr = (cpointer) malloc(n);
+        ptr = (void *) malloc(n);
         if (ptr == NULL)
             exit(EXIT_FAILURE);
     }
@@ -13,11 +13,11 @@ cpointer c_malloc_n(csize n)
     return ptr;
 }
 
-cpointer c_realloc_n(cpointer ptr, csize n)
+void *c_realloc_n(void *ptr, csize n)
 {
     if(n > 0)
     {
-        ptr = (cpointer) realloc(ptr, n);
+        ptr = (void *) realloc(ptr, n);
         if (ptr == NULL)
             exit(EXIT_FAILURE);
     }
@@ -25,7 +25,7 @@ cpointer c_realloc_n(cpointer ptr, csize n)
     return ptr;
 }
 
-void c_free(cpointer ptr)
+void c_free(void *ptr)
 {
     free(ptr);
 }
