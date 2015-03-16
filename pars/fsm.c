@@ -5,9 +5,9 @@
 #include "symbols.h"
 
 #define STATE_INIT(V, T, R) (\
-        (V).type = (T),\
-        (V).reduction = (R)\
-    )
+		(V).type = (T),\
+		(V).reduction = (R)\
+	)
 
 #define NONE 0
 #include <stdio.h>
@@ -44,12 +44,12 @@ void session_pop(Session *session)
 
 void fsm_init(Fsm *fsm)
 {
-    NODE_INIT(fsm->rules, 0, 0, NULL);
+	NODE_INIT(fsm->rules, 0, 0, NULL);
 }
 
 void fsm_dispose(Fsm *fsm)
 {
-    //TODO
+	//TODO
 }
 
 State *fsm_get_state(Fsm *fsm, unsigned char *name, int length)
@@ -93,8 +93,7 @@ void fsm_cursor_rewind(FsmCursor *cur)
 
 State *_fsm_cursor_add_action_buffer(FsmCursor *cur, unsigned char *buffer, unsigned int size, int action, int reduction, State *state)
 {
-	if(state == NULL)
-	{
+	if(state == NULL) {
 		state = c_new(State, 1);
 		STATE_INIT(*state, action, reduction);
 		NODE_INIT(state->next, 0, 0, NULL);
@@ -153,12 +152,12 @@ void fsm_cursor_add_reduce(FsmCursor *cur, int symbol, int reduction)
 
 Session *fsm_start_session(Fsm *fsm)
 {
-    Session *session = c_new(Session, 1);
-    session->current = fsm->start;
+	Session *session = c_new(Session, 1);
+	session->current = fsm->start;
 	session->listener.handler = NULL;
 	session_init(session);
 	session_push(session);
-    return session;
+	return session;
 }
 
 Session *session_set_listener(Session *session, EventListener listener)
@@ -168,15 +167,14 @@ Session *session_set_listener(Session *session, EventListener listener)
 
 State *session_test(Session *session, int symbol, unsigned int index)
 {
-    unsigned char buffer[sizeof(int)];
-    unsigned int size;
-    symbol_to_buffer(buffer, &size, symbol);
+	unsigned char buffer[sizeof(int)];
+	unsigned int size;
+	symbol_to_buffer(buffer, &size, symbol);
 	State *state;
 	State *prev;
 
-    state = radix_tree_get(&session->current->next, buffer, size);
-	if(state == NULL)
-	{
+	state = radix_tree_get(&session->current->next, buffer, size);
+	if(state == NULL) {
 		//Should jump to error state or throw exception?
 		if(session->current->type != ACTION_TYPE_ACCEPT) {
 			trace("test", session->current, symbol, "error");
@@ -188,39 +186,37 @@ State *session_test(Session *session, int symbol, unsigned int index)
 		return session->current;
 	}
 
-    switch(state->type)
-    {
-        case ACTION_TYPE_CONTEXT_SHIFT:
-			trace("test", session->current, symbol, "context shift");
-            break;
-        case ACTION_TYPE_ACCEPT:
-			trace("test", session->current, symbol, "accept");
-            break;
-        case ACTION_TYPE_SHIFT:
-			trace("test", session->current, symbol, "shift");
-            break;
-        case ACTION_TYPE_REDUCE:
-			trace("test", session->current, symbol, "reduce");
-            break;
-        default:
-            break;
-    }
+	switch(state->type) {
+	case ACTION_TYPE_CONTEXT_SHIFT:
+		trace("test", session->current, symbol, "context shift");
+		break;
+	case ACTION_TYPE_ACCEPT:
+		trace("test", session->current, symbol, "accept");
+		break;
+	case ACTION_TYPE_SHIFT:
+		trace("test", session->current, symbol, "shift");
+		break;
+	case ACTION_TYPE_REDUCE:
+		trace("test", session->current, symbol, "reduce");
+		break;
+	default:
+		break;
+	}
 	return state;
 }
 
 void session_match(Session *session, int symbol, unsigned int index)
 {
-    unsigned char buffer[sizeof(int)];
-    unsigned int size;
+	unsigned char buffer[sizeof(int)];
+	unsigned int size;
 	int prev_symbol = 0;
 	State *state;
-    symbol_to_buffer(buffer, &size, symbol);
+	symbol_to_buffer(buffer, &size, symbol);
 
 rematch:
 	session->index = index;
-    state = radix_tree_get(&session->current->next, buffer, size);
-	if(state == NULL)
-	{
+	state = radix_tree_get(&session->current->next, buffer, size);
+	if(state == NULL) {
 		//Should jump to error state or throw exception?
 		if(session->current->type != ACTION_TYPE_ACCEPT) {
 			trace("match", session->current, symbol, "error");
@@ -232,36 +228,35 @@ rematch:
 		return;
 	}
 
-    switch(state->type)
-    {
-        case ACTION_TYPE_CONTEXT_SHIFT:
+	switch(state->type) {
+		case ACTION_TYPE_CONTEXT_SHIFT:
 			trace("match", session->current, symbol, "context shift");
 			FsmArgs cargs;
 			cargs.index = session->index;
 			TRY_TRIGGER(EVENT_CONTEXT_SHIFT, session->listener, &cargs);
 			session_push(session);
-            session->current = state;
-            break;
-        case ACTION_TYPE_ACCEPT:
+			session->current = state;
+			break;
+		case ACTION_TYPE_ACCEPT:
 			trace("match", session->current, symbol, "accept");
-            session->current = state;
-            break;
-        case ACTION_TYPE_SHIFT:
-			trace("match", session->current, symbol, "shift");
-            session->current = state;
-            break;
-        case ACTION_TYPE_REDUCE:
-			trace("match", session->current, symbol, "reduce");
-			session_pop(session);
-			FsmArgs rargs;
-			rargs.symbol = state->reduction;
-			rargs.index = session->index;
-			rargs.length = index - session->index;
-			TRY_TRIGGER(EVENT_REDUCE, session->listener, &rargs);
-			session_match(session, state->reduction, session->index);
-            goto rematch; // same as session_match(session, symbol);
-            break;
-        default:
-            break;
-    }
+		session->current = state;
+		break;
+	case ACTION_TYPE_SHIFT:
+		trace("match", session->current, symbol, "shift");
+		session->current = state;
+		break;
+	case ACTION_TYPE_REDUCE:
+		trace("match", session->current, symbol, "reduce");
+		session_pop(session);
+		FsmArgs rargs;
+		rargs.symbol = state->reduction;
+		rargs.index = session->index;
+		rargs.length = index - session->index;
+		TRY_TRIGGER(EVENT_REDUCE, session->listener, &rargs);
+		session_match(session, state->reduction, session->index);
+		goto rematch; // same as session_match(session, symbol);
+		break;
+	default:
+		break;
+	}
 }

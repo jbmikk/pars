@@ -199,8 +199,9 @@ void *radix_tree_get(CNode *tree, char *string, unsigned int length)
 
 	if(status.index == length && node->type == NODE_TYPE_DATA) {
 		return ((CDataNode*)node->child)->data;
+	} else {
+		return NULL;
 	}
-	else return NULL;
 }
 
 void radix_tree_set(CNode *tree, char *string, unsigned int length, void *data)

@@ -8,7 +8,7 @@ jmp_buf on_error;
 
 void parse_error(Input *input, unsigned int index)
 {
-    longjmp(on_error, 1);
+	longjmp(on_error, 1);
 }
 
 void ebnf_init_fsm(Fsm *fsm)
