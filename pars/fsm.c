@@ -77,6 +77,9 @@ void fsm_cursor_set(FsmCursor *cur, unsigned char *name, int length)
 		state = c_new(State, 1);
 		STATE_INIT(*state, ACTION_TYPE_SHIFT, NONE);
 		NODE_INIT(state->next, 0, 0, NULL);
+		//TODO: Add non_terminal struct so we can add metadata
+		// such as other terminals references to be resolved and
+		// detect circular references.
 		radix_tree_set(&cur->fsm->rules, name, length, state);
 	}
 	cur->begin = state;
