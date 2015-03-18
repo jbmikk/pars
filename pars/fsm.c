@@ -13,9 +13,11 @@
 #include <stdio.h>
 
 #ifdef FSM_TRACE
-#define trace(M, T, S, A) printf("trace: %i %s '%c' (%i) -> %s\n", (unsigned int)T, M, (char)S, S, A);
+#define trace(M, T1, T2, S, A) printf("trace: [%8i -> %8i] %-5s: %-13s (%3i = '%c')\n", (unsigned int)T1, (unsigned int)T2, M, A, S, (char)S);
+#define trace_non_terminal(M, S, L) printf("trace: %-5s: %.*s\n", M, L, S);
 #else
-#define trace(M, T, S, A)
+#define trace(M, T1, T2, S, A)
+#define trace_non_terminal(M, S, L)
 #endif
 
 void session_init(Session *session)
@@ -82,6 +84,7 @@ void fsm_cursor_set(FsmCursor *cur, unsigned char *name, int length)
 		// detect circular references.
 		radix_tree_set(&cur->fsm->rules, name, length, state);
 	}
+	trace_non_terminal("set", name, length);
 	cur->begin = state;
 	cur->current = state;
 }
@@ -110,8 +113,9 @@ State *_fsm_cursor_add_action(FsmCursor *cur, int symbol, int action, int reduct
 	unsigned int size;
 	symbol_to_buffer(buffer, &size, symbol);
 
-	trace("add", state, symbol, "action");
-	return _fsm_cursor_add_action_buffer(cur, buffer, size, action, reduction, state);
+	state = _fsm_cursor_add_action_buffer(cur, buffer, size, action, reduction, state);
+	trace("add", cur->current, state, symbol, "action");
+	return state;
 }
 
 State *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, int symbol)
@@ -140,7 +144,7 @@ void fsm_cursor_add_followset(FsmCursor *cur, State *state)
 	radix_tree_iterator_init(&(state->next), &it);
 	while((s = (State *)radix_tree_iterator_next(&(state->next), &it)) != NULL) {
 		_fsm_cursor_add_action_buffer(cur, it.key, it.size, 0, 0, s);
-		trace("add", state, buffer_to_symbol(it.key, it.size), "follow");
+		trace("add", cur->current, s, buffer_to_symbol(it.key, it.size), "follow");
 	}
 	radix_tree_iterator_dispose(&(state->next), &it);
 }
@@ -177,7 +181,7 @@ State *session_test(Session *session, int symbol, unsigned int index)
 	if(state == NULL) {
 		//Should jump to error state or throw exception?
 		if(session->current->type != ACTION_TYPE_ACCEPT) {
-			trace("test", session->current, symbol, "error");
+			trace("test", session->current, state, symbol, "error");
 			State *error = c_new(State, 1);
 			STATE_INIT(*error, ACTION_TYPE_ERROR, NONE);
 			NODE_INIT(error->next, 0, 0, NULL);
@@ -188,16 +192,16 @@ State *session_test(Session *session, int symbol, unsigned int index)
 
 	switch(state->type) {
 	case ACTION_TYPE_CONTEXT_SHIFT:
-		trace("test", session->current, symbol, "context shift");
+		trace("test", session->current, state, symbol, "context shift");
 		break;
 	case ACTION_TYPE_ACCEPT:
-		trace("test", session->current, symbol, "accept");
+		trace("test", session->current, state, symbol, "accept");
 		break;
 	case ACTION_TYPE_SHIFT:
-		trace("test", session->current, symbol, "shift");
+		trace("test", session->current, state, symbol, "shift");
 		break;
 	case ACTION_TYPE_REDUCE:
-		trace("test", session->current, symbol, "reduce");
+		trace("test", session->current, state, symbol, "reduce");
 		break;
 	default:
 		break;
@@ -219,7 +223,7 @@ rematch:
 	if(state == NULL) {
 		//Should jump to error state or throw exception?
 		if(session->current->type != ACTION_TYPE_ACCEPT) {
-			trace("match", session->current, symbol, "error");
+			trace("match", session->current, state, symbol, "error");
 			State *error = c_new(State, 1);
 			STATE_INIT(*error, ACTION_TYPE_ERROR, NONE);
 			NODE_INIT(error->next, 0, 0, NULL);
@@ -230,7 +234,7 @@ rematch:
 
 	switch(state->type) {
 		case ACTION_TYPE_CONTEXT_SHIFT:
-			trace("match", session->current, symbol, "context shift");
+			trace("match", session->current, state, symbol, "context shift");
 			FsmArgs cargs;
 			cargs.index = session->index;
 			TRY_TRIGGER(EVENT_CONTEXT_SHIFT, session->listener, &cargs);
@@ -238,15 +242,15 @@ rematch:
 			session->current = state;
 			break;
 		case ACTION_TYPE_ACCEPT:
-			trace("match", session->current, symbol, "accept");
+			trace("match", session->current, state, symbol, "accept");
 		session->current = state;
 		break;
 	case ACTION_TYPE_SHIFT:
-		trace("match", session->current, symbol, "shift");
+		trace("match", session->current, state, symbol, "shift");
 		session->current = state;
 		break;
 	case ACTION_TYPE_REDUCE:
-		trace("match", session->current, symbol, "reduce");
+		trace("match", session->current, state, symbol, "reduce");
 		session_pop(session);
 		FsmArgs rargs;
 		rargs.symbol = state->reduction;
