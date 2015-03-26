@@ -152,6 +152,18 @@ AstNode *ast_cursor_depth_next_symbol(AstCursor *cursor, int symbol)
 	return node;
 }
 
+AstNode *ast_cursor_next_sibling_symbol(AstCursor *cursor, int symbol)
+{
+	AstNode * node;
+	do {
+		node = ast_get_next_sibling(cursor->current);
+	} while(node != NULL && node->symbol != symbol);
+	if(node != NULL) {
+		cursor->current = node;
+	}
+	return node;
+}
+
 void ast_cursor_get_string(AstCursor *cursor, unsigned char **str, int *length)
 {
 	*str = cursor->ast->input->buffer + cursor->current->index;
