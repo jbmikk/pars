@@ -14,32 +14,32 @@ void parse_error(Input *input, unsigned int index)
 void ebnf_init_fsm(Fsm *fsm)
 {
 	FsmCursor cur;
-	FsmCursor e_cur;
 	State *ref;
 
 	fsm_init(fsm);
 
+	fsm_cursor_init(&cur, fsm);
+
 	//Expression
-	fsm_cursor_init(&e_cur, fsm);
-	fsm_cursor_set(&e_cur, "expression", 10);
-	fsm_cursor_push(&e_cur);
-	fsm_cursor_add_context_shift(&e_cur, L_IDENTIFIER);
-	fsm_cursor_add_reduce(&e_cur, L_CONCATENATE_SYMBOL, E_EXPRESSION);
-	fsm_cursor_add_reduce(&e_cur, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
-	fsm_cursor_add_reduce(&e_cur, L_END_GROUP_SYMBOL, E_EXPRESSION);
-	fsm_cursor_add_reduce(&e_cur, L_TERMINATOR_SYMBOL, E_EXPRESSION);
-	fsm_cursor_pop(&e_cur);
-	fsm_cursor_push(&e_cur);
-	fsm_cursor_add_context_shift(&e_cur, L_TERMINAL_STRING);
-	fsm_cursor_add_reduce(&e_cur, L_CONCATENATE_SYMBOL, E_EXPRESSION);
-	fsm_cursor_add_reduce(&e_cur, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
-	fsm_cursor_add_reduce(&e_cur, L_END_GROUP_SYMBOL, E_EXPRESSION);
-	fsm_cursor_add_reduce(&e_cur, L_TERMINATOR_SYMBOL, E_EXPRESSION);
-	fsm_cursor_pop(&e_cur);
-	fsm_cursor_add_context_shift(&e_cur, L_START_GROUP_SYMBOL);
+	fsm_cursor_set(&cur, "expression", 10);
+	fsm_cursor_push(&cur);
+	fsm_cursor_add_context_shift(&cur, L_IDENTIFIER);
+	fsm_cursor_add_reduce(&cur, L_CONCATENATE_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&cur, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&cur, L_END_GROUP_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&cur, L_TERMINATOR_SYMBOL, E_EXPRESSION);
+	fsm_cursor_pop(&cur);
+	fsm_cursor_push(&cur);
+	fsm_cursor_add_context_shift(&cur, L_TERMINAL_STRING);
+	fsm_cursor_add_reduce(&cur, L_CONCATENATE_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&cur, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&cur, L_END_GROUP_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&cur, L_TERMINATOR_SYMBOL, E_EXPRESSION);
+	fsm_cursor_pop(&cur);
+	fsm_cursor_add_context_shift(&cur, L_START_GROUP_SYMBOL);
+	fsm_cursor_push(&cur);
 
 	//Single Definition
-	fsm_cursor_init(&cur, fsm);
 	fsm_cursor_set(&cur, "single_definition", 17);
 	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "expression", 10));
 	fsm_cursor_add_context_shift(&cur, E_EXPRESSION);
@@ -54,7 +54,6 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_add_followset(&cur, ref);
 
 	//Definitions List
-	fsm_cursor_init(&cur, fsm);
 	fsm_cursor_set(&cur, "definitions_list", 16);
 	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "single_definition", 17));
 	fsm_cursor_add_context_shift(&cur, E_SINGLE_DEFINITION);
@@ -67,16 +66,16 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_add_followset(&cur, ref);
 
 	//Finish Expression
-	fsm_cursor_add_followset(&e_cur, fsm_get_state(fsm, "definitions_list", 16));
-	fsm_cursor_add_shift(&e_cur, E_DEFINITIONS_LIST);
-	fsm_cursor_add_shift(&e_cur, L_END_GROUP_SYMBOL);
-	fsm_cursor_add_reduce(&e_cur, L_CONCATENATE_SYMBOL, E_EXPRESSION);
-	fsm_cursor_add_reduce(&e_cur, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
-	fsm_cursor_add_reduce(&e_cur, L_END_GROUP_SYMBOL, E_EXPRESSION);
-	fsm_cursor_add_reduce(&e_cur, L_TERMINATOR_SYMBOL, E_EXPRESSION);
+	fsm_cursor_pop(&cur);
+	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "definitions_list", 16));
+	fsm_cursor_add_shift(&cur, E_DEFINITIONS_LIST);
+	fsm_cursor_add_shift(&cur, L_END_GROUP_SYMBOL);
+	fsm_cursor_add_reduce(&cur, L_CONCATENATE_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&cur, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&cur, L_END_GROUP_SYMBOL, E_EXPRESSION);
+	fsm_cursor_add_reduce(&cur, L_TERMINATOR_SYMBOL, E_EXPRESSION);
 
 	//Non Terminal Declaration
-	fsm_cursor_init(&cur, fsm);
 	fsm_cursor_set(&cur, "non_terminal_declaration", 24);
 	fsm_cursor_add_context_shift(&cur, L_IDENTIFIER);
 	fsm_cursor_add_shift(&cur, L_DEFINING_SYMBOL);
@@ -87,7 +86,6 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_add_reduce(&cur, L_EOF, E_NON_TERMINAL_DECLARATION);
 
 	//Syntax
-	fsm_cursor_init(&cur, fsm);
 	fsm_cursor_set(&cur, "syntax", 6);
 	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "non_terminal_declaration", 24));
 	fsm_cursor_add_context_shift(&cur, E_NON_TERMINAL_DECLARATION);
