@@ -28,7 +28,7 @@ add_executable (pars pars.c)
 
 target_link_libraries(input cmemory)
 target_link_libraries(lexer input)
-target_link_libraries(fsm radixtree symbols)
+target_link_libraries(fsm radixtree symbols stack)
 target_link_libraries(ast radixtree symbols stack)
 target_link_libraries(ebnf_parser fsm lexer ast)
 target_link_libraries(parslib cmemory input ebnf_parser)

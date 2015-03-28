@@ -22,18 +22,20 @@ void ebnf_init_fsm(Fsm *fsm)
 	//Expression
 	fsm_cursor_init(&e_cur, fsm);
 	fsm_cursor_set(&e_cur, "expression", 10);
+	fsm_cursor_push(&e_cur);
 	fsm_cursor_add_context_shift(&e_cur, L_IDENTIFIER);
 	fsm_cursor_add_reduce(&e_cur, L_CONCATENATE_SYMBOL, E_EXPRESSION);
 	fsm_cursor_add_reduce(&e_cur, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
 	fsm_cursor_add_reduce(&e_cur, L_END_GROUP_SYMBOL, E_EXPRESSION);
 	fsm_cursor_add_reduce(&e_cur, L_TERMINATOR_SYMBOL, E_EXPRESSION);
-	fsm_cursor_rewind(&e_cur);
+	fsm_cursor_pop(&e_cur);
+	fsm_cursor_push(&e_cur);
 	fsm_cursor_add_context_shift(&e_cur, L_TERMINAL_STRING);
 	fsm_cursor_add_reduce(&e_cur, L_CONCATENATE_SYMBOL, E_EXPRESSION);
 	fsm_cursor_add_reduce(&e_cur, L_DEFINITION_SEPARATOR_SYMBOL, E_EXPRESSION);
 	fsm_cursor_add_reduce(&e_cur, L_END_GROUP_SYMBOL, E_EXPRESSION);
 	fsm_cursor_add_reduce(&e_cur, L_TERMINATOR_SYMBOL, E_EXPRESSION);
-	fsm_cursor_rewind(&e_cur);
+	fsm_cursor_pop(&e_cur);
 	fsm_cursor_add_context_shift(&e_cur, L_START_GROUP_SYMBOL);
 
 	//Single Definition
