@@ -63,7 +63,6 @@ State *fsm_get_state(Fsm *fsm, unsigned char *name, int length)
 void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
 {
 	cur->fsm = fsm;
-	cur->begin = NULL;
 	cur->current = NULL;
 	cur->stack = NULL;
 }
@@ -81,8 +80,7 @@ void fsm_cursor_pop(FsmCursor *cursor)
 
 void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length)
 {
-	cur->begin = fsm_get_state(cur->fsm, name, length);
-	cur->current = cur->begin;
+	cur->current = fsm_get_state(cur->fsm, name, length);
 }
 
 void fsm_cursor_set(FsmCursor *cur, unsigned char *name, int length)
@@ -98,7 +96,6 @@ void fsm_cursor_set(FsmCursor *cur, unsigned char *name, int length)
 		radix_tree_set(&cur->fsm->rules, name, length, state);
 	}
 	trace_non_terminal("set", name, length);
-	cur->begin = state;
 	cur->current = state;
 }
 
@@ -128,8 +125,8 @@ State *_fsm_cursor_add_action(FsmCursor *cur, int symbol, int action, int reduct
 
 State *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, int symbol)
 {
-	cur->fsm->start = fsm_get_state(cur->fsm, name, length);
-	cur->current = cur->begin; //should not have to do this(rewind/pop?)
+	cur->current = fsm_get_state(cur->fsm, name, length);
+	cur->fsm->start = cur->current;
 	cur->current = _fsm_cursor_add_action(cur, symbol, ACTION_TYPE_ACCEPT, NONE, NULL);
 }
 

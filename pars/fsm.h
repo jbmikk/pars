@@ -27,7 +27,6 @@ typedef struct _Fsm {
 
 typedef struct _FsmCursor {
 	Fsm *fsm;
-	State *begin;
 	State *current;
 	SNode *stack;
 } FsmCursor;
