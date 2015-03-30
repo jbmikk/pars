@@ -14,7 +14,6 @@ void parse_error(Input *input, unsigned int index)
 void ebnf_init_fsm(Fsm *fsm)
 {
 	FsmCursor cur;
-	State *ref;
 
 	fsm_init(fsm);
 
@@ -43,7 +42,7 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_set(&cur, "single_definition", 17);
 	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "expression", 10));
 	fsm_cursor_add_context_shift(&cur, E_EXPRESSION);
-	ref = cur.current;
+	fsm_cursor_push_followset(&cur);
 	fsm_cursor_add_reduce(&cur, L_DEFINITION_SEPARATOR_SYMBOL, E_SINGLE_DEFINITION);
 	fsm_cursor_add_reduce(&cur, L_TERMINATOR_SYMBOL, E_SINGLE_DEFINITION);
 	fsm_cursor_add_reduce(&cur, L_END_GROUP_SYMBOL, E_SINGLE_DEFINITION);
@@ -51,19 +50,19 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "expression", 10));
 	fsm_cursor_add_shift(&cur, E_EXPRESSION);
 	//Loop using first state followset to avoid context shift
-	fsm_cursor_add_followset(&cur, ref);
+	fsm_cursor_add_followset(&cur, fsm_cursor_pop_followset(&cur));
 
 	//Definitions List
 	fsm_cursor_set(&cur, "definitions_list", 16);
 	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "single_definition", 17));
 	fsm_cursor_add_context_shift(&cur, E_SINGLE_DEFINITION);
-	ref = cur.current;
+	fsm_cursor_push_followset(&cur);
 	fsm_cursor_add_reduce(&cur, L_TERMINATOR_SYMBOL, E_DEFINITIONS_LIST);
 	fsm_cursor_add_reduce(&cur, L_END_GROUP_SYMBOL, E_DEFINITIONS_LIST);
 	fsm_cursor_add_shift(&cur, L_DEFINITION_SEPARATOR_SYMBOL);
 	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "single_definition", 17));
 	fsm_cursor_add_shift(&cur, E_SINGLE_DEFINITION);
-	fsm_cursor_add_followset(&cur, ref);
+	fsm_cursor_add_followset(&cur, fsm_cursor_pop_followset(&cur));
 
 	//Finish Expression
 	fsm_cursor_pop(&cur);
@@ -89,11 +88,11 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_set(&cur, "syntax", 6);
 	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "non_terminal_declaration", 24));
 	fsm_cursor_add_context_shift(&cur, E_NON_TERMINAL_DECLARATION);
-	ref = cur.current;
+	fsm_cursor_push_followset(&cur);
 	fsm_cursor_add_reduce(&cur, L_EOF, E_SYNTAX);
 	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, "non_terminal_declaration", 24));
 	fsm_cursor_add_shift(&cur, E_NON_TERMINAL_DECLARATION);
-	fsm_cursor_add_followset(&cur, ref);
+	fsm_cursor_add_followset(&cur, fsm_cursor_pop_followset(&cur));
 
 	//fsm_set_start(fsm, "definitions_list", 16, E_SINGLE_DEFINITION);
 	fsm_cursor_set_start(&cur, "syntax", 6, E_SYNTAX);

@@ -29,6 +29,7 @@ typedef struct _FsmCursor {
 	Fsm *fsm;
 	State *current;
 	SNode *stack;
+	SNode *followset_stack;
 } FsmCursor;
 
 typedef struct _SessionNode {
@@ -68,6 +69,8 @@ void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length);
 void fsm_cursor_set(FsmCursor *cur, unsigned char *name, int length);
 void fsm_cursor_push(FsmCursor *cur);
 void fsm_cursor_pop(FsmCursor *cur);
+void fsm_cursor_push_followset(FsmCursor *cur);
+State *fsm_cursor_pop_followset(FsmCursor *cur);
 
 void fsm_cursor_add_shift(FsmCursor *cur, int symbol);
 void fsm_cursor_add_context_shift(FsmCursor *cur, int symbol);
