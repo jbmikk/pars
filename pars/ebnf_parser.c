@@ -144,10 +144,23 @@ void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur);
 void ebnf_build_expression(FsmCursor *f_cur, AstCursor *a_cur)
 {
 	AstNode *node = ast_cursor_depth_next(a_cur);
+	unsigned char *string;
+	int length, i;
+
 	switch(node->symbol) {
 	case L_IDENTIFIER:
+		ast_cursor_get_string(a_cur, &string, &length);
+		//TODO: Need to be able to reference yet to be defined non terminals
+		fsm_cursor_add_followset(f_cur, fsm_get_state(f_cur->fsm, string, length));
+		//TODO: we need a non-terminal to symbol table 
+		//fsm_cursor_add_shift(f_cur, SYMBOL);
 		break;
 	case L_TERMINAL_STRING:
+		fsm_get_state(f_cur->fsm, string, length);
+		for(i = 1; i < length-1; i++) {
+			//TODO: literal strings should be tokenized into simbols (utf8)
+			fsm_cursor_add_shift(f_cur, string[i]);
+		}
 		break;
 	default:
 		ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);
@@ -171,7 +184,9 @@ void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur)
 	ast_cursor_depth_next_symbol(a_cur, E_SINGLE_DEFINITION);
 	do {
 		ast_cursor_push(a_cur);
+		fsm_cursor_push(f_cur);
 		ebnf_build_single_definition(f_cur, a_cur);
+		fsm_cursor_pop(f_cur);
 		ast_cursor_pop(a_cur);
 	} while(ast_cursor_next_sibling_symbol(a_cur, E_SINGLE_DEFINITION));
 }
