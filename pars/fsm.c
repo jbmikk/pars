@@ -48,6 +48,7 @@ void session_pop(Session *session)
 void fsm_init(Fsm *fsm)
 {
 	NODE_INIT(fsm->rules, 0, 0, NULL);
+	fsm->symbol_base = -1;
 }
 
 void fsm_dispose(Fsm *fsm)
@@ -55,9 +56,14 @@ void fsm_dispose(Fsm *fsm)
 	//TODO
 }
 
-State *fsm_get_state(Fsm *fsm, unsigned char *name, int length)
+NonTerminal *fsm_get_non_terminal(Fsm *fsm, unsigned char *name, int length)
 {
 	return radix_tree_get(&fsm->rules, name, length);
+}
+
+State *fsm_get_state(Fsm *fsm, unsigned char *name, int length)
+{
+	return fsm_get_non_terminal(fsm, name, length)->start;
 }
 
 void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
@@ -98,18 +104,22 @@ void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length)
 
 void fsm_cursor_set(FsmCursor *cur, unsigned char *name, int length)
 {
-	State *state = fsm_get_state(cur->fsm, name, length);
-	if(state == NULL) {
+	NonTerminal *non_terminal = fsm_get_non_terminal(cur->fsm, name, length);
+	State *state;
+	if(non_terminal == NULL) {
+		non_terminal = c_new(NonTerminal, 1);
 		state = c_new(State, 1);
 		STATE_INIT(*state, ACTION_TYPE_SHIFT, NONE);
 		NODE_INIT(state->next, 0, 0, NULL);
-		//TODO: Add non_terminal struct so we can add metadata
-		// such as other terminals references to be resolved and
-		// detect circular references.
-		radix_tree_set(&cur->fsm->rules, name, length, state);
+		non_terminal->start = state;
+		non_terminal->symbol = cur->fsm->symbol_base--;
+		radix_tree_set(&cur->fsm->rules, name, length, non_terminal);
+		//TODO: Add to non_terminal struct: 
+		// * other terminals references to be resolved
+		// * detect circular references.
 	}
 	trace_non_terminal("set", name, length);
-	cur->current = state;
+	cur->current = non_terminal->start;
 }
 
 State *_fsm_cursor_add_action_buffer(FsmCursor *cur, unsigned char *buffer, unsigned int size, int action, int reduction, State *state)

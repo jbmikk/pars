@@ -144,6 +144,7 @@ void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur);
 void ebnf_build_expression(FsmCursor *f_cur, AstCursor *a_cur)
 {
 	AstNode *node = ast_cursor_depth_next(a_cur);
+	NonTerminal *non_terminal;
 	unsigned char *string;
 	int length, i;
 
@@ -151,9 +152,9 @@ void ebnf_build_expression(FsmCursor *f_cur, AstCursor *a_cur)
 	case L_IDENTIFIER:
 		ast_cursor_get_string(a_cur, &string, &length);
 		//TODO: Need to be able to reference yet to be defined non terminals
-		fsm_cursor_add_followset(f_cur, fsm_get_state(f_cur->fsm, string, length));
-		//TODO: we need a non-terminal to symbol table 
-		//fsm_cursor_add_shift(f_cur, SYMBOL);
+		non_terminal = fsm_get_non_terminal(f_cur->fsm, string, length);
+		fsm_cursor_add_followset(f_cur, non_terminal->start);
+		fsm_cursor_add_shift(f_cur, non_terminal->symbol);
 		break;
 	case L_TERMINAL_STRING:
 		fsm_get_state(f_cur->fsm, string, length);

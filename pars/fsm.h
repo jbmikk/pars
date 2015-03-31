@@ -20,9 +20,15 @@ typedef struct _State {
     CNode next;
 } State;
 
+typedef struct _NonTerminal {
+	State *start;
+	int symbol;
+} NonTerminal;
+
 typedef struct _Fsm {
-    State *start;
-    CNode rules;
+	State *start;
+	CNode rules;
+	int symbol_base;
 } Fsm;
 
 typedef struct _FsmCursor {
@@ -62,6 +68,7 @@ void session_pop(Session *session);
 
 void fsm_init(Fsm *fsm);
 void fsm_dispose(Fsm *fsm);
+NonTerminal *fsm_get_non_terminal(Fsm *fsm, unsigned char *name, int length);
 State *fsm_get_state(Fsm *fsm, unsigned char *name, int length);
 
 void fsm_cursor_init(FsmCursor *cur, Fsm *fsm);
