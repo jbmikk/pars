@@ -73,7 +73,7 @@ State *fsm_get_state(Fsm *fsm, unsigned char *name, int length);
 
 void fsm_cursor_init(FsmCursor *cur, Fsm *fsm);
 void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length);
-void fsm_cursor_set(FsmCursor *cur, unsigned char *name, int length);
+void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length);
 void fsm_cursor_push(FsmCursor *cur);
 void fsm_cursor_pop(FsmCursor *cur);
 void fsm_cursor_push_followset(FsmCursor *cur);

@@ -22,22 +22,22 @@ void teardown(Fixture *fix, gconstpointer data){
 	fsm_dispose(&fix->fsm);
 }
 
-void fsm_cursor_set__single_get(Fixture *fix, gconstpointer data){
+void fsm_cursor_define__single_get(Fixture *fix, gconstpointer data){
 	FsmCursor cur;
 	fsm_cursor_init(&cur, &fix->fsm);
-	fsm_cursor_set(&cur, "name", 4);
+	fsm_cursor_define(&cur, "name", 4);
 	g_assert(cur.current != NULL);
 }
 
-void fsm_cursor_set__two_gets(Fixture *fix, gconstpointer data){
+void fsm_cursor_define__two_gets(Fixture *fix, gconstpointer data){
 	FsmCursor cur;
 	fsm_cursor_init(&cur, &fix->fsm);
 
-	fsm_cursor_set(&cur, "rule1", 5);
+	fsm_cursor_define(&cur, "rule1", 5);
 	State *state1 = cur.current;
-	fsm_cursor_set(&cur, "rule2", 5);
+	fsm_cursor_define(&cur, "rule2", 5);
 	State *state2 = cur.current;
-	fsm_cursor_set(&cur, "rule1", 5);
+	fsm_cursor_define(&cur, "rule1", 5);
 	State *state3 = cur.current;
 
 	g_assert(state1 != NULL);
@@ -50,7 +50,7 @@ void session_match__shift(Fixture *fix, gconstpointer data){
 	FsmCursor cur;
 	fsm_cursor_init(&cur, &fix->fsm);
 
-	fsm_cursor_set(&cur, "name", 4);
+	fsm_cursor_define(&cur, "name", 4);
 	fsm_cursor_add_shift(&cur, 'a');
 	fsm_cursor_add_shift(&cur, 'b');
 	fsm_cursor_add_context_shift(&cur, '.');
@@ -68,7 +68,7 @@ void session_match__reduce(Fixture *fix, gconstpointer data){
 	FsmCursor cur;
 	fsm_cursor_init(&cur, &fix->fsm);
 
-	fsm_cursor_set(&cur, "number", 6);
+	fsm_cursor_define(&cur, "number", 6);
 	fsm_cursor_add_context_shift(&cur, '1');
 	fsm_cursor_add_reduce(&cur, '\0', 'N');
 
@@ -83,11 +83,11 @@ void session_match__reduce_shift(Fixture *fix, gconstpointer data){
 	FsmCursor cur;
 	fsm_cursor_init(&cur, &fix->fsm);
 
-	fsm_cursor_set(&cur, "number", 6);
+	fsm_cursor_define(&cur, "number", 6);
 	fsm_cursor_add_context_shift(&cur, '1');
 	fsm_cursor_add_reduce(&cur, '+', 'N');
 
-	fsm_cursor_set(&cur, "sum", 3);
+	fsm_cursor_define(&cur, "sum", 3);
 	fsm_cursor_add_followset(&cur, fsm_get_state(&fix->fsm, "number", 6));
 	fsm_cursor_add_context_shift(&cur, 'N');
 	fsm_cursor_add_shift(&cur, '+');
@@ -113,18 +113,18 @@ void session_match__reduce_handler(Fixture *fix, gconstpointer data){
 	FsmCursor cur;
 	fsm_cursor_init(&cur, &fix->fsm);
 
-	fsm_cursor_set(&cur, "number", 6);
+	fsm_cursor_define(&cur, "number", 6);
 	fsm_cursor_add_context_shift(&cur, '1');
 	fsm_cursor_add_reduce(&cur, '+', 'N');
 
-	fsm_cursor_set(&cur, "word", 4);
+	fsm_cursor_define(&cur, "word", 4);
 	fsm_cursor_add_context_shift(&cur, 'w');
 	fsm_cursor_add_shift(&cur, 'o');
 	fsm_cursor_add_shift(&cur, 'r');
 	fsm_cursor_add_shift(&cur, 'd');
 	fsm_cursor_add_reduce(&cur, '\0', 'W');
 
-	fsm_cursor_set(&cur, "sum", 3);
+	fsm_cursor_define(&cur, "sum", 3);
 	fsm_cursor_add_followset(&cur, fsm_get_state(&fix->fsm, "number", 6));
 	fsm_cursor_add_context_shift(&cur, 'N');
 	fsm_cursor_add_shift(&cur, '+');
@@ -158,8 +158,8 @@ void session_match__reduce_handler(Fixture *fix, gconstpointer data){
 
 int main(int argc, char** argv){
 	g_test_init(&argc, &argv, NULL);
-	g_test_add("/FSM/fsm_cursor", Fixture, NULL, setup, fsm_cursor_set__single_get, teardown);
-	g_test_add("/FSM/fsm_cursor", Fixture, NULL, setup, fsm_cursor_set__two_gets, teardown);
+	g_test_add("/FSM/fsm_cursor", Fixture, NULL, setup, fsm_cursor_define__single_get, teardown);
+	g_test_add("/FSM/fsm_cursor", Fixture, NULL, setup, fsm_cursor_define__two_gets, teardown);
 	g_test_add("/Session/match", Fixture, NULL, setup, session_match__shift, teardown);
 	g_test_add("/Session/match", Fixture, NULL, setup, session_match__reduce, teardown);
 	g_test_add("/Session/match", Fixture, NULL, setup, session_match__reduce_shift, teardown);

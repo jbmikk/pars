@@ -102,7 +102,7 @@ void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length)
 	cur->current = fsm_get_state(cur->fsm, name, length);
 }
 
-void fsm_cursor_set(FsmCursor *cur, unsigned char *name, int length)
+void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 {
 	NonTerminal *non_terminal = fsm_get_non_terminal(cur->fsm, name, length);
 	State *state;

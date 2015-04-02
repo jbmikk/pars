@@ -38,7 +38,7 @@ void ebnf_start_parsing__identifier(Fixture *fix, gconstpointer data){
 	FsmCursor cur;
 	fsm_cursor_init(&cur, &fix->fsm);
 
-	fsm_cursor_set(&cur, "expression", 10);
+	fsm_cursor_define(&cur, "expression", 10);
 	State *state;
 
 	fsm_cursor_set_start(&cur, "expression", 10, E_EXPRESSION);
@@ -63,7 +63,7 @@ void ebnf_start_parsing__terminal(Fixture *fix, gconstpointer data){
 	FsmCursor cur;
 	fsm_cursor_init(&cur, &fix->fsm);
 
-	fsm_cursor_set(&cur, "expression", 10);
+	fsm_cursor_define(&cur, "expression", 10);
 	State *state;
 
 	fsm_cursor_set_start(&cur, "expression", 10, E_EXPRESSION);
@@ -88,7 +88,7 @@ void ebnf_start_parsing__concatenate(Fixture *fix, gconstpointer data){
 	FsmCursor cur;
 	fsm_cursor_init(&cur, &fix->fsm);
 
-	fsm_cursor_set(&cur, "single_definition", 17);
+	fsm_cursor_define(&cur, "single_definition", 17);
 	State *state;
 
 	fsm_cursor_set_start(&cur, "single_definition", 17, E_SINGLE_DEFINITION);
@@ -112,7 +112,7 @@ void ebnf_start_parsing__separator(Fixture *fix, gconstpointer data){
 	FsmCursor cur;
 	fsm_cursor_init(&cur, &fix->fsm);
 
-	fsm_cursor_set(&cur, "definitions_list", 16);
+	fsm_cursor_define(&cur, "definitions_list", 16);
 	State *state;
 
 	fsm_cursor_set_start(&cur, "definitions_list", 16, E_DEFINITIONS_LIST);
@@ -132,7 +132,7 @@ void ebnf_start_parsing__declaration(Fixture *fix, gconstpointer data){
 	FsmCursor cur;
 	fsm_cursor_init(&cur, &fix->fsm);
 
-	fsm_cursor_set(&cur, "non_terminal_declaration", 24);
+	fsm_cursor_define(&cur, "non_terminal_declaration", 24);
 	State *state;
 
 	fsm_cursor_set_start(&cur, "non_terminal_declaration", 24, E_NON_TERMINAL_DECLARATION);
@@ -155,7 +155,7 @@ void ebnf_start_parsing__group(Fixture *fix, gconstpointer data){
 	FsmCursor cur;
 	fsm_cursor_init(&cur, &fix->fsm);
 
-	fsm_cursor_set(&cur, "expression", 10);
+	fsm_cursor_define(&cur, "expression", 10);
 	State *state;
 
 	fsm_cursor_set_start(&cur, "expression", 10, E_EXPRESSION);
@@ -175,7 +175,7 @@ void ebnf_start_parsing__syntax(Fixture *fix, gconstpointer data){
 	FsmCursor cur;
 	fsm_cursor_init(&cur, &fix->fsm);
 
-	fsm_cursor_set(&cur, "syntax", 6);
+	fsm_cursor_define(&cur, "syntax", 6);
 	State *state;
 
 	fsm_cursor_set_start(&cur, "syntax", 6, E_SYNTAX);
