@@ -16,8 +16,6 @@ void ebnf_init_fsm(Fsm *fsm)
 {
 	FsmCursor cur;
 
-	fsm_init(fsm);
-
 	fsm_cursor_init(&cur, fsm);
 
 	//Expression
@@ -116,17 +114,18 @@ int ebnf_fsm_ast_handler(int type, void *target, void *args) {
 int ebnf_input_to_ast(Ast *ast, Input *input)
 {
 	Lexer lexer;
-	Fsm *ebnf_fsm = c_new(Fsm, 1);
+	Fsm ebnf_fsm;
 
 	EventListener ebnf_listener;
 	ebnf_listener.target = ast;
 	ebnf_listener.handler = ebnf_fsm_ast_handler;
 
 	lexer_init(&lexer, input);
-	ebnf_init_fsm(ebnf_fsm);
+	fsm_init(&ebnf_fsm);
+	ebnf_init_fsm(&ebnf_fsm);
 	ast_init(ast, input);
 
-	Session *session = fsm_start_session(ebnf_fsm);
+	Session *session = fsm_start_session(&ebnf_fsm);
 	session_set_listener(session, ebnf_listener);
 
 	while (!input->eof) {
@@ -139,6 +138,7 @@ int ebnf_input_to_ast(Ast *ast, Input *input)
 		);
 	}
 	ast_done(ast);
+	fsm_dispose(&ebnf_fsm);
 
 	return 0;
 error:
