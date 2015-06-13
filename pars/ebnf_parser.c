@@ -1,6 +1,7 @@
 #include "ebnf_parser.h"
 
 #include "cmemory.h"
+#include "dbg.h"
 
 #include <setjmp.h>
 
@@ -112,7 +113,7 @@ int ebnf_fsm_ast_handler(int type, void *target, void *args) {
 	}
 }
 
-void ebnf_input_to_ast(Ast *ast, Input *input)
+int ebnf_input_to_ast(Ast *ast, Input *input)
 {
 	Lexer lexer;
 	Fsm *ebnf_fsm = c_new(Fsm, 1);
@@ -131,12 +132,19 @@ void ebnf_input_to_ast(Ast *ast, Input *input)
 	while (!input->eof) {
 		lexer_next(&lexer);
 		session_match(session, lexer.symbol, lexer.index);
-		if(session->current->type == ACTION_TYPE_ERROR) {
-			printf("Error parsing grammar at index: %i\n", session->index);
-			break;
-		}
+		check(
+			session->current->type != ACTION_TYPE_ERROR,
+			"Error parsing grammar at index: %i with symbol: %i",
+			session->index, lexer.symbol
+		);
 	}
 	ast_done(ast);
+
+	return 0;
+error:
+	//TODO: free
+
+	return -1;
 }
 
 void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur);

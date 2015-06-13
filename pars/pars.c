@@ -22,7 +22,8 @@ Ast *pars_load_grammar(char *pathname)
 
 	ast = c_new(Ast,1);
 	check_mem(ast);
-	ebnf_input_to_ast(ast, input);
+	int error = ebnf_input_to_ast(ast, input);
+	check(!error, "Could not build ebnf ast.");
 
 	fsm = c_new(Fsm, 1);
 	check_mem(fsm);
@@ -35,7 +36,7 @@ error:
 	if(ast)
 		c_free(ast);
 	if(fsm)
-		c_free(ast);
+		c_free(fsm);
 
 	return NULL;
 }
