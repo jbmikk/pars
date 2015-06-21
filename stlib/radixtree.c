@@ -161,6 +161,8 @@ Node *radix_tree_build_node(Node *node, char *string, unsigned int length)
 	} else if (length == 1) {
 		NODE_INIT(*node, NODE_TYPE_TREE, 0, NULL);
 		node = bsearch_insert(node, string[0]);
+	} else {
+		//TODO: add sentinel?
 	}
 	return node;
 }
@@ -184,9 +186,11 @@ DataNode * radix_tree_split_node(Node *node, ScanStatus *status)
 	node = radix_tree_build_node(node, old->data, subindex);
 
 	if (new_suffix_size == 0) {
+                //No new suffix, then we append data node right here
 		NODE_INIT(*node, NODE_TYPE_DATA, 0, data_node);
 		node = &data_node->node;
 
+                //After the data node we append the old suffix
 		node = radix_tree_build_node(node, old_suffix, old_suffix_size);
 		NODE_INIT(*node, old->node.type, old->node.size, old->node.child);
 	} else {
@@ -256,6 +260,41 @@ void radix_tree_set(Node *tree, char *string, unsigned int length, void *data)
 		NODE_INIT(data_node->node, NODE_TYPE_LEAF, 0, NULL);
 	}
 	data_node->data = data;
+}
+
+void radix_tree_remove(Node *tree, char *string, unsigned int length)
+{
+	DataNode *data_node;
+	ScanStatus status;
+	status.index = 0;
+	status.subindex = 0;
+	status.found = 0;
+	status.key = string;
+	status.size = length;
+	status.type = S_DEFAULT;
+
+	Node * node = radix_tree_seek(tree, &status);
+
+	if(status.index == length && node->type == NODE_TYPE_DATA) {
+		//Delete data node, parent node points to datanode's children.
+		data_node = (DataNode*)node->child;
+		node->type = data_node->node.type;
+		node->child = data_node->node.child;
+		c_free(data_node);
+
+		//Now the new parent and children may be merged
+		//But we need to know the type of both.
+		//To find the parent type we need the grandparent.
+		if(node->type == NODE_TYPE_LEAF) {
+			//the child is a leaf
+			//if the parent is an array, remove it. 
+			//then if the grandparent is a tree, remove the entry.
+			//then if afterwards the tree contains a single item
+			//merge it with it's child and parent if they are arrays.
+		} else if(node->type == NODE_TYPE_ARRAY) {
+			//We should merge it with it's parent if they are both arrays.
+		}
+	}
 }
 
 init_status(ScanStatus *status, ScanStatus *poststatus, char *string, unsigned int length)
