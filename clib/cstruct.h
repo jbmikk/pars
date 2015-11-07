@@ -25,6 +25,7 @@ typedef struct _CScanStatus {
     unsigned int index;
     unsigned int subindex;
     unsigned int type;
+    unsigned int found;
 } CScanStatus;
 
 typedef struct _SNode {
