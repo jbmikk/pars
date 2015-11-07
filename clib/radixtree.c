@@ -18,49 +18,52 @@
 CNode *radix_tree_seek_step(CNode *tree, CScanStatus *status)
 {
 	CNode *current = tree;
-	unsigned int i = status->index;
 
 	if (current->type == NODE_TYPE_TREE) {
 		//Move to the next node within the tree
-		CNode *next = bsearch_get(current, ((char *)status->key)[i]);
+		char *key = (char *)status->key;
+		CNode *next = bsearch_get(current, key[status->index]);
 		//Break if there is no node to move to
 		if(next == NULL) {
 			goto NOTFOUND;
 		}
 		current = next;
-		i++;
+		status->index++;
 	} else if (current->type == NODE_TYPE_DATA) {
 		//Just skip intermediate data nodes
 		current = current->child;
 	} else if (current->type == NODE_TYPE_ARRAY) {
 		//Match array as far a possible
+		char *key = (char *)status->key;
 		char *array = ((CDataNode*)current->child)->data;
 		int array_length = current->size;
 		int j;
+		unsigned int i = status->index;
 		for (j = 0; j < array_length && i < status->size; j++, i++) {
 			//Break if a character does not match
-			if(array[j] != ((char *)status->key)[i]) {
+			if(array[j] != key[i]) {
 				status->subindex = j;
+				status->index = i;
 				goto NOTFOUND;
 			}
 		}
 		//Break if it didn't match the whole array
 		if(j < array_length) {
 			status->subindex = j;
+			status->index = i;
 			goto NOTFOUND;
 		}
 		//The whole array was matched, move to the next node
 		current = current->child;
+		status->index = i;
 	} else {
 		//Leaf node
 		goto NOTFOUND;
 	}
 
-	status->index = i;
 	status->found = status->index == status->size;
 	return current;
 NOTFOUND:
-	status->index = i;
 	status->found = -1;
 	return current;
 }
