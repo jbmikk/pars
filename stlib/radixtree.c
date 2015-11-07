@@ -9,6 +9,16 @@
 #include "bsearch.h"
 
 /**
+ * Metadata for tree seeking
+ * Necessary for certain operations such as removal
+ */
+typedef struct _ScanMetadata {
+    void *current;
+    void *child;
+    void *parent;
+} ScanMetadata;
+
+/**
  * Seek next node in the tree matching the current scan status
  */
 Node *radix_tree_seek_step(Node *tree, ScanStatus *status)
@@ -69,6 +79,19 @@ NOTFOUND:
  * If the key is not found it returns the closest matching node.
  */
 Node *radix_tree_seek(Node *tree, ScanStatus *status)
+{
+	Node *current = tree;
+	unsigned int i = status->index;
+	while(!status->found) {
+		current = radix_tree_seek_step(current, status);
+	}
+	return current;
+}
+
+/**
+ * Same as seek, but return tree pointers necessary for removal
+ */
+Node *radix_tree_seek_metadata(Node *tree, ScanStatus *status)
 {
 	Node *current = tree;
 	unsigned int i = status->index;
@@ -273,7 +296,7 @@ void radix_tree_remove(Node *tree, char *string, unsigned int length)
 	status.size = length;
 	status.type = S_DEFAULT;
 
-	Node * node = radix_tree_seek(tree, &status);
+	Node * node = radix_tree_seek_metadata(tree, &status);
 
 	if(status.index == length && node->type == NODE_TYPE_DATA) {
 		//Delete data node, parent node points to datanode's children.
