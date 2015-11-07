@@ -8,12 +8,12 @@ typedef enum {
 	S_FETCHNEXT
 } CRadixTreeStatus;
 
-void *radix_tree_get(CNode *tree, char *string, unsigned int length);
-void radix_tree_set(CNode *tree, char *string, unsigned int length, void *data);
-void **radix_tree_get_next(CNode *tree, char *string, unsigned int length);
-void radix_tree_iterator_init(CNode *tree, CIterator *iterator);
-void radix_tree_iterator_dispose(CNode *tree, CIterator *iterator);
-void **radix_tree_iterator_next(CNode *tree, CIterator *iterator);
+void *radix_tree_get(Node *tree, char *string, unsigned int length);
+void radix_tree_set(Node *tree, char *string, unsigned int length, void *data);
+void **radix_tree_get_next(Node *tree, char *string, unsigned int length);
+void radix_tree_iterator_init(Node *tree, Iterator *iterator);
+void radix_tree_iterator_dispose(Node *tree, Iterator *iterator);
+void **radix_tree_iterator_next(Node *tree, Iterator *iterator);
 
 #endif	//RADIXTREE_H
 

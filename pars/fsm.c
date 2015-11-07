@@ -168,7 +168,7 @@ void fsm_cursor_add_context_shift(FsmCursor *cur, int symbol)
 void fsm_cursor_add_followset(FsmCursor *cur, State *state)
 {
 	State *s;
-	CIterator it;
+	Iterator it;
 	radix_tree_iterator_init(&(state->next), &it);
 	while((s = (State *)radix_tree_iterator_next(&(state->next), &it)) != NULL) {
 		_fsm_cursor_add_action_buffer(cur, it.key, it.size, 0, 0, s);

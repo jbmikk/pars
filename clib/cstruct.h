@@ -1,32 +1,32 @@
 #ifndef CSTRUCT
 #define CSTRUCT
 
-typedef struct _CNode {
+typedef struct _Node {
     void *child;
     char type;
     unsigned char size;
     char key;
-} CNode;
+} Node;
 
-typedef struct _CDataNode {
-    CNode cnode;
+typedef struct _DataNode {
+    Node node;
     void *data;
-} CDataNode;
+} DataNode;
 
-typedef struct _CIterator {
+typedef struct _Iterator {
     void *key;
     unsigned char size;
     void *data;
-} CIterator;
+} Iterator;
 
-typedef struct _CScanStatus {
+typedef struct _ScanStatus {
     void *key;
     unsigned char size;
     unsigned int index;
     unsigned int subindex;
     unsigned int type;
     unsigned int found;
-} CScanStatus;
+} ScanStatus;
 
 typedef struct _SNode {
 	void *data;

@@ -3,10 +3,10 @@
 
 #include "cstruct.h"
 
-CNode *bsearch_get(CNode *parent, char key);
-CNode *bsearch_insert(CNode *parent, char key);
-int bsearch_delete(CNode *parent, char key);
-void bsearch_delete_all(CNode *parent);
+Node *bsearch_get(Node *parent, char key);
+Node *bsearch_insert(Node *parent, char key);
+int bsearch_delete(Node *parent, char key);
+void bsearch_delete_all(Node *parent);
 
 #endif	//BSEARCH_H
 

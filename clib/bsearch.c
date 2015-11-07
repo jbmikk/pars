@@ -6,10 +6,10 @@
 #include "cmemory.h"
 #include "dbg.h"
 
-CNode *bsearch_get(CNode *parent, char key)
+Node *bsearch_get(Node *parent, char key)
 {
-	CNode *children = parent->child;
-	CNode *next;
+	Node *children = parent->child;
+	Node *next;
 	char left = 0;
 	char right = parent->size-1;
 
@@ -27,15 +27,15 @@ CNode *bsearch_get(CNode *parent, char key)
 	return NULL;
 }
 
-CNode *bsearch_insert(CNode *parent, char key)
+Node *bsearch_insert(Node *parent, char key)
 {
-	CNode *new_children;
-	CNode *new_node;
-	CNode *src = parent->child;
-	CNode *dst;
-	CNode *end = src+parent->size;
+	Node *new_children;
+	Node *new_node;
+	Node *src = parent->child;
+	Node *dst;
+	Node *end = src+parent->size;
 
-	dst = new_children = c_new(CNode, parent->size+1);
+	dst = new_children = c_new(Node, parent->size+1);
 	check_mem(new_children);
 
 	if(src != NULL) {
@@ -61,17 +61,17 @@ error:
 	return NULL;
 }
 
-int bsearch_delete(CNode *parent, char key)
+int bsearch_delete(Node *parent, char key)
 {
 	if(bsearch_get(parent, key)!= NULL) {
-		CNode *new_children = NULL;
+		Node *new_children = NULL;
 		if(parent->size > 1) {
-			new_children = c_new(CNode, parent->size-1);
+			new_children = c_new(Node, parent->size-1);
 			check_mem(new_children);
 
-			CNode *dst = new_children;
-			CNode *src = parent->child;
-			CNode *end = src+parent->size;
+			Node *dst = new_children;
+			Node *src = parent->child;
+			Node *end = src+parent->size;
 			while(src < end && src->key < key)
 				*dst++ = *src++;
 			src++;
@@ -89,7 +89,7 @@ error:
 	return -1;
 }
 
-void bsearch_delete_all(CNode *parent)
+void bsearch_delete_all(Node *parent)
 {
 	if(parent->child != NULL) {
 		c_free(parent->child);

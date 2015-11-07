@@ -9,7 +9,7 @@ typedef struct _AstNode {
 	unsigned int index;
 	unsigned int length;
 	int symbol;
-	CNode children;
+	Node children;
 	struct _AstNode *parent;
 } AstNode;
 

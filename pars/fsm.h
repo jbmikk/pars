@@ -17,7 +17,7 @@
 typedef struct _State {
     char type;
     int reduction;
-    CNode next;
+    Node next;
 } State;
 
 typedef struct _NonTerminal {
@@ -27,7 +27,7 @@ typedef struct _NonTerminal {
 
 typedef struct _Fsm {
 	State *start;
-	CNode rules;
+	Node rules;
 	int symbol_base;
 } Fsm;
 
