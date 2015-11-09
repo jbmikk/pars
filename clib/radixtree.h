@@ -6,7 +6,7 @@
 typedef enum {
 	S_DEFAULT = 0,
 	S_FETCHNEXT
-} CRadixTreeStatus;
+} RadixTreeStatus;
 
 void *radix_tree_get(Node *tree, char *string, unsigned int length);
 void radix_tree_set(Node *tree, char *string, unsigned int length, void *data);
