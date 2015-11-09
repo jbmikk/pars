@@ -1,6 +1,6 @@
 #include "cmemory.h"
 
-void *c_malloc_n(csize n)
+void *c_malloc_n(unsigned int n)
 {
     void *ptr;
     if(n > 0)
@@ -13,7 +13,7 @@ void *c_malloc_n(csize n)
     return ptr;
 }
 
-void *c_realloc_n(void *ptr, csize n)
+void *c_realloc_n(void *ptr, unsigned int n)
 {
     if(n > 0)
     {
