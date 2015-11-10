@@ -1,7 +1,7 @@
 #ifndef RADIXTREE_H
 #define	RADIXTREE_H
 
-#include "cstruct.h"
+#include "structs.h"
 
 typedef enum {
 	S_DEFAULT = 0,

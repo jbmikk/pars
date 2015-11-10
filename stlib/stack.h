@@ -1,7 +1,7 @@
 #ifndef STACK_H
 #define STACK_H
 
-#include "cstruct.h"
+#include "structs.h"
 
 SNode *stack_push(SNode *node, void *ptr);
 SNode *stack_pop(SNode *node);

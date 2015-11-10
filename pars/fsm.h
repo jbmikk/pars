@@ -1,7 +1,7 @@
 #ifndef FSM_H
 #define FSM_H
 
-#include "cstruct.h"
+#include "structs.h"
 #include "event.h"
 
 #define ACTION_TYPE_START 0

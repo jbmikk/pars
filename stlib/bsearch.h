@@ -1,7 +1,7 @@
 #ifndef BSEARCH_H
 #define	BSEARCH_H
 
-#include "cstruct.h"
+#include "structs.h"
 
 Node *bsearch_get(Node *parent, char key);
 Node *bsearch_insert(Node *parent, char key);
