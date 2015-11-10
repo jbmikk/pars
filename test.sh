@@ -3,9 +3,9 @@ sh build.sh OFF
 cd build
 
 echo ""
-echo "TESTCLIB:"
+echo "TESTSTLIB:"
 echo "---------"
-cd testclib
+cd teststlib
 ./test_bsearch
 ./test_radixtree
 cd ..
@@ -23,4 +23,4 @@ cd ..
 cd ..
 
 # test with valgrind 
-# valgrind -v --suppressions=suppressions.supp --leak-check=full build/testclib/test_bsearch
+# valgrind -v --suppressions=suppressions.supp --leak-check=full build/teststlib/test_bsearch

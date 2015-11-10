@@ -1,4 +1,4 @@
-include_directories("${PROJECT_SOURCE_DIR}/clib")
+include_directories("${PROJECT_SOURCE_DIR}/stlib")
 include_directories("${PROJECT_SOURCE_DIR}/pars")
 
 find_package(GLIB REQUIRED)

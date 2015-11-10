@@ -3,9 +3,9 @@ sh build.sh ON
 cd build
 
 echo ""
-echo "TESTCLIB:"
+echo "TESTSTLIB:"
 echo "---------"
-cd testclib
+cd teststlib
 ./test_bsearch
 ./test_radixtree
 cd ..

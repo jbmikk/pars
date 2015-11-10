@@ -8,8 +8,8 @@ option(ENABLE_AST_TRACE "Enable ast traces" OFF)
 
 include_directories("${PROJECT_SOURCE_DIR}/vendor/dbg")
 
-add_subdirectory(clib)
-add_subdirectory(testclib)
+add_subdirectory(stlib)
+add_subdirectory(teststlib)
 add_subdirectory(pars)
 add_subdirectory(testpars)
 

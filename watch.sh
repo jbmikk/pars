@@ -1,1 +1,1 @@
-while inotifywait -e close_write ./clib ./pars ./testclib ./testpars; do sh test.sh; done
+while inotifywait -e close_write ./stlib ./pars ./teststlib ./testpars; do sh test.sh; done
