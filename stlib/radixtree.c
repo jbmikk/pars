@@ -13,9 +13,10 @@
  * Necessary for certain operations such as removal
  */
 typedef struct _ScanMetadata {
-    void *current;
-    void *child;
-    void *parent;
+    Node *tree;
+    unsigned int tree_index;
+    Node *array;
+    Node *parentArray;
 } ScanMetadata;
 
 /**
@@ -91,11 +92,33 @@ Node *radix_tree_seek(Node *tree, ScanStatus *status)
 /**
  * Same as seek, but return tree pointers necessary for removal
  */
-Node *radix_tree_seek_metadata(Node *tree, ScanStatus *status)
+Node *radix_tree_seek_metadata(Node *tree, ScanStatus *status, ScanMetadata *meta)
 {
 	Node *current = tree;
 	unsigned int i = status->index;
+
+	meta->tree = NULL;
+	meta->array = NULL;
+	meta->parentArray = NULL;
+
 	while(!status->found) {
+		if (current->type == NODE_TYPE_TREE) {
+			meta->tree = current;
+			meta->tree_index = status->index;
+			if(meta->array) {
+				meta->parentArray = meta->array;
+				meta->array = NULL;
+			}
+		} else if (current->type == NODE_TYPE_ARRAY) {
+			meta->array = current;
+		} else if (current->type == NODE_TYPE_DATA) {
+			//If we reach a data node it's not
+			//the one we are looking for
+			meta->tree = NULL;
+			meta->array = NULL;
+			meta->parentArray = NULL;
+		}
+
 		current = radix_tree_seek_step(current, status);
 	}
 	return current;
@@ -296,7 +319,9 @@ void radix_tree_remove(Node *tree, char *string, unsigned int length)
 	status.size = length;
 	status.type = S_DEFAULT;
 
-	Node * node = radix_tree_seek_metadata(tree, &status);
+	ScanMetadata meta;
+
+	Node * node = radix_tree_seek_metadata(tree, &status, &meta);
 
 	if(status.index == length && node->type == NODE_TYPE_DATA) {
 		//Delete data node, parent node points to datanode's children.
@@ -310,6 +335,11 @@ void radix_tree_remove(Node *tree, char *string, unsigned int length)
 		//To find the parent type we need the grandparent.
 		if(node->type == NODE_TYPE_LEAF) {
 			//the child is a leaf
+			if(meta.tree) {
+				//Remove childless node from tree
+				char *key = (char *)status.key;
+				bsearch_delete(meta.tree, key[meta.tree_index]);
+			}
 			//if the parent is an array, remove it. 
 			//then if the grandparent is a tree, remove the entry.
 			//then if afterwards the tree contains a single item
