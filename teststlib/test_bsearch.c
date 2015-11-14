@@ -40,8 +40,29 @@ void bsearch__set2_and_get2(BSearchFixture* fix, gconstpointer data){
 	a2 = bsearch_get(&fix->node, 'a');
 	b2 = bsearch_get(&fix->node, 'b');
 
+	g_assert(fix->node.size == 2);
 	g_assert(a2 != NULL);
 	g_assert(a2->child == (void *)&d1);
+	g_assert(b2 != NULL);
+	g_assert(b2->child == (void *)&d2);
+}
+
+void bsearch__set2_and_delete1(BSearchFixture* fix, gconstpointer data){
+	Node *a1, *a2, *b1, *b2;
+	Node d1, d2;
+
+	a1 = bsearch_insert(&fix->node, 'a');
+	a1->child = (void *) &d1;
+	b1 = bsearch_insert(&fix->node, 'b');
+	b1->child = (void *) &d2;
+
+	bsearch_delete(&fix->node, 'a');
+
+	a2 = bsearch_get(&fix->node, 'a');
+	b2 = bsearch_get(&fix->node, 'b');
+
+	g_assert(fix->node.size == 1);
+	g_assert(a2 == NULL);
 	g_assert(b2 != NULL);
 	g_assert(b2->child == (void *)&d2);
 }
@@ -50,6 +71,7 @@ int main(int argc, char** argv) {
 	g_test_init(&argc, &argv, NULL);
 	g_test_add("/BSearch/set_and_get", BSearchFixture, NULL, bsearch_setup, bsearch__set_and_get, bsearch_teardown);
 	g_test_add("/BSearch/set2_and_get2", BSearchFixture, NULL, bsearch_setup, bsearch__set2_and_get2, bsearch_teardown);
+	g_test_add("/BSearch/set2_and_delete1", BSearchFixture, NULL, bsearch_setup, bsearch__set2_and_delete1, bsearch_teardown);
 	//TODO:
 	//delete
 	//set_and_out_of_memory
