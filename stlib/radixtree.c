@@ -9,17 +9,6 @@
 #include "bsearch.h"
 
 /**
- * Metadata for tree seeking
- * Necessary for certain operations such as removal
- */
-typedef struct _ScanMetadata {
-    Node *tree;
-    unsigned int tree_index;
-    Node *array;
-    Node *parentArray;
-} ScanMetadata;
-
-/**
  * Seek next node in the tree matching the current scan status
  */
 Node *radix_tree_seek_step(Node *tree, ScanStatus *status)
