@@ -3,6 +3,7 @@
 #include <glib.h>
 
 #include "radixtree.h"
+#include "radixtree_p.h"
 
 typedef struct {
 	Node tree;
@@ -23,8 +24,11 @@ void radix_tree_teardown(RadixTreeFixture* fixture, gconstpointer data){
 void test_radix_tree__set_and_get(RadixTreeFixture* fix, gconstpointer data){
 	char *str1="BLUE", *str2;
 	Node *tree = &fix->tree;
+
 	radix_tree_set(tree, "blue", 4, str1);
 	str2 = radix_tree_get(tree, "blue", 4);
+
+	g_assert(tree->type == NODE_TYPE_ARRAY);
 	g_assert_cmpstr(str2, ==, "BLUE");
 }
 
