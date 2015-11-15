@@ -319,23 +319,28 @@ void radix_tree_remove(Node *tree, char *string, unsigned int length)
 		node->child = data_node->node.child;
 		c_free(data_node);
 
-		//Now the new parent and children may be merged
-		//But we need to know the type of both.
-		//To find the parent type we need the grandparent.
 		if(node->type == NODE_TYPE_LEAF) {
 			//the child is a leaf
+			//Delete array node and associated string
+			if(meta.array) {
+				DataNode *leaf = (DataNode*)meta.array->child;
+				c_free(leaf->data);
+				c_delete(leaf);
+				meta.array->type = NODE_TYPE_LEAF;
+				meta.array->size = 0;
+			}
+			//Remove childless node from tree
 			if(meta.tree) {
-				//Remove childless node from tree
 				char *key = (char *)status.key;
 				bsearch_delete(meta.tree, key[meta.tree_index]);
 				if(meta.tree->size == 0) {
+					//if no children there's a new leaf
 					meta.tree->type = NODE_TYPE_LEAF;
+				} else if (meta.tree->size == 1) {
+					//if child is array, merge them into new array
 				}
 			}
 			//if the parent is an array, remove it. 
-			//then if the grandparent is a tree, remove the entry.
-			//then if afterwards the tree contains a single item
-			//merge it with it's child and parent if they are arrays.
 		} else if(node->type == NODE_TYPE_ARRAY) {
 			//We should merge it with it's parent if they are both arrays.
 		}

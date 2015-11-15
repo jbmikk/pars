@@ -73,6 +73,34 @@ void test_radix_tree__set2_and_remove1_1key(RadixTreeFixture* fix, gconstpointer
 	g_assert_cmpstr(str4, ==, "GREEN");
 }
 
+void test_radix_tree__set_and_remove_4key(RadixTreeFixture* fix, gconstpointer data){
+	char *str1="BLUE", *str2;
+	Node *tree = &fix->tree;
+
+	radix_tree_set(tree, "blue", 4, str1);
+	radix_tree_remove(tree, "blue", 4);
+	str2 = radix_tree_get(tree, "blue", 4);
+
+	g_assert(tree->type == NODE_TYPE_LEAF);
+	g_assert(tree->size == 0);
+	g_assert(str2 == NULL);
+}
+
+void test_radix_tree__set2_and_remove1_4key(RadixTreeFixture* fix, gconstpointer data){
+	char *str1="BLUE", *str2="GREEN", *str3, *str4;
+	Node *tree = &fix->tree;
+
+	radix_tree_set(tree, "blue", 4, str1);
+	radix_tree_set(tree, "green", 5, str2);
+	radix_tree_remove(tree, "blue", 4);
+	str3 = radix_tree_get(tree, "blue", 4);
+	str4 = radix_tree_get(tree, "green", 5);
+
+	g_assert(tree->type == NODE_TYPE_ARRAY);
+	g_assert(tree->size == 4);
+	g_assert(str3 == NULL);
+	g_assert_cmpstr(str4, ==, "GREEN");
+}
 
 void test_radix_tree__non_clashing_keys(RadixTreeFixture* fix, gconstpointer data){
 	char *str1="BLUE", *str2="GREEN", *str3, *str4;
@@ -158,6 +186,8 @@ int main(int argc, char** argv) {
 	g_test_add("/RadixTree/set_and_get_1key", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set_and_get_1key, radix_tree_teardown);
 	g_test_add("/RadixTree/set_and_remove_1key", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set_and_remove_1key, radix_tree_teardown);
 	g_test_add("/RadixTree/set2_and_remove1_1key", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set2_and_remove1_1key, radix_tree_teardown);
+	g_test_add("/RadixTree/set2_and_remove1_1key", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set_and_remove_4key, radix_tree_teardown);
+	//g_test_add("/RadixTree/set2_and_remove1_1key", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set2_and_remove1_4key, radix_tree_teardown);
 	g_test_add("/RadixTree/non_clashing_keys", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__non_clashing_keys, radix_tree_teardown);
 	g_test_add("/RadixTree/first_clashing_keys", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__first_clashing_keys, radix_tree_teardown);
 	g_test_add("/RadixTree/last_clashing_keys", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__last_clashing_keys, radix_tree_teardown);
