@@ -52,9 +52,27 @@ void test_radix_tree__set_and_remove_1key(RadixTreeFixture* fix, gconstpointer d
 	radix_tree_remove(tree, "b", 1);
 	str2 = radix_tree_get(tree, "b", 1);
 
+	g_assert(tree->type == NODE_TYPE_LEAF);
 	g_assert(tree->size == 0);
 	g_assert(str2 == NULL);
 }
+
+void test_radix_tree__set2_and_remove1_1key(RadixTreeFixture* fix, gconstpointer data){
+	char *str1="BLUE", *str2="GREEN", *str3, *str4;
+	Node *tree = &fix->tree;
+
+	radix_tree_set(tree, "b", 1, str1);
+	radix_tree_set(tree, "g", 1, str2);
+	radix_tree_remove(tree, "b", 1);
+	str3 = radix_tree_get(tree, "b", 1);
+	str4 = radix_tree_get(tree, "g", 1);
+
+	g_assert(tree->type == NODE_TYPE_TREE);
+	g_assert(tree->size == 1);
+	g_assert(str3 == NULL);
+	g_assert_cmpstr(str4, ==, "GREEN");
+}
+
 
 void test_radix_tree__non_clashing_keys(RadixTreeFixture* fix, gconstpointer data){
 	char *str1="BLUE", *str2="GREEN", *str3, *str4;
@@ -139,6 +157,7 @@ int main(int argc, char** argv) {
 	g_test_add("/RadixTree/set_and_get", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set_and_get, radix_tree_teardown);
 	g_test_add("/RadixTree/set_and_get_1key", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set_and_get_1key, radix_tree_teardown);
 	g_test_add("/RadixTree/set_and_remove_1key", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set_and_remove_1key, radix_tree_teardown);
+	g_test_add("/RadixTree/set2_and_remove1_1key", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set2_and_remove1_1key, radix_tree_teardown);
 	g_test_add("/RadixTree/non_clashing_keys", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__non_clashing_keys, radix_tree_teardown);
 	g_test_add("/RadixTree/first_clashing_keys", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__first_clashing_keys, radix_tree_teardown);
 	g_test_add("/RadixTree/last_clashing_keys", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__last_clashing_keys, radix_tree_teardown);

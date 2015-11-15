@@ -328,6 +328,9 @@ void radix_tree_remove(Node *tree, char *string, unsigned int length)
 				//Remove childless node from tree
 				char *key = (char *)status.key;
 				bsearch_delete(meta.tree, key[meta.tree_index]);
+				if(meta.tree->size == 0) {
+					meta.tree->type = NODE_TYPE_LEAF;
+				}
 			}
 			//if the parent is an array, remove it. 
 			//then if the grandparent is a tree, remove the entry.
