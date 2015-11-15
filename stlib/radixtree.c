@@ -251,6 +251,38 @@ DataNode * radix_tree_split_node(Node *node, ScanStatus *status)
 	return data_node;
 }
 
+/**
+ * Join nodes to keep tree compact
+ */
+DataNode * radix_tree_join_nodes(Node *node, ScanStatus *status, ScanMetadata *meta)
+{
+	if(node->type == NODE_TYPE_LEAF) {
+		//the child is a leaf
+		//Delete array node and associated string
+		if(meta->array) {
+			DataNode *leaf = (DataNode*)meta->array->child;
+			c_free(leaf->data);
+			c_delete(leaf);
+			meta->array->type = NODE_TYPE_LEAF;
+			meta->array->size = 0;
+		}
+		//Remove childless node from tree
+		if(meta->tree) {
+			char *key = (char *)status->key;
+			bsearch_delete(meta->tree, key[meta->tree_index]);
+			if(meta->tree->size == 0) {
+				//if no children there's a new leaf
+				meta->tree->type = NODE_TYPE_LEAF;
+			} else if (meta->tree->size == 1) {
+				//if child is array, merge them into new array
+			}
+		}
+		//if the parent is an array, remove it. 
+	} else if(node->type == NODE_TYPE_ARRAY) {
+		//We should merge it with it's parent if they are both arrays.
+	}
+}
+
 void *radix_tree_get(Node *tree, char *string, unsigned int length)
 {
 	ScanStatus status;
@@ -318,32 +350,8 @@ void radix_tree_remove(Node *tree, char *string, unsigned int length)
 		node->type = data_node->node.type;
 		node->child = data_node->node.child;
 		c_free(data_node);
-
-		if(node->type == NODE_TYPE_LEAF) {
-			//the child is a leaf
-			//Delete array node and associated string
-			if(meta.array) {
-				DataNode *leaf = (DataNode*)meta.array->child;
-				c_free(leaf->data);
-				c_delete(leaf);
-				meta.array->type = NODE_TYPE_LEAF;
-				meta.array->size = 0;
-			}
-			//Remove childless node from tree
-			if(meta.tree) {
-				char *key = (char *)status.key;
-				bsearch_delete(meta.tree, key[meta.tree_index]);
-				if(meta.tree->size == 0) {
-					//if no children there's a new leaf
-					meta.tree->type = NODE_TYPE_LEAF;
-				} else if (meta.tree->size == 1) {
-					//if child is array, merge them into new array
-				}
-			}
-			//if the parent is an array, remove it. 
-		} else if(node->type == NODE_TYPE_ARRAY) {
-			//We should merge it with it's parent if they are both arrays.
-		}
+		
+		radix_tree_join_nodes(node, &status, &meta);
 	}
 }
 
