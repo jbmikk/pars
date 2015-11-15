@@ -168,7 +168,7 @@ Node *radix_tree_build_node(Node *node, char *string, unsigned int length)
 /**
  * create split array node in two using a tree node
  */
-DataNode * radix_tree_split_array(Node *node, ScanStatus *status)
+DataNode * radix_tree_split_node(Node *node, ScanStatus *status)
 {
 	unsigned subindex = status->subindex;
 
@@ -246,7 +246,7 @@ void radix_tree_set(Node *tree, char *string, unsigned int length, void *data)
 	if (node->type == NODE_TYPE_DATA) {
 		data_node = (DataNode*)node->child;
 	} else if (node->type == NODE_TYPE_ARRAY) {
-		data_node = radix_tree_split_array(node, &status);
+		data_node = radix_tree_split_node(node, &status);
 	} else {
 		if(node->type == NODE_TYPE_TREE)
 			node = bsearch_insert(node, string[status.index++]);
