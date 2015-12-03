@@ -88,14 +88,14 @@ Node *radix_tree_seek_metadata(Node *tree, ScanStatus *status, ScanMetadata *met
 
 	meta->tree = NULL;
 	meta->array = NULL;
-	meta->parentArray = NULL;
+	meta->parent_array = NULL;
 
 	while(!status->found) {
 		if (current->type == NODE_TYPE_TREE) {
 			meta->tree = current;
 			meta->tree_index = status->index;
 			if(meta->array) {
-				meta->parentArray = meta->array;
+				meta->parent_array = meta->array;
 				meta->array = NULL;
 			}
 		} else if (current->type == NODE_TYPE_ARRAY) {
@@ -105,7 +105,7 @@ Node *radix_tree_seek_metadata(Node *tree, ScanStatus *status, ScanMetadata *met
 			//the one we are looking for
 			meta->tree = NULL;
 			meta->array = NULL;
-			meta->parentArray = NULL;
+			meta->parent_array = NULL;
 		}
 
 		current = radix_tree_seek_step(current, status);
@@ -254,30 +254,97 @@ DataNode * radix_tree_split_node(Node *node, ScanStatus *status)
 /**
  * Join nodes to keep tree compact
  */
-DataNode * radix_tree_join_nodes(Node *node, ScanStatus *status, ScanMetadata *meta)
+void radix_tree_join_nodes(Node *node, ScanStatus *status, ScanMetadata *meta)
 {
 	if(node->type == NODE_TYPE_LEAF) {
 		//the child is a leaf
-		//Delete array node and associated string
-		if(meta->array) {
-			DataNode *leaf = (DataNode*)meta->array->child;
+
+		//Delete branch1 node preceeding the leaf
+		Node *branch1 = meta->array;
+		if(branch1) {
+			DataNode *leaf = (DataNode*)branch1->child;
 			c_free(leaf->data);
 			c_delete(leaf);
-			meta->array->type = NODE_TYPE_LEAF;
-			meta->array->size = 0;
+			branch1->type = NODE_TYPE_LEAF;
+			branch1->size = 0;
 		}
+
 		//Remove childless node from tree
-		if(meta->tree) {
+		Node *tree = meta->tree;
+		int tree_index = meta->tree_index;
+		if(tree) {
 			char *key = (char *)status->key;
-			bsearch_delete(meta->tree, key[meta->tree_index]);
-			if(meta->tree->size == 0) {
+			bsearch_delete(tree, key[tree_index]);
+			if(tree->size == 0) {
 				//if no children there's a new leaf
-				meta->tree->type = NODE_TYPE_LEAF;
-			} else if (meta->tree->size == 1) {
-				//if child is array, merge them into new array
+				tree->type = NODE_TYPE_LEAF;
+			} else if (tree->size == 1) {
+				//branch2 is the only branch left
+				Node *branch2 = (Node*)tree->child;
+				Node *parent_branch = meta->parent_array;
+
+				Node *cont = (Node*)branch2->child;
+				Node *target = NULL;
+
+				DataNode *suffix = NULL;
+				char *suffix_str = NULL;
+				int suffix_size = 0;
+
+				DataNode *prefix = NULL;
+				char *prefix_str = NULL;
+				int prefix_size = 0;
+
+				if(branch2->type == NODE_TYPE_ARRAY) {
+					//if it's an array merge it with it's parent.
+					suffix_size = branch2->size;
+					suffix = (DataNode*)branch2->child;
+					suffix_str = suffix->data;
+					target = tree;
+				}
+
+				if(parent_branch && parent_branch->type == NODE_TYPE_ARRAY) {
+					prefix_size = parent_branch->size;
+					prefix = (DataNode*)parent_branch->child;
+					prefix_str = prefix->data;
+					target = parent_branch;
+				}
+
+				int joined_size = prefix_size + 1 + suffix_size;
+				char joined[joined_size];
+				int i = 0;
+
+				if(target) {
+					//Join arrays
+					if(prefix) {
+						for(i; i < prefix_size; i++) {
+							joined[i] = prefix_str[i];
+						}
+					}
+					joined[i++] = branch2->key;
+					if(suffix) {
+						int j = 0;
+						for(j; j < suffix_size; j++) {
+							joined[i+j] = suffix_str[j];
+						}
+					}
+
+					//Build new node
+					Node *new_branch = radix_tree_build_node(target, joined, joined_size);
+					NODE_INIT(*new_branch, cont->type, cont->size, cont->child);
+
+					//Cleanup old nodes
+					if(prefix) {
+						c_free(prefix->data);
+						c_delete(prefix);
+					}
+					c_delete(branch2);
+					if(suffix) {
+						c_free(suffix->data);
+						c_delete(suffix);
+					}
+				}
 			}
 		}
-		//if the parent is an array, remove it. 
 	} else if(node->type == NODE_TYPE_ARRAY) {
 		//We should merge it with it's parent if they are both arrays.
 	}

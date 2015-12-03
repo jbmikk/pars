@@ -14,7 +14,7 @@ typedef struct _ScanMetadata {
     Node *tree;
     unsigned int tree_index;
     Node *array;
-    Node *parentArray;
+    Node *parent_array;
 } ScanMetadata;
 
 #endif	//RADIXTREE_P_H

@@ -97,7 +97,23 @@ void test_radix_tree__set2_and_remove1_4key(RadixTreeFixture* fix, gconstpointer
 	str4 = radix_tree_get(tree, "green", 5);
 
 	g_assert(tree->type == NODE_TYPE_ARRAY);
-	g_assert(tree->size == 4);
+	g_assert(tree->size == 5);
+	g_assert(str3 == NULL);
+	g_assert_cmpstr(str4, ==, "GREEN");
+}
+
+void test_radix_tree__set2_and_remove1_4key_with_parent_array(RadixTreeFixture* fix, gconstpointer data){
+	char *str1="BLUE", *str2="GREEN", *str3, *str4;
+	Node *tree = &fix->tree;
+
+	radix_tree_set(tree, nzs("lightblue"), str1);
+	radix_tree_set(tree, nzs("lightgreen"), str2);
+	radix_tree_remove(tree, nzs("lightblue"));
+	str3 = radix_tree_get(tree, nzs("lightblue"));
+	str4 = radix_tree_get(tree, nzs("lightgreen"));
+
+	g_assert(tree->type == NODE_TYPE_ARRAY);
+	g_assert(tree->size == 10);
 	g_assert(str3 == NULL);
 	g_assert_cmpstr(str4, ==, "GREEN");
 }
@@ -186,8 +202,9 @@ int main(int argc, char** argv) {
 	g_test_add("/RadixTree/set_and_get_1key", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set_and_get_1key, radix_tree_teardown);
 	g_test_add("/RadixTree/set_and_remove_1key", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set_and_remove_1key, radix_tree_teardown);
 	g_test_add("/RadixTree/set2_and_remove1_1key", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set2_and_remove1_1key, radix_tree_teardown);
-	g_test_add("/RadixTree/set2_and_remove1_1key", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set_and_remove_4key, radix_tree_teardown);
-	//g_test_add("/RadixTree/set2_and_remove1_1key", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set2_and_remove1_4key, radix_tree_teardown);
+	g_test_add("/RadixTree/set_and_remove_4key", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set_and_remove_4key, radix_tree_teardown);
+	g_test_add("/RadixTree/set2_and_remove1_4key", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set2_and_remove1_4key, radix_tree_teardown);
+	g_test_add("/RadixTree/set2_and_remove1_4key_with_parent_array", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__set2_and_remove1_4key_with_parent_array, radix_tree_teardown);
 	g_test_add("/RadixTree/non_clashing_keys", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__non_clashing_keys, radix_tree_teardown);
 	g_test_add("/RadixTree/first_clashing_keys", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__first_clashing_keys, radix_tree_teardown);
 	g_test_add("/RadixTree/last_clashing_keys", RadixTreeFixture, NULL, radix_tree_setup, test_radix_tree__last_clashing_keys, radix_tree_teardown);
