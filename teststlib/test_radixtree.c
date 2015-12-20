@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <glib.h>
 
 #include "radixtree.h"
@@ -25,8 +26,8 @@ void test_radix_tree__set_and_get(RadixTreeFixture* fix, gconstpointer data){
 	char *str1="BLUE", *str2;
 	Node *tree = &fix->tree;
 
-	radix_tree_set(tree, "blue", 4, str1);
-	str2 = radix_tree_get(tree, "blue", 4);
+	radix_tree_set(tree, nzs("blue"), str1);
+	str2 = radix_tree_get(tree, nzs("blue"));
 
 	g_assert(tree->type == NODE_TYPE_ARRAY);
 	g_assert_cmpstr(str2, ==, "BLUE");
@@ -36,8 +37,8 @@ void test_radix_tree__set_and_get_1key(RadixTreeFixture* fix, gconstpointer data
 	char *str1="BLUE", *str2;
 	Node *tree = &fix->tree;
 
-	radix_tree_set(tree, "b", 1, str1);
-	str2 = radix_tree_get(tree, "b", 1);
+	radix_tree_set(tree, nzs("b"), str1);
+	str2 = radix_tree_get(tree, nzs("b"));
 
 	g_assert(tree->type == NODE_TYPE_TREE);
 	g_assert(tree->size == 1);
@@ -48,9 +49,9 @@ void test_radix_tree__set_and_remove_1key(RadixTreeFixture* fix, gconstpointer d
 	char *str1="BLUE", *str2;
 	Node *tree = &fix->tree;
 
-	radix_tree_set(tree, "b", 1, str1);
-	radix_tree_remove(tree, "b", 1);
-	str2 = radix_tree_get(tree, "b", 1);
+	radix_tree_set(tree, nzs("b"), str1);
+	radix_tree_remove(tree, nzs("b"));
+	str2 = radix_tree_get(tree, nzs("b"));
 
 	g_assert(tree->type == NODE_TYPE_LEAF);
 	g_assert(tree->size == 0);
@@ -61,11 +62,11 @@ void test_radix_tree__set2_and_remove1_1key(RadixTreeFixture* fix, gconstpointer
 	char *str1="BLUE", *str2="GREEN", *str3, *str4;
 	Node *tree = &fix->tree;
 
-	radix_tree_set(tree, "b", 1, str1);
-	radix_tree_set(tree, "g", 1, str2);
-	radix_tree_remove(tree, "b", 1);
-	str3 = radix_tree_get(tree, "b", 1);
-	str4 = radix_tree_get(tree, "g", 1);
+	radix_tree_set(tree, nzs("b"), str1);
+	radix_tree_set(tree, nzs("g"), str2);
+	radix_tree_remove(tree, nzs("b"));
+	str3 = radix_tree_get(tree, nzs("b"));
+	str4 = radix_tree_get(tree, nzs("g"));
 
 	g_assert(tree->type == NODE_TYPE_TREE);
 	g_assert(tree->size == 1);
@@ -77,9 +78,9 @@ void test_radix_tree__set_and_remove_4key(RadixTreeFixture* fix, gconstpointer d
 	char *str1="BLUE", *str2;
 	Node *tree = &fix->tree;
 
-	radix_tree_set(tree, "blue", 4, str1);
-	radix_tree_remove(tree, "blue", 4);
-	str2 = radix_tree_get(tree, "blue", 4);
+	radix_tree_set(tree, nzs("blue"), str1);
+	radix_tree_remove(tree, nzs("blue"));
+	str2 = radix_tree_get(tree, nzs("blue"));
 
 	g_assert(tree->type == NODE_TYPE_LEAF);
 	g_assert(tree->size == 0);
@@ -90,11 +91,11 @@ void test_radix_tree__set2_and_remove1_4key(RadixTreeFixture* fix, gconstpointer
 	char *str1="BLUE", *str2="GREEN", *str3, *str4;
 	Node *tree = &fix->tree;
 
-	radix_tree_set(tree, "blue", 4, str1);
-	radix_tree_set(tree, "green", 5, str2);
-	radix_tree_remove(tree, "blue", 4);
-	str3 = radix_tree_get(tree, "blue", 4);
-	str4 = radix_tree_get(tree, "green", 5);
+	radix_tree_set(tree, nzs("blue"), str1);
+	radix_tree_set(tree, nzs("green"), str2);
+	radix_tree_remove(tree, nzs("blue"));
+	str3 = radix_tree_get(tree, nzs("blue"));
+	str4 = radix_tree_get(tree, nzs("green"));
 
 	g_assert(tree->type == NODE_TYPE_ARRAY);
 	g_assert(tree->size == 5);
@@ -140,10 +141,10 @@ void test_radix_tree__set2_and_remove1_3key(RadixTreeFixture* fix, gconstpointer
 void test_radix_tree__non_clashing_keys(RadixTreeFixture* fix, gconstpointer data){
 	char *str1="BLUE", *str2="GREEN", *str3, *str4;
 	Node *tree = &fix->tree;
-	radix_tree_set(tree, "blue", 4, str1);
-	radix_tree_set(tree, "green", 5, str2);
-	str3 = radix_tree_get(tree, "blue", 4);
-	str4 = radix_tree_get(tree, "green", 5);
+	radix_tree_set(tree, nzs("blue"), str1);
+	radix_tree_set(tree, nzs("green"), str2);
+	str3 = radix_tree_get(tree, nzs("blue"));
+	str4 = radix_tree_get(tree, nzs("green"));
 	g_assert_cmpstr(str3, ==, "BLUE");
 	g_assert_cmpstr(str4, ==, "GREEN");
 }
@@ -151,10 +152,10 @@ void test_radix_tree__non_clashing_keys(RadixTreeFixture* fix, gconstpointer dat
 void test_radix_tree__first_clashing_keys(RadixTreeFixture* fix, gconstpointer data){
 	char *str1="BLUE", *str2="BOBO", *str3, *str4;
 	Node *tree = &fix->tree;
-	radix_tree_set(tree, "blue", 4, str1);
-	radix_tree_set(tree, "bobo", 4, str2);
-	str3 = radix_tree_get(tree, "blue", 4);
-	str4 = radix_tree_get(tree, "bobo", 4);
+	radix_tree_set(tree, nzs("blue"), str1);
+	radix_tree_set(tree, nzs("bobo"), str2);
+	str3 = radix_tree_get(tree, nzs("blue"));
+	str4 = radix_tree_get(tree, nzs("bobo"));
 	g_assert_cmpstr(str3, ==, "BLUE");
 	g_assert_cmpstr(str4, ==, "BOBO");
 }
@@ -162,21 +163,21 @@ void test_radix_tree__first_clashing_keys(RadixTreeFixture* fix, gconstpointer d
 void test_radix_tree__last_clashing_keys(RadixTreeFixture* fix, gconstpointer data){
 	char *str1="BOBI", *str2="BOBO", *str3, *str4;
 	Node *tree = &fix->tree;
-	radix_tree_set(tree, "bobi", 4, str1);
-	radix_tree_set(tree, "bobo", 4, str2);
-	str3 = radix_tree_get(tree, "bobi", 4);
+	radix_tree_set(tree, nzs("bobi"), str1);
+	radix_tree_set(tree, nzs("bobo"), str2);
+	str3 = radix_tree_get(tree, nzs("bobi"));
 	g_assert_cmpstr(str3, ==, "BOBI");
-	str4 = radix_tree_get(tree, "bobo", 4);
+	str4 = radix_tree_get(tree, nzs("bobo"));
 	g_assert_cmpstr(str4, ==, "BOBO");
 }
 
 void test_radix_tree__add_prefix(RadixTreeFixture* fix, gconstpointer data){
 	char *str1="DINOSAURIO", *str2="DINO", *str3, *str4;
 	Node *tree = &fix->tree;
-	radix_tree_set(tree, "dinosaurio", 10, str1);
-	radix_tree_set(tree, "dino", 4, str2);
-	str3 = radix_tree_get(tree, "dinosaurio", 10);
-	str4 = radix_tree_get(tree, "dino", 4);
+	radix_tree_set(tree, nzs("dinosaurio"), str1);
+	radix_tree_set(tree, nzs("dino"), str2);
+	str3 = radix_tree_get(tree, nzs("dinosaurio"));
+	str4 = radix_tree_get(tree, nzs("dino"));
 	g_assert_cmpstr(str3, ==, "DINOSAURIO");
 	g_assert_cmpstr(str4, ==, "DINO");
 }
@@ -184,10 +185,10 @@ void test_radix_tree__add_prefix(RadixTreeFixture* fix, gconstpointer data){
 void test_radix_tree__add_suffix(RadixTreeFixture* fix, gconstpointer data){
 	char *str1="DINOSAURIO", *str2="DINO", *str3, *str4;
 	Node *tree = &fix->tree;
-	radix_tree_set(tree, "dino", 4, str2);
-	radix_tree_set(tree, "dinosaurio", 10, str1);
-	str3 = radix_tree_get(tree, "dinosaurio", 10);
-	str4 = radix_tree_get(tree, "dino", 4);
+	radix_tree_set(tree, nzs("dino"), str2);
+	radix_tree_set(tree, nzs("dinosaurio"), str1);
+	str3 = radix_tree_get(tree, nzs("dinosaurio"));
+	str4 = radix_tree_get(tree, nzs("dino"));
 	g_assert_cmpstr(str3, ==, "DINOSAURIO");
 	g_assert_cmpstr(str4, ==, "DINO");
 }
@@ -197,10 +198,10 @@ void test_radix_tree__iterate(RadixTreeFixture* fix, gconstpointer data){
 	char *ostr1, *ostr2, *ostr3, *ostr4, *ostr5;
 	Node *tree = &fix->tree;
 	Iterator it;
-	radix_tree_set(tree, "dino", 4, str2);
-	radix_tree_set(tree, "piano", 5, str4);
-	radix_tree_set(tree, "dinosaurio", 10, str1);
-	radix_tree_set(tree, "casa", 4, str3);
+	radix_tree_set(tree, nzs("dino"), str2);
+	radix_tree_set(tree, nzs("piano"), str4);
+	radix_tree_set(tree, nzs("dinosaurio"), str1);
+	radix_tree_set(tree, nzs("casa"), str3);
 	radix_tree_iterator_init(tree, &it);
 	ostr1 = (char *)radix_tree_iterator_next(tree, &it);
 	ostr2 = (char *)radix_tree_iterator_next(tree, &it);
