@@ -269,10 +269,85 @@ DataNode * radix_tree_split_node(Node *node, ScanStatus *status)
 	return data_node;
 }
 
+void radix_tree_compact_nodes(ScanMetadata *meta)
+{
+	Node *tree = meta->tree;
+
+	//branch2 is the only branch left
+	Node *branch2 = (Node*)tree->child;
+	Node *parent_branch = meta->parent_array;
+
+	Node *cont = (Node*)branch2->child;
+	Node *target = NULL;
+
+	DataNode *suffix = NULL;
+	char *suffix_str = NULL;
+	int suffix_size = 0;
+
+	DataNode *prefix = NULL;
+	char *prefix_str = NULL;
+	int prefix_size = 0;
+
+	if(branch2->type == NODE_TYPE_ARRAY) {
+		trace("Secondary branch is array");
+		//if it's an array merge it with it's parent.
+		suffix_size = branch2->size;
+		suffix = (DataNode*)branch2->child;
+		suffix_str = suffix->data;
+		target = tree;
+	}
+
+	if(parent_branch && parent_branch->type == NODE_TYPE_ARRAY) {
+		trace("Parent branch is array");
+		prefix_size = parent_branch->size;
+		prefix = (DataNode*)parent_branch->child;
+		prefix_str = prefix->data;
+		target = parent_branch;
+	}
+
+	int joined_size = prefix_size + 1 + suffix_size;
+	char joined[joined_size];
+	int i = 0;
+
+	if(target) {
+		//Join arrays
+		if(prefix) {
+			for(i; i < prefix_size; i++) {
+				joined[i] = prefix_str[i];
+			}
+		}
+		joined[i++] = branch2->key;
+		if(suffix) {
+			int j = 0;
+			for(j; j < suffix_size; j++) {
+				joined[i+j] = suffix_str[j];
+			}
+		}
+
+		//Build new node
+		trace_node("CONT", cont);
+		Node *new_branch = radix_tree_build_node(target, joined, joined_size);
+		trace_node("TARG", target);
+		NODE_INIT(*new_branch, cont->type, cont->size, cont->child);
+		trace_node("NEW", new_branch);
+
+		//Cleanup old nodes
+		if(prefix) {
+			c_free(prefix->data);
+			c_delete(prefix);
+		}
+		c_delete(branch2);
+		if(suffix) {
+			c_free(suffix->data);
+			c_delete(suffix);
+		}
+	}
+}
+
 /**
- * Join nodes to keep tree compact
+ * Remove dangling nodes and compact tree
  */
-void radix_tree_join_nodes(Node *node, ScanStatus *status, ScanMetadata *meta)
+void radix_tree_clean_dangling_nodes(Node *node, ScanStatus *status, ScanMetadata *meta)
 {
 	trace_node("NODE", node);
 	if(node->type == NODE_TYPE_LEAF) {
@@ -299,77 +374,11 @@ void radix_tree_join_nodes(Node *node, ScanStatus *status, ScanMetadata *meta)
 				//if no children there's a new leaf
 				tree->type = NODE_TYPE_LEAF;
 			} else if (tree->size == 1) {
-				//branch2 is the only branch left
-				Node *branch2 = (Node*)tree->child;
-				Node *parent_branch = meta->parent_array;
-
-				Node *cont = (Node*)branch2->child;
-				Node *target = NULL;
-
-				DataNode *suffix = NULL;
-				char *suffix_str = NULL;
-				int suffix_size = 0;
-
-				DataNode *prefix = NULL;
-				char *prefix_str = NULL;
-				int prefix_size = 0;
-
-				if(branch2->type == NODE_TYPE_ARRAY) {
-					trace("Secondary branch is array");
-					//if it's an array merge it with it's parent.
-					suffix_size = branch2->size;
-					suffix = (DataNode*)branch2->child;
-					suffix_str = suffix->data;
-					target = tree;
-				}
-
-				if(parent_branch && parent_branch->type == NODE_TYPE_ARRAY) {
-					trace("Parent branch is array");
-					prefix_size = parent_branch->size;
-					prefix = (DataNode*)parent_branch->child;
-					prefix_str = prefix->data;
-					target = parent_branch;
-				}
-
-				int joined_size = prefix_size + 1 + suffix_size;
-				char joined[joined_size];
-				int i = 0;
-
-				if(target) {
-					//Join arrays
-					if(prefix) {
-						for(i; i < prefix_size; i++) {
-							joined[i] = prefix_str[i];
-						}
-					}
-					joined[i++] = branch2->key;
-					if(suffix) {
-						int j = 0;
-						for(j; j < suffix_size; j++) {
-							joined[i+j] = suffix_str[j];
-						}
-					}
-
-					//Build new node
-					trace("CONT(%p) TYPE:%i, SIZE:%i, CHILD:%p", cont, cont->type, cont->size, cont->child);
-					Node *new_branch = radix_tree_build_node(target, joined, joined_size);
-					trace("TARG(%p) TYPE:%i, SIZE:%i, CHILD:%p", target, target->type, target->size, target->child);
-					NODE_INIT(*new_branch, cont->type, cont->size, cont->child);
-					trace("NEW(%p) TYPE:%i, SIZE:%i, CHILD:%p", new_branch, new_branch->type, new_branch->size, new_branch->child);
-
-					//Cleanup old nodes
-					if(prefix) {
-						c_free(prefix->data);
-						c_delete(prefix);
-					}
-					c_delete(branch2);
-					if(suffix) {
-						c_free(suffix->data);
-						c_delete(suffix);
-					}
-				}
+				radix_tree_compact_nodes(meta);
 			}
+
 		}
+
 	} else if(node->type == NODE_TYPE_ARRAY) {
 		//We should merge it with it's parent if they are both arrays.
 	}
@@ -448,7 +457,7 @@ void radix_tree_remove(Node *tree, char *string, unsigned int length)
 		node->child = data_node->node.child;
 		c_free(data_node);
 		
-		radix_tree_join_nodes(node, &status, &meta);
+		radix_tree_clean_dangling_nodes(node, &status, &meta);
 	}
 }
 
