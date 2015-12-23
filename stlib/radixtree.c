@@ -77,7 +77,6 @@ Node *radix_tree_seek_step(Node *tree, ScanStatus *status)
 	status->found = status->index == status->size;
 	return current;
 NOTFOUND:
-	trace("SEEK-NOTFOUND");
 	status->found = -1;
 	return current;
 }
@@ -96,6 +95,33 @@ Node *radix_tree_seek(Node *tree, ScanStatus *status)
 	return current;
 }
 
+void scan_metadata_init(ScanMetadata *meta) 
+{
+	meta->previous3 = NULL;
+	meta->previous2 = NULL;
+	meta->previous = NULL;
+}
+
+void scan_metadata_push(ScanMetadata *meta, Node *node, int index) 
+{
+	meta->previous3 = meta->previous2;
+	meta->previous2 = meta->previous;
+	meta->previous = node;
+	meta->p_index3 = meta->p_index2;
+	meta->p_index2 = meta->p_index;
+	meta->p_index = index;
+}
+
+void scan_metadata_pop(ScanMetadata *meta) 
+{
+	meta->previous = meta->previous2;
+	meta->previous2 = meta->previous3;
+	meta->previous3 = NULL;
+	meta->p_index = meta->p_index2;
+	meta->p_index2 = meta->p_index3;
+	meta->p_index3 = 0;
+}
+
 /**
  * Same as seek, but return tree pointers necessary for removal
  */
@@ -104,26 +130,13 @@ Node *radix_tree_seek_metadata(Node *tree, ScanStatus *status, ScanMetadata *met
 	Node *current = tree;
 	unsigned int i = status->index;
 
-	meta->tree = NULL;
-	meta->array = NULL;
-	meta->parent_array = NULL;
+	scan_metadata_init(meta);
 
 	while(!status->found) {
-		if (current->type == NODE_TYPE_TREE) {
-			meta->tree = current;
-			meta->tree_index = status->index;
-			if(meta->array) {
-				meta->parent_array = meta->array;
-				meta->array = NULL;
-			}
-		} else if (current->type == NODE_TYPE_ARRAY) {
-			meta->array = current;
-		} else if (current->type == NODE_TYPE_DATA) {
-			//If we reach a data node it's not
-			//the one we are looking for
-			meta->tree = NULL;
-			meta->array = NULL;
-			meta->parent_array = NULL;
+		if (current->type == NODE_TYPE_DATA) {
+			scan_metadata_init(meta);
+		} else {
+			scan_metadata_push(meta, current, status->index);
 		}
 
 		current = radix_tree_seek_step(current, status);
@@ -269,77 +282,112 @@ DataNode * radix_tree_split_node(Node *node, ScanStatus *status)
 	return data_node;
 }
 
-void radix_tree_compact_nodes(ScanMetadata *meta)
+void radix_tree_compact_nodes(Node *node1, Node *node2, Node *node3)
 {
-	Node *tree = meta->tree;
-
-	//branch2 is the only branch left
-	Node *branch2 = (Node*)tree->child;
-	Node *parent_branch = meta->parent_array;
-
-	Node *cont = (Node*)branch2->child;
 	Node *target = NULL;
+	Node *cont = (Node*)node3->child;
+	int nodes = 0;
+	int joined_size = 0;
 
-	DataNode *suffix = NULL;
-	char *suffix_str = NULL;
-	int suffix_size = 0;
+	char *node1_str = NULL;
+	int node1_size = 0;
+	int node1_type = 0;
+	Node *node1_old;
 
-	DataNode *prefix = NULL;
-	char *prefix_str = NULL;
-	int prefix_size = 0;
+	int node2_size = 0;
+	Node *node2_old;
 
-	if(branch2->type == NODE_TYPE_ARRAY) {
-		trace("Secondary branch is array");
-		//if it's an array merge it with it's parent.
-		suffix_size = branch2->size;
-		suffix = (DataNode*)branch2->child;
-		suffix_str = suffix->data;
-		target = tree;
+	char *node3_str = NULL;
+	int node3_size = 0;
+	int node3_type = 0;
+	Node *node3_old;
+
+	if(node3) {
+		if(node3->type == NODE_TYPE_ARRAY) {
+			trace("Node 3 is array");
+			node3_str = ((DataNode*)node3->child)->data;
+			node3_size = node3->size;
+			joined_size += node3_size;
+			nodes++;
+		} else if(node3->type == NODE_TYPE_TREE && node3->size == 1) {
+			trace("Node 3 is tree");
+			node3_str = &((Node *)node3->child)->key;
+			node3_size = 1;
+			joined_size += node3_size;
+			nodes++;
+		}
+		node3_type = node3->type;
+		node3_old = node3->child;
 	}
 
-	if(parent_branch && parent_branch->type == NODE_TYPE_ARRAY) {
-		trace("Parent branch is array");
-		prefix_size = parent_branch->size;
-		prefix = (DataNode*)parent_branch->child;
-		prefix_str = prefix->data;
-		target = parent_branch;
+	if(node2 && node2->type == NODE_TYPE_TREE) {
+		trace("Node 2 is tree");
+		node2_size = 1;
+		joined_size += node2_size;
+		nodes++;
+		target = node2;
+		node2_old = node2->child;
 	}
 
-	int joined_size = prefix_size + 1 + suffix_size;
+	if(node1) {
+		if(node1->type == NODE_TYPE_ARRAY) {
+			trace("Node 1 is array");
+			node1_str = ((DataNode*)node1->child)->data;
+			node1_size = node1->size;
+			joined_size += node1_size;
+			nodes++;
+			target = node1;
+		} else if(node1->type == NODE_TYPE_TREE && node1->size == 1) {
+			trace("Node 1 is tree");
+			node1_str = &((Node *)node1->child)->key;
+			node1_size = 1;
+			joined_size += node1_size;
+			nodes++;
+			target = node1;
+		}
+		node1_type = node3->type;
+		node1_old = node1->child;
+	}
+
 	char joined[joined_size];
 	int i = 0;
 
-	if(target) {
+	if(nodes > 1) {
 		//Join arrays
-		if(prefix) {
-			for(i; i < prefix_size; i++) {
-				joined[i] = prefix_str[i];
-			}
+		for(i; i < node1_size; i++) {
+			joined[i] = node1_str[i];
 		}
-		joined[i++] = branch2->key;
-		if(suffix) {
-			int j = 0;
-			for(j; j < suffix_size; j++) {
-				joined[i+j] = suffix_str[j];
-			}
+		if(node2_size) {
+			joined[i++] = ((Node *)node2->child)->key;
+		}
+		int j = 0;
+		for(j; j < node3_size; j++) {
+			joined[i+j] = node3_str[j];
 		}
 
 		//Build new node
-		trace_node("CONT", cont);
+		trace("new size: %i", joined_size);
 		Node *new_branch = radix_tree_build_node(target, joined, joined_size);
-		trace_node("TARG", target);
 		NODE_INIT(*new_branch, cont->type, cont->size, cont->child);
+		trace_node("CONT", cont);
 		trace_node("NEW", new_branch);
+		trace_node("TARG", target);
 
 		//Cleanup old nodes
-		if(prefix) {
-			c_free(prefix->data);
-			c_delete(prefix);
+		if(node1_size) {
+			if(node1_type == NODE_TYPE_ARRAY) {
+				c_free(node1_str);
+			}
+			c_delete(node1_old);
 		}
-		c_delete(branch2);
-		if(suffix) {
-			c_free(suffix->data);
-			c_delete(suffix);
+		if(node2_size) {
+			c_delete(node2_old);
+		}
+		if(node3_size) {
+			if(node3_type == NODE_TYPE_ARRAY) {
+				c_free(node3_str);
+			}
+			c_delete(node3_old);
 		}
 	}
 }
@@ -353,28 +401,32 @@ void radix_tree_clean_dangling_nodes(Node *node, ScanStatus *status, ScanMetadat
 	if(node->type == NODE_TYPE_LEAF) {
 		//the child is a leaf
 
-		//Delete branch1 node preceeding the leaf
-		Node *branch1 = meta->array;
-		if(branch1) {
-			DataNode *leaf = (DataNode*)branch1->child;
+		//Delete node preceeding the leaf
+		Node *previous = meta->previous;
+		if(previous && previous->type == NODE_TYPE_ARRAY) {
+			DataNode *leaf = (DataNode*)previous->child;
 			c_free(leaf->data);
 			c_delete(leaf);
-			branch1->type = NODE_TYPE_LEAF;
-			branch1->size = 0;
+			previous->type = NODE_TYPE_LEAF;
+			previous->size = 0;
+			scan_metadata_pop(meta);
+		} else if(previous && previous->type == NODE_TYPE_TREE && previous->size == 1) {
+			c_delete(previous->child);
+			previous->type = NODE_TYPE_LEAF;
+			previous->size = 0;
+			scan_metadata_pop(meta);
 		}
 
-		//Remove childless node from tree
-		Node *tree = meta->tree;
-		int tree_index = meta->tree_index;
-		if(tree) {
-			trace_node("TREE", tree);
+		//Remove childless node from pivot
+		if(meta->previous && meta->previous->type == NODE_TYPE_TREE) {
+			Node *pivot = meta->previous;
+			int pivot_index = meta->p_index;
+
+			trace_node("PIVOT", pivot);
 			char *key = (char *)status->key;
-			bsearch_delete(tree, key[tree_index]);
-			if(tree->size == 0) {
-				//if no children there's a new leaf
-				tree->type = NODE_TYPE_LEAF;
-			} else if (tree->size == 1) {
-				radix_tree_compact_nodes(meta);
+			bsearch_delete(pivot, key[pivot_index]);
+			if (pivot->size == 1) {
+				radix_tree_compact_nodes(meta->previous2, pivot, pivot->child);
 			}
 
 		}
@@ -397,8 +449,10 @@ void *radix_tree_get(Node *tree, char *string, unsigned int length)
 	Node * node = radix_tree_seek(tree, &status);
 
 	if(status.index == length && node->type == NODE_TYPE_DATA) {
+		trace("FOUND %p, %p", node, node->child);
 		return ((DataNode*)node->child)->data;
 	} else {
+		trace("NOTFOUND");
 		return NULL;
 	}
 }

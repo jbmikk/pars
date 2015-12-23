@@ -11,10 +11,12 @@
  * Necessary for certain operations such as removal
  */
 typedef struct _ScanMetadata {
-    Node *tree;
-    unsigned int tree_index;
-    Node *array;
-    Node *parent_array;
+    Node *previous;
+    Node *previous2;
+    Node *previous3;
+    unsigned int p_index;
+    unsigned int p_index2;
+    unsigned int p_index3;
 } ScanMetadata;
 
 #endif	//RADIXTREE_P_H
