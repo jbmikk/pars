@@ -23,229 +23,229 @@ void radix_tree_teardown(RadixTreeFixture* fixture, gconstpointer data){
 }
 
 void test_radix_tree__set_and_get(RadixTreeFixture* fix, gconstpointer data){
-	char *str1="BLUE", *str2;
+	char *in1="BLUE", *out1;
 	Node *tree = &fix->tree;
 
-	radix_tree_set(tree, nzs("blue"), str1);
-	str2 = radix_tree_get(tree, nzs("blue"));
+	radix_tree_set(tree, nzs("blue"), in1);
+	out1 = radix_tree_get(tree, nzs("blue"));
 
 	g_assert(tree->type == NODE_TYPE_ARRAY);
-	g_assert_cmpstr(str2, ==, "BLUE");
+	g_assert_cmpstr(out1, ==, "BLUE");
 }
 
 void test_radix_tree__set_and_get_1key(RadixTreeFixture* fix, gconstpointer data){
-	char *str1="BLUE", *str2;
+	char *in1="BLUE", *out1;
 	Node *tree = &fix->tree;
 
-	radix_tree_set(tree, nzs("b"), str1);
-	str2 = radix_tree_get(tree, nzs("b"));
+	radix_tree_set(tree, nzs("b"), in1);
+	out1 = radix_tree_get(tree, nzs("b"));
 
 	g_assert(tree->type == NODE_TYPE_TREE);
 	g_assert(tree->size == 1);
-	g_assert_cmpstr(str2, ==, "BLUE");
+	g_assert_cmpstr(out1, ==, "BLUE");
 }
 
 void test_radix_tree__set_and_remove_1key(RadixTreeFixture* fix, gconstpointer data){
-	char *str1="BLUE", *str2;
+	char *in1="BLUE", *out1;
 	Node *tree = &fix->tree;
 
-	radix_tree_set(tree, nzs("b"), str1);
+	radix_tree_set(tree, nzs("b"), in1);
 	radix_tree_remove(tree, nzs("b"));
-	str2 = radix_tree_get(tree, nzs("b"));
+	out1 = radix_tree_get(tree, nzs("b"));
 
 	g_assert(tree->type == NODE_TYPE_LEAF);
 	g_assert(tree->size == 0);
-	g_assert(str2 == NULL);
+	g_assert(out1 == NULL);
 }
 
 void test_radix_tree__set2_and_remove1_1key(RadixTreeFixture* fix, gconstpointer data){
-	char *str1="BLUE", *str2="GREEN", *str3, *str4;
+	char *in1="BLUE", *in2="GREEN", *out1, *out2;
 	Node *tree = &fix->tree;
 
-	radix_tree_set(tree, nzs("b"), str1);
-	radix_tree_set(tree, nzs("g"), str2);
+	radix_tree_set(tree, nzs("b"), in1);
+	radix_tree_set(tree, nzs("g"), in2);
 	radix_tree_remove(tree, nzs("b"));
-	str3 = radix_tree_get(tree, nzs("b"));
-	str4 = radix_tree_get(tree, nzs("g"));
+	out1 = radix_tree_get(tree, nzs("b"));
+	out2 = radix_tree_get(tree, nzs("g"));
 
 	g_assert(tree->type == NODE_TYPE_TREE);
 	g_assert(tree->size == 1);
-	g_assert(str3 == NULL);
-	g_assert_cmpstr(str4, ==, "GREEN");
+	g_assert(out1 == NULL);
+	g_assert_cmpstr(out2, ==, "GREEN");
 }
 
 void test_radix_tree__set_and_remove_4key(RadixTreeFixture* fix, gconstpointer data){
-	char *str1="BLUE", *str2;
+	char *in1="BLUE", *out1;
 	Node *tree = &fix->tree;
 
-	radix_tree_set(tree, nzs("blue"), str1);
+	radix_tree_set(tree, nzs("blue"), in1);
 	radix_tree_remove(tree, nzs("blue"));
-	str2 = radix_tree_get(tree, nzs("blue"));
+	out1= radix_tree_get(tree, nzs("blue"));
 
 	g_assert(tree->type == NODE_TYPE_LEAF);
 	g_assert(tree->size == 0);
-	g_assert(str2 == NULL);
+	g_assert(out1 == NULL);
 }
 
 void test_radix_tree__set2_and_remove1_4key(RadixTreeFixture* fix, gconstpointer data){
-	char *str1="BLUE", *str2="GREEN", *str3, *str4;
+	char *in1="BLUE", *in2="GREEN", *out1, *out2;
 	Node *tree = &fix->tree;
 
-	radix_tree_set(tree, nzs("blue"), str1);
-	radix_tree_set(tree, nzs("green"), str2);
+	radix_tree_set(tree, nzs("blue"), in1);
+	radix_tree_set(tree, nzs("green"), in2);
 	radix_tree_remove(tree, nzs("blue"));
-	str3 = radix_tree_get(tree, nzs("blue"));
-	str4 = radix_tree_get(tree, nzs("green"));
+	out1 = radix_tree_get(tree, nzs("blue"));
+	out2 = radix_tree_get(tree, nzs("green"));
 
 	g_assert(tree->type == NODE_TYPE_ARRAY);
 	g_assert(tree->size == 5);
-	g_assert(str3 == NULL);
-	g_assert_cmpstr(str4, ==, "GREEN");
+	g_assert(out1 == NULL);
+	g_assert_cmpstr(out2, ==, "GREEN");
 }
 
 void test_radix_tree__set2_and_remove1_4key_with_parent_array(RadixTreeFixture* fix, gconstpointer data){
-	char *str1="BLUE", *str2="GREEN", *str3, *str4;
+	char *in1="BLUE", *in2="GREEN", *out1, *out2;
 	Node *tree = &fix->tree;
 
-	radix_tree_set(tree, nzs("lightblue"), str1);
-	radix_tree_set(tree, nzs("lightgreen"), str2);
+	radix_tree_set(tree, nzs("lightblue"), in1);
+	radix_tree_set(tree, nzs("lightgreen"), in2);
 	radix_tree_remove(tree, nzs("lightblue"));
-	str3 = radix_tree_get(tree, nzs("lightblue"));
-	str4 = radix_tree_get(tree, nzs("lightgreen"));
+	out1 = radix_tree_get(tree, nzs("lightblue"));
+	out2 = radix_tree_get(tree, nzs("lightgreen"));
 
 	g_assert(tree->type == NODE_TYPE_ARRAY);
 	g_assert(tree->size == 10);
-	g_assert(str3 == NULL);
-	g_assert_cmpstr(str4, ==, "GREEN");
+	g_assert(out1 == NULL);
+	g_assert_cmpstr(out2, ==, "GREEN");
 }
 
 void test_radix_tree__set2_and_remove1_4key_deep(RadixTreeFixture* fix, gconstpointer data){
-	char *str1="BLUE", *str2="GREEN", *str3="LIG", *str4, *str5, *str6;
+	char *in1="BLUE", *in2="GREEN", *in3="LIG", *out1, *out2, *out6;
 	Node *tree = &fix->tree;
 
-	radix_tree_set(tree, nzs("lightblue"), str1);
-	radix_tree_set(tree, nzs("lightgreen"), str2);
-	radix_tree_set(tree, nzs("lig"), str3);
+	radix_tree_set(tree, nzs("lightblue"), in1);
+	radix_tree_set(tree, nzs("lightgreen"), in2);
+	radix_tree_set(tree, nzs("lig"), in3);
 	radix_tree_remove(tree, nzs("lightblue"));
-	str4 = radix_tree_get(tree, nzs("lightblue"));
-	str5 = radix_tree_get(tree, nzs("lightgreen"));
-	str6 = radix_tree_get(tree, nzs("lig"));
+	out1 = radix_tree_get(tree, nzs("lightblue"));
+	out2 = radix_tree_get(tree, nzs("lightgreen"));
+	out6 = radix_tree_get(tree, nzs("lig"));
 
 	g_assert(tree->type == NODE_TYPE_ARRAY);
 	g_assert(tree->size == 3);
-	g_assert(str4 == NULL);
-	g_assert_cmpstr(str5, ==, "GREEN");
-	g_assert_cmpstr(str6, ==, "LIG");
+	g_assert(out1== NULL);
+	g_assert_cmpstr(out2, ==, "GREEN");
+	g_assert_cmpstr(out6, ==, "LIG");
 }
 
 void test_radix_tree__set2_and_remove1_3key(RadixTreeFixture* fix, gconstpointer data){
-	char *str1="BLUE", *str2="GREEN", *str3, *str4;
+	char *in1="BLUE", *in2="GREEN", *out1, *out2;
 	Node *tree = &fix->tree;
 
-	radix_tree_set(tree, nzs("lbl"), str1);
-	radix_tree_set(tree, nzs("lgr"), str2);
+	radix_tree_set(tree, nzs("lbl"), in1);
+	radix_tree_set(tree, nzs("lgr"), in2);
 	radix_tree_remove(tree, nzs("lbl"));
-	str3 = radix_tree_get(tree, nzs("lbl"));
-	str4 = radix_tree_get(tree, nzs("lgr"));
+	out1 = radix_tree_get(tree, nzs("lbl"));
+	out2 = radix_tree_get(tree, nzs("lgr"));
 
 	g_assert(tree->type == NODE_TYPE_ARRAY);
 	g_assert(tree->size == 3);
-	g_assert(str3 == NULL);
-	g_assert_cmpstr(str4, ==, "GREEN");
+	g_assert(out1 == NULL);
+	g_assert_cmpstr(out2, ==, "GREEN");
 }
 
 void test_radix_tree__remove_non_leaf_key(RadixTreeFixture* fix, gconstpointer data){
-	char *str1="LIGHTGREEN", *str2="GREEN", *str3, *str4;
+	char *in1="LIGHTGREEN", *in2="GREEN", *out1, *out2;
 	Node *tree = &fix->tree;
 
-	radix_tree_set(tree, nzs("lightgreen"), str1);
-	radix_tree_set(tree, nzs("light"), str2);
+	radix_tree_set(tree, nzs("lightgreen"), in1);
+	radix_tree_set(tree, nzs("light"), in2);
 	radix_tree_remove(tree, nzs("light"));
-	str3 = radix_tree_get(tree, nzs("lightgreen"));
-	str4 = radix_tree_get(tree, nzs("light"));
+	out1 = radix_tree_get(tree, nzs("lightgreen"));
+	out2 = radix_tree_get(tree, nzs("light"));
 
 	g_assert(tree->type == NODE_TYPE_ARRAY);
 	g_assert(tree->size == 10);
-	g_assert_cmpstr(str3, ==, "LIGHTGREEN");
-	g_assert(str4 == NULL);
+	g_assert_cmpstr(out1, ==, "LIGHTGREEN");
+	g_assert(out2 == NULL);
 }
 
 void test_radix_tree__non_clashing_keys(RadixTreeFixture* fix, gconstpointer data){
-	char *str1="BLUE", *str2="GREEN", *str3, *str4;
+	char *in1="BLUE", *in2="GREEN", *out1, *out2;
 	Node *tree = &fix->tree;
-	radix_tree_set(tree, nzs("blue"), str1);
-	radix_tree_set(tree, nzs("green"), str2);
-	str3 = radix_tree_get(tree, nzs("blue"));
-	str4 = radix_tree_get(tree, nzs("green"));
-	g_assert_cmpstr(str3, ==, "BLUE");
-	g_assert_cmpstr(str4, ==, "GREEN");
+	radix_tree_set(tree, nzs("blue"), in1);
+	radix_tree_set(tree, nzs("green"), in2);
+	out1 = radix_tree_get(tree, nzs("blue"));
+	out2 = radix_tree_get(tree, nzs("green"));
+	g_assert_cmpstr(out1, ==, "BLUE");
+	g_assert_cmpstr(out2, ==, "GREEN");
 }
 
 void test_radix_tree__first_clashing_keys(RadixTreeFixture* fix, gconstpointer data){
-	char *str1="BLUE", *str2="BOBO", *str3, *str4;
+	char *in1="BLUE", *in2="BOBO", *out1, *out2;
 	Node *tree = &fix->tree;
-	radix_tree_set(tree, nzs("blue"), str1);
-	radix_tree_set(tree, nzs("bobo"), str2);
-	str3 = radix_tree_get(tree, nzs("blue"));
-	str4 = radix_tree_get(tree, nzs("bobo"));
-	g_assert_cmpstr(str3, ==, "BLUE");
-	g_assert_cmpstr(str4, ==, "BOBO");
+	radix_tree_set(tree, nzs("blue"), in1);
+	radix_tree_set(tree, nzs("bobo"), in2);
+	out1 = radix_tree_get(tree, nzs("blue"));
+	out2 = radix_tree_get(tree, nzs("bobo"));
+	g_assert_cmpstr(out1, ==, "BLUE");
+	g_assert_cmpstr(out2, ==, "BOBO");
 }
 
 void test_radix_tree__last_clashing_keys(RadixTreeFixture* fix, gconstpointer data){
-	char *str1="BOBI", *str2="BOBO", *str3, *str4;
+	char *in1="BOBI", *in2="BOBO", *out1, *out2;
 	Node *tree = &fix->tree;
-	radix_tree_set(tree, nzs("bobi"), str1);
-	radix_tree_set(tree, nzs("bobo"), str2);
-	str3 = radix_tree_get(tree, nzs("bobi"));
-	g_assert_cmpstr(str3, ==, "BOBI");
-	str4 = radix_tree_get(tree, nzs("bobo"));
-	g_assert_cmpstr(str4, ==, "BOBO");
+	radix_tree_set(tree, nzs("bobi"), in1);
+	radix_tree_set(tree, nzs("bobo"), in2);
+	out1 = radix_tree_get(tree, nzs("bobi"));
+	g_assert_cmpstr(out1, ==, "BOBI");
+	out2 = radix_tree_get(tree, nzs("bobo"));
+	g_assert_cmpstr(out2, ==, "BOBO");
 }
 
 void test_radix_tree__add_prefix(RadixTreeFixture* fix, gconstpointer data){
-	char *str1="DINOSAURIO", *str2="DINO", *str3, *str4;
+	char *in1="DINOSAURIO", *in2="DINO", *out1, *out2;
 	Node *tree = &fix->tree;
-	radix_tree_set(tree, nzs("dinosaurio"), str1);
-	radix_tree_set(tree, nzs("dino"), str2);
-	str3 = radix_tree_get(tree, nzs("dinosaurio"));
-	str4 = radix_tree_get(tree, nzs("dino"));
-	g_assert_cmpstr(str3, ==, "DINOSAURIO");
-	g_assert_cmpstr(str4, ==, "DINO");
+	radix_tree_set(tree, nzs("dinosaurio"), in1);
+	radix_tree_set(tree, nzs("dino"), in2);
+	out1 = radix_tree_get(tree, nzs("dinosaurio"));
+	out2 = radix_tree_get(tree, nzs("dino"));
+	g_assert_cmpstr(out1, ==, "DINOSAURIO");
+	g_assert_cmpstr(out2, ==, "DINO");
 }
 
 void test_radix_tree__add_suffix(RadixTreeFixture* fix, gconstpointer data){
-	char *str1="DINOSAURIO", *str2="DINO", *str3, *str4;
+	char *in1="DINOSAURIO", *in2="DINO", *out1, *out2;
 	Node *tree = &fix->tree;
-	radix_tree_set(tree, nzs("dino"), str2);
-	radix_tree_set(tree, nzs("dinosaurio"), str1);
-	str3 = radix_tree_get(tree, nzs("dinosaurio"));
-	str4 = radix_tree_get(tree, nzs("dino"));
-	g_assert_cmpstr(str3, ==, "DINOSAURIO");
-	g_assert_cmpstr(str4, ==, "DINO");
+	radix_tree_set(tree, nzs("dino"), in2);
+	radix_tree_set(tree, nzs("dinosaurio"), in1);
+	out1 = radix_tree_get(tree, nzs("dinosaurio"));
+	out2 = radix_tree_get(tree, nzs("dino"));
+	g_assert_cmpstr(out1, ==, "DINOSAURIO");
+	g_assert_cmpstr(out2, ==, "DINO");
 }
 
 void test_radix_tree__iterate(RadixTreeFixture* fix, gconstpointer data){
-	char *str1="DINOSAURIO", *str2="DINO", *str3="CASA", *str4="PIANO";
-	char *ostr1, *ostr2, *ostr3, *ostr4, *ostr5;
+	char *in1="DINOSAURIO", *in2="DINO", *in3="CASA", *in4="PIANO";
+	char *out1, *out2, *out3, *out4, *out5;
 	Node *tree = &fix->tree;
 	Iterator it;
-	radix_tree_set(tree, nzs("dino"), str2);
-	radix_tree_set(tree, nzs("piano"), str4);
-	radix_tree_set(tree, nzs("dinosaurio"), str1);
-	radix_tree_set(tree, nzs("casa"), str3);
+	radix_tree_set(tree, nzs("dino"), in2);
+	radix_tree_set(tree, nzs("piano"), in4);
+	radix_tree_set(tree, nzs("dinosaurio"), in1);
+	radix_tree_set(tree, nzs("casa"), in3);
 	radix_tree_iterator_init(tree, &it);
-	ostr1 = (char *)radix_tree_iterator_next(tree, &it);
-	ostr2 = (char *)radix_tree_iterator_next(tree, &it);
-	ostr3 = (char *)radix_tree_iterator_next(tree, &it);
-	ostr4 = (char *)radix_tree_iterator_next(tree, &it);
-	ostr5 = (char *)radix_tree_iterator_next(tree, &it);
+	out1 = (char *)radix_tree_iterator_next(tree, &it);
+	out2 = (char *)radix_tree_iterator_next(tree, &it);
+	out3 = (char *)radix_tree_iterator_next(tree, &it);
+	out4 = (char *)radix_tree_iterator_next(tree, &it);
+	out5 = (char *)radix_tree_iterator_next(tree, &it);
 	radix_tree_iterator_dispose(tree, &it);
-	g_assert_cmpstr(ostr1, ==, "CASA");
-	g_assert_cmpstr(ostr2, ==, "DINO");
-	g_assert_cmpstr(ostr3, ==, "DINOSAURIO");
-	g_assert_cmpstr(ostr4, ==, "PIANO");
-	g_assert(ostr5 == NULL);
+	g_assert_cmpstr(out1, ==, "CASA");
+	g_assert_cmpstr(out2, ==, "DINO");
+	g_assert_cmpstr(out3, ==, "DINOSAURIO");
+	g_assert_cmpstr(out4, ==, "PIANO");
+	g_assert(out5 == NULL);
 }
 
 int main(int argc, char** argv) {
