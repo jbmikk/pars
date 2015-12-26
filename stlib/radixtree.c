@@ -431,8 +431,8 @@ void radix_tree_clean_dangling_nodes(Node *node, ScanStatus *status, ScanMetadat
 
 		}
 
-	} else if(node->type == NODE_TYPE_ARRAY) {
-		//We should merge it with it's parent if they are both arrays.
+	} else {
+		radix_tree_compact_nodes(meta->previous, NULL, node);
 	}
 }
 
@@ -509,6 +509,7 @@ void radix_tree_remove(Node *tree, char *string, unsigned int length)
 		data_node = (DataNode*)node->child;
 		node->type = data_node->node.type;
 		node->child = data_node->node.child;
+		node->size = data_node->node.size;
 		c_free(data_node);
 		
 		radix_tree_clean_dangling_nodes(node, &status, &meta);
