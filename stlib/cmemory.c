@@ -15,12 +15,9 @@ void *c_malloc_n(unsigned int n)
 
 void *c_realloc_n(void *ptr, unsigned int n)
 {
-	if(n > 0) {
-		ptr = (void *) realloc(ptr, n);
-		if (ptr == NULL)
-			exit(EXIT_FAILURE);
-	} else {
-		ptr = NULL;
+	ptr = (void *) realloc(ptr, n);
+	if(n > 0 && !ptr) {
+		exit(EXIT_FAILURE);
 	}
 	return ptr;
 }
