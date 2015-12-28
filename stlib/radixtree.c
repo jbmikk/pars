@@ -554,6 +554,21 @@ void **radix_tree_get_next(Node *tree, char *string, unsigned int length)
 	}
 }
 
+void radix_tree_dispose(Node *tree)
+{
+	if(tree->type == NODE_TYPE_TREE) {
+		Node *child = (Node *)tree->child;
+		int i;
+		for(i = 0; i < tree->size; i++) {
+			radix_tree_dispose(child+i);
+		}
+		c_delete(tree->child);
+	} else if(tree->type == NODE_TYPE_ARRAY) {
+		c_free(((DataNode*)tree->child)->data);
+		c_delete(tree->child);
+	}
+}
+
 void radix_tree_iterator_init(Node *tree, Iterator *iterator)
 {
 	iterator->key = NULL;

@@ -19,7 +19,7 @@ void radix_tree_setup(RadixTreeFixture* fixture, gconstpointer data){
 	NODE_INIT(fixture->tree, 0, 0, NULL);
 }
 void radix_tree_teardown(RadixTreeFixture* fixture, gconstpointer data){
-	//delete
+	radix_tree_dispose(&fixture->tree);
 }
 
 void test_radix_tree__set_and_get(RadixTreeFixture* fix, gconstpointer data){
