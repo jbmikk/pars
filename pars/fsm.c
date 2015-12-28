@@ -53,7 +53,16 @@ void fsm_init(Fsm *fsm)
 
 void fsm_dispose(Fsm *fsm)
 {
-	//TODO
+	NonTerminal *nt;
+	Iterator it;
+	radix_tree_iterator_init(&(fsm->rules), &it);
+	while((nt = (NonTerminal *)radix_tree_iterator_next(&(fsm->rules), &it)) != NULL) {
+		//TODO: free non terminal states
+		c_delete(nt);
+	}
+	radix_tree_iterator_dispose(&(fsm->rules), &it);
+
+	radix_tree_dispose(&(fsm->rules));
 }
 
 NonTerminal *fsm_get_non_terminal(Fsm *fsm, unsigned char *name, int length)
