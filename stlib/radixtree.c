@@ -564,7 +564,11 @@ void radix_tree_dispose(Node *tree)
 		}
 		c_delete(tree->child);
 	} else if(tree->type == NODE_TYPE_ARRAY) {
+		radix_tree_dispose((Node *)tree->child);
 		c_free(((DataNode*)tree->child)->data);
+		c_delete(tree->child);
+	} else if(tree->type == NODE_TYPE_DATA) {
+		radix_tree_dispose((Node *)tree->child);
 		c_delete(tree->child);
 	}
 }
