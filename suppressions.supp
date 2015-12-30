@@ -38,3 +38,11 @@
    fun:g_private_get
    ...
 }
+{
+   g_assertion_message_leak
+   Memcheck:Leak
+   match-leak-kinds:reachable
+   ...
+   fun:g_assertion_message
+   ...
+}
