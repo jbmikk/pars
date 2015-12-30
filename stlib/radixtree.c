@@ -595,8 +595,13 @@ void **radix_tree_iterator_next(Node *tree, Iterator *iterator)
 
 	res = radix_tree_scan(tree, &status, &poststatus);
 
+	if(iterator->key) {
+		c_delete(iterator->key);
+	}
+
 	iterator->key = poststatus.key;
 	iterator->size = poststatus.size;
+
 	if(res != NULL) {
 		return res->data;
 	} else {
