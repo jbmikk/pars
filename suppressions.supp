@@ -1,8 +1,40 @@
 {
-   glib_leak
+   g_malloc_leak
    Memcheck:Leak
-   fun:*
+   match-leak-kinds:reachable
    ...
-   obj:/lib/x86_64-linux-gnu/libglib-2.0.so.0.3600.0
+   fun:g_malloc
+   ...
+}
+{
+   g_malloc0_leak
+   Memcheck:Leak
+   match-leak-kinds:reachable
+   ...
+   fun:g_malloc0
+   ...
+}
+{
+   g_rand_set_seed_leak
+   Memcheck:Leak
+   match-leak-kinds:reachable
+   ...
+   fun:g_rand_set_seed
+   ...
+}
+{
+   g_mutex_lock_leak
+   Memcheck:Leak
+   match-leak-kinds:reachable
+   ...
+   fun:g_mutex_lock
+   ...
+}
+{
+   g_private_get_leak
+   Memcheck:Leak
+   match-leak-kinds:reachable
+   ...
+   fun:g_private_get
    ...
 }
