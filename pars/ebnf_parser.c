@@ -138,6 +138,7 @@ int ebnf_input_to_ast(Ast *ast, Input *input)
 		);
 	}
 	ast_done(ast);
+	session_dispose(session);
 	fsm_dispose(&ebnf_fsm);
 
 	return 0;

@@ -62,6 +62,7 @@ void session_match__shift(Fixture *fix, gconstpointer data){
 	MATCH(session, 'b');
 	MATCH(session, '.');
 	g_assert(session->current->type == ACTION_TYPE_CONTEXT_SHIFT);
+	session_dispose(session);
 }
 
 void session_match__reduce(Fixture *fix, gconstpointer data){
@@ -77,6 +78,7 @@ void session_match__reduce(Fixture *fix, gconstpointer data){
 	MATCH(session, '1');
 	MATCH(session, '\0');
 	g_assert(session->current->type == ACTION_TYPE_ACCEPT);
+	session_dispose(session);
 }
 
 void session_match__reduce_shift(Fixture *fix, gconstpointer data){
@@ -102,6 +104,7 @@ void session_match__reduce_shift(Fixture *fix, gconstpointer data){
 	MATCH(session, '2');
 	MATCH(session, '\0');
 	g_assert(session->current->type == ACTION_TYPE_ACCEPT);
+	session_dispose(session);
 }
 
 int reduce_handler(int type, void *target, void *args) {
@@ -154,6 +157,7 @@ void session_match__reduce_handler(Fixture *fix, gconstpointer data){
 	g_assert_cmpint(reduction.index, ==, 0);
 	g_assert_cmpint(reduction.length, ==, 6);
 	g_assert(session->current->type == ACTION_TYPE_ACCEPT);
+	session_dispose(session);
 }
 
 int main(int argc, char** argv){

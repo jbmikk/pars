@@ -46,6 +46,16 @@ void session_pop(Session *session)
 	c_delete(top);
 }
 
+void session_dispose(Session *session)
+{
+	while(session->stack.top) {
+		session_pop(session);
+	}
+	//TODO: Instance should not be deleted here
+	//Also, it should not be instanced in fsm_start_session
+	c_delete(session);
+}
+
 void fsm_init(Fsm *fsm)
 {
 	NODE_INIT(fsm->rules, 0, 0, NULL);
