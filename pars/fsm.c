@@ -12,6 +12,7 @@
 
 #define NONE 0
 #include <stdio.h>
+#include <stdint.h>
 
 #ifdef FSM_TRACE
 #define trace(M, T1, T2, S, A) printf("trace: [%8i -> %8i] %-5s: %-13s (%3i = '%c')\n", (unsigned int)T1, (unsigned int)T2, M, A, S, (char)S);
@@ -51,18 +52,49 @@ void fsm_init(Fsm *fsm)
 	fsm->symbol_base = -1;
 }
 
+void _fsm_get_states(Node *states, State *state)
+{
+	State *st;
+	Iterator it;
+	radix_tree_iterator_init(&(state->next), &it);
+	while((st = (State *)radix_tree_iterator_next(&(state->next), &it)) != NULL) {
+		_fsm_get_states(states, st);
+	}
+	radix_tree_iterator_dispose(&(state->next), &it);
+
+	unsigned char buffer[sizeof(intptr_t)];
+	unsigned int size;
+	//TODO: Should have a separate ptr_to_buffer function
+	symbol_to_buffer(buffer, &size, (intptr_t)state);
+
+	radix_tree_set(states, buffer, size, state);
+}
+
 void fsm_dispose(Fsm *fsm)
 {
+	Node all_states;
 	NonTerminal *nt;
 	Iterator it;
+
+	NODE_INIT(all_states, 0, 0, NULL);
+
 	radix_tree_iterator_init(&(fsm->rules), &it);
 	while((nt = (NonTerminal *)radix_tree_iterator_next(&(fsm->rules), &it)) != NULL) {
-		//TODO: free non terminal states
+		_fsm_get_states(&all_states, nt->start);
 		c_delete(nt);
 	}
 	radix_tree_iterator_dispose(&(fsm->rules), &it);
-
 	radix_tree_dispose(&(fsm->rules));
+
+	State *st;
+	radix_tree_iterator_init(&all_states, &it);
+	while((st = (State *)radix_tree_iterator_next(&all_states, &it)) != NULL) {
+		radix_tree_dispose(&st->next);
+		c_delete(st);
+	}
+	radix_tree_iterator_dispose(&all_states, &it);
+
+	radix_tree_dispose(&all_states);
 }
 
 NonTerminal *fsm_get_non_terminal(Fsm *fsm, unsigned char *name, int length)
