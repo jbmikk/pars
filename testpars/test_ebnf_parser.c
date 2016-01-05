@@ -32,6 +32,7 @@ void setup(Fixture *fix, gconstpointer data){
 }
 
 void teardown(Fixture *fix, gconstpointer data){
+	fsm_dispose(&fix->fsm);
 }
 
 void ebnf_start_parsing__identifier(Fixture *fix, gconstpointer data){
