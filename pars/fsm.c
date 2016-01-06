@@ -92,14 +92,21 @@ void fsm_dispose(Fsm *fsm)
 
 	NODE_INIT(all_states, 0, 0, NULL);
 
+	//Get all states reachable through the starting state
+	if(fsm->start) {
+		_fsm_get_states(&all_states, fsm->start);
+	}
+
 	radix_tree_iterator_init(&(fsm->rules), &it);
 	while((nt = (NonTerminal *)radix_tree_iterator_next(&(fsm->rules), &it)) != NULL) {
+		//Get all states reachable through other rules
 		_fsm_get_states(&all_states, nt->start);
 		c_delete(nt);
 	}
 	radix_tree_iterator_dispose(&(fsm->rules), &it);
 	radix_tree_dispose(&(fsm->rules));
 
+	//Delete all states
 	State *st;
 	radix_tree_iterator_init(&all_states, &it);
 	while((st = (State *)radix_tree_iterator_next(&all_states, &it)) != NULL) {
@@ -213,6 +220,9 @@ State *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, int
 {
 	cur->current = fsm_get_state(cur->fsm, name, length);
 	cur->fsm->start = cur->current;
+	//TODO: calling fsm_cursor_set_start multiple times causes
+	// on the same fsm causes leaks cause a new starting state
+	// is created each time.
 	cur->current = _fsm_cursor_add_action(cur, symbol, ACTION_TYPE_ACCEPT, NONE, NULL);
 }
 
