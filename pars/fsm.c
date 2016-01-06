@@ -201,6 +201,8 @@ State *_fsm_cursor_add_action_buffer(FsmCursor *cur, unsigned char *buffer, unsi
 		//trace("init", state, action, "");
 	}
 
+	//TODO: risk of leak when transitioning using the same symbol
+	// on the same state twice.
 	radix_tree_set(&cur->current->next, buffer, size, state);
 	return state;
 }
@@ -220,9 +222,8 @@ State *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, int
 {
 	cur->current = fsm_get_state(cur->fsm, name, length);
 	cur->fsm->start = cur->current;
-	//TODO: calling fsm_cursor_set_start multiple times causes
-	// on the same fsm causes leaks cause a new starting state
-	// is created each time.
+	//TODO: calling fsm_cursor_set_start multiple times may cause
+	// leaks if adding a duplicate accept action to the state.
 	cur->current = _fsm_cursor_add_action(cur, symbol, ACTION_TYPE_ACCEPT, NONE, NULL);
 }
 

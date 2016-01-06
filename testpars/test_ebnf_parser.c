@@ -197,7 +197,8 @@ void ebnf_start_parsing__syntax(Fixture *fix, gconstpointer data){
 	fsm_cursor_define(&cur, "syntax", 6);
 	State *state;
 
-	fsm_cursor_set_start(&cur, "syntax", 6, E_SYNTAX);
+	//Already an accepting state, calling it again causes leak.
+	//fsm_cursor_set_start(&cur, "syntax", 6, E_SYNTAX);
 	Session *session = fsm_start_session(&fix->fsm);
 	MATCH(session, L_IDENTIFIER);
 	MATCH(session, L_DEFINING_SYMBOL);
