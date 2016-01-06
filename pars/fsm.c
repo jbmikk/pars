@@ -129,6 +129,14 @@ void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
 	cur->followset_stack = NULL;
 }
 
+void fsm_cursor_dispose(FsmCursor *cur)
+{
+	stack_dispose(cur->followset_stack);
+	stack_dispose(cur->stack);
+	cur->current = NULL;
+	cur->fsm = NULL;
+}
+
 void fsm_cursor_push(FsmCursor *cursor) 
 {
 	cursor->stack = stack_push(cursor->stack, cursor->current);

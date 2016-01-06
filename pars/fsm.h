@@ -78,6 +78,7 @@ void fsm_cursor_push(FsmCursor *cur);
 void fsm_cursor_pop(FsmCursor *cur);
 void fsm_cursor_push_followset(FsmCursor *cur);
 State *fsm_cursor_pop_followset(FsmCursor *cur);
+void fsm_cursor_dispose(FsmCursor *cur);
 
 void fsm_cursor_add_shift(FsmCursor *cur, int symbol);
 void fsm_cursor_add_context_shift(FsmCursor *cur, int symbol);
