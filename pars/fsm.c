@@ -64,20 +64,24 @@ void fsm_init(Fsm *fsm)
 
 void _fsm_get_states(Node *states, State *state)
 {
-	State *st;
-	Iterator it;
-	radix_tree_iterator_init(&(state->next), &it);
-	while((st = (State *)radix_tree_iterator_next(&(state->next), &it)) != NULL) {
-		_fsm_get_states(states, st);
-	}
-	radix_tree_iterator_dispose(&(state->next), &it);
-
 	unsigned char buffer[sizeof(intptr_t)];
 	unsigned int size;
 	//TODO: Should have a separate ptr_to_buffer function
 	symbol_to_buffer(buffer, &size, (intptr_t)state);
 
-	radix_tree_set(states, buffer, size, state);
+	State *contained = radix_tree_get(states, buffer, size);
+
+	if(!contained) {
+		radix_tree_set(states, buffer, size, state);
+
+		State *st;
+		Iterator it;
+		radix_tree_iterator_init(&(state->next), &it);
+		while((st = (State *)radix_tree_iterator_next(&(state->next), &it)) != NULL) {
+			_fsm_get_states(states, st);
+		}
+		radix_tree_iterator_dispose(&(state->next), &it);
+	}
 }
 
 void fsm_dispose(Fsm *fsm)
