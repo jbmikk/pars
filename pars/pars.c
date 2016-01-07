@@ -45,7 +45,11 @@ error:
 int main(int argc, char** argv){
 	if(argc > 1) {
 		log_info("Loading grammar.");
-		pars_load_grammar(argv[1]);
+		Ast *ast = pars_load_grammar(argv[1]);
+		if(ast) {
+			ast_dispose(ast);
+			c_delete(ast);
+		}
 	} else {
 		log_info("Usage:");
 		log_info("pars <grammar-file>");

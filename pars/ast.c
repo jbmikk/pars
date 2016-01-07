@@ -26,9 +26,24 @@ void ast_init(Ast *ast, Input *input)
 	ast->input = input;
 }
 
+void _ast_dispose_node(AstNode *node)
+{
+	AstNode *an;
+	Iterator it;
+
+	radix_tree_iterator_init(&node->children, &it);
+	while((an = (AstNode *)radix_tree_iterator_next(&node->children, &it)) != NULL) {
+		_ast_dispose_node(an);
+		c_delete(an);
+	}
+	radix_tree_iterator_dispose(&node->children, &it);
+
+	radix_tree_dispose(&node->children);
+}
+
 void ast_dispose(Ast *ast)
 {
-    //TODO
+	_ast_dispose_node(&ast->root);
 }
 
 void ast_bind_to_parent(AstNode *node)
