@@ -10,19 +10,18 @@
 
 Ast *pars_load_grammar(char *pathname)
 {
-	Input *input;
+	Input input;
 	Ast *ast = NULL;
 	Fsm *fsm = c_new(Fsm, 1);
 	check_mem(fsm);
 
-	input = input_init(pathname);
+	input_init(&input, pathname);
 
-	check(input, "Grammar file not found: %s", pathname);
-	check(input->is_open, "Could not open grammar file: %s", pathname);
+	check(input.is_open, "Could not find or open grammar file: %s", pathname);
 
 	ast = c_new(Ast,1);
 	check_mem(ast);
-	int error = ebnf_input_to_ast(ast, input);
+	int error = ebnf_input_to_ast(ast, &input);
 	check(!error, "Could not build ebnf ast.");
 
 	fsm = c_new(Fsm, 1);
@@ -31,8 +30,8 @@ Ast *pars_load_grammar(char *pathname)
 	return ast;
 
 error:
-	if(input && input->is_open)
-		input_close(input);
+	if(input.is_open)
+		input_dispose(&input);
 	if(ast)
 		c_free(ast);
 	if(fsm)

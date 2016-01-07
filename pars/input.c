@@ -1,22 +1,17 @@
 #include "input.h"
 #include "cmemory.h"
 
-Input* input_init_buffer(unsigned char *data, unsigned int length)
+void input_init_buffer(Input *input, unsigned char *data, unsigned int length)
 {
-	Input *input;
-
-	input = c_new(Input,1);
 	input->file = NULL;
 	input->eof = 0;
 	input->buffer_index = 0;
 	input->buffer_size = length;
 	input->buffer = data;
-	return input;
 }
 
-Input* input_init(char *pathname)
+void input_init(Input *input, char *pathname)
 {
-	Input *input = NULL;
 	FILE *file;
 	unsigned char *buffer;
 	unsigned int length;
@@ -34,18 +29,17 @@ Input* input_init(char *pathname)
 		} else {
 			buffer = NULL;
 		}
-		input = input_init_buffer(buffer, length);
+		//TODO:close file
+		input_init_buffer(input, buffer, length);
 		input->file = file;
 		input->is_open = 1;
 	}
-	return input;
 }
 
-void input_close(Input *input)
+void input_dispose(Input *input)
 {
 	if(input->file != NULL)
 		c_delete(input->buffer);
-	c_delete(input);
 }
 
 unsigned int input_get_index(Input *input)

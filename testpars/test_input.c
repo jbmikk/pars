@@ -14,14 +14,17 @@ void teardown(Fixture *fix, gconstpointer data){
 }
 
 void input_init__existent_file(Fixture *fix, gconstpointer data){
-	Input *input = input_init("grammars/test_ebnf_grammar.txt");
-	g_assert(input != NULL);
-	input_close(input);
+	Input input;
+	input_init(&input, "grammars/test_ebnf_grammar.txt");
+	g_assert(input.is_open);
+	input_dispose(&input);
 }
 
 void input_init__missing_file(Fixture *fix, gconstpointer data){
-	Input *input = input_init("should_not_exist.txt");
-	g_assert(input == NULL);
+	Input input;
+	input_init(&input, "should_not_exist.txt");
+	g_assert(!input.is_open);
+	input_dispose(&input);
 }
 
 int main(int argc, char** argv){

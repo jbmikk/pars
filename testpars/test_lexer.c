@@ -5,6 +5,10 @@
 #include "lexer.h"
 
 typedef struct {
+	Input input_integer;
+	Input input_identifier;
+	Input input_terminal_string;
+	Input input_rule_one;
 	Lexer lexer_integer;
 	Lexer lexer_identifier;
 	Lexer lexer_terminal_string;
@@ -17,17 +21,21 @@ typedef struct {
 #define I_RULE_ONE "one = \"1\",(\"a\"|\"b\")"
 
 void setup(Fixture *fix, gconstpointer data){
-	lexer_init(&fix->lexer_integer, input_init_buffer(I_INTEGER, strlen(I_INTEGER)));
-	lexer_init(&fix->lexer_identifier, input_init_buffer(I_IDENTIFIER, strlen(I_IDENTIFIER)));
-	lexer_init(&fix->lexer_terminal_string, input_init_buffer(I_TERMINAL_STRING, strlen(I_TERMINAL_STRING)));
-	lexer_init(&fix->lexer_rule_one, input_init_buffer(I_RULE_ONE, strlen(I_RULE_ONE)));
+	input_init_buffer(&fix->input_integer, I_INTEGER, strlen(I_INTEGER));
+	input_init_buffer(&fix->input_identifier, I_IDENTIFIER, strlen(I_IDENTIFIER));
+	input_init_buffer(&fix->input_terminal_string, I_TERMINAL_STRING, strlen(I_TERMINAL_STRING));
+	input_init_buffer(&fix->input_rule_one, I_RULE_ONE, strlen(I_RULE_ONE));
+	lexer_init(&fix->lexer_integer, &fix->input_integer);
+	lexer_init(&fix->lexer_identifier, &fix->input_identifier);
+	lexer_init(&fix->lexer_terminal_string, &fix->input_terminal_string);
+	lexer_init(&fix->lexer_rule_one, &fix->input_rule_one);
 }
 
 void teardown(Fixture *fix, gconstpointer data){
-	input_close(fix->lexer_integer.input);
-	input_close(fix->lexer_identifier.input);
-	input_close(fix->lexer_terminal_string.input);
-	input_close(fix->lexer_rule_one.input);
+	input_dispose(&fix->input_integer);
+	input_dispose(&fix->input_identifier);
+	input_dispose(&fix->input_terminal_string);
+	input_dispose(&fix->input_rule_one);
 }
 
 void lexer_input_next__integer_token(Fixture *fix, gconstpointer data){

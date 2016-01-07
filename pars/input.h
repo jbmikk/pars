@@ -12,9 +12,9 @@ typedef struct _Input {
 	unsigned int buffer_index;
 } Input;
 
-Input* input_init_buffer(unsigned char *data, unsigned int length);
-Input* input_init(char *pathname);
-void input_close(Input *input);
+void input_init_buffer(Input *input, unsigned char *data, unsigned int length);
+void input_init(Input *input, char *pathname);
+void input_dispose(Input *input);
 unsigned int input_get_index(Input *input);
 void input_set_index(Input *input, unsigned int index);
 

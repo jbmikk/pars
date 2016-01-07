@@ -9,16 +9,18 @@
 unsigned char *buffer = "this is a test";
 
 typedef struct {
+	Input input;
 	Ast ast;
 } Fixture;
 
 void setup(Fixture *fix, gconstpointer data){
-	Input *input = input_init_buffer(buffer, strlen(buffer));
-	ast_init(&fix->ast, input);
+	input_init_buffer(&fix->input, buffer, strlen(buffer));
+	ast_init(&fix->ast, &fix->input);
 }
 
 void teardown(Fixture *fix, gconstpointer data){
 	ast_dispose(&fix->ast);
+	input_dispose(&fix->input);
 }
 
 void ast_empty(Fixture *fix, gconstpointer data){
