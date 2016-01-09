@@ -53,7 +53,7 @@ int main(int argc, char** argv){
 	if(argc > 1) {
 		log_info("Loading grammar.");
 		Fsm *fsm = pars_load_grammar(argv[1]);
-		check(fsm, "Could load grammar.");
+		check(fsm, "Could not load grammar.");
 		if(fsm) {
 			fsm_dispose(fsm);
 			c_delete(fsm);
