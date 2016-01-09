@@ -14,6 +14,7 @@ Fsm *pars_load_grammar(char *pathname)
 	Input input;
 	Parser parser;
 	Ast ast;
+	Fsm *fsm = NULL;
 	int error;
 
 	input_init(&input, pathname);
@@ -28,7 +29,7 @@ Fsm *pars_load_grammar(char *pathname)
 
 	ebnf_dispose_parser(&parser);
 
-	Fsm *fsm = c_new(Fsm, 1);
+	fsm = c_new(Fsm, 1);
 	check_mem(fsm);
 
 	fsm_init(fsm);
