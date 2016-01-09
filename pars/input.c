@@ -33,6 +33,10 @@ void input_init(Input *input, char *pathname)
 		input_init_buffer(input, buffer, length);
 		input->file = file;
 		input->is_open = 1;
+	} else {
+		input_init_buffer(input, NULL, 0);
+		input->file = NULL;
+		input->is_open = 0;
 	}
 }
 
