@@ -4,6 +4,8 @@ add_library (input input.c)
 
 add_library (lexer lexer.c)
 
+add_library (parser parser.c)
+
 add_library (ebnf_parser ebnf_parser.c)
 
 add_library (fsm fsm.c)
@@ -31,6 +33,6 @@ target_link_libraries(lexer input)
 target_link_libraries(fsm radixtree symbols stack)
 target_link_libraries(ast radixtree symbols stack)
 target_link_libraries(ebnf_parser fsm lexer ast)
-target_link_libraries(parslib cmemory input ebnf_parser)
-target_link_libraries(pars cmemory input ebnf_parser)
+target_link_libraries(parslib cmemory input parser ebnf_parser)
+target_link_libraries(pars cmemory input parser ebnf_parser)
 

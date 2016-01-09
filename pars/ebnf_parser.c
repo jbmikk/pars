@@ -113,41 +113,23 @@ int ebnf_fsm_ast_handler(int type, void *target, void *args) {
 	}
 }
 
-int ebnf_input_to_ast(Ast *ast, Input *input)
+int ebnf_init_parser(Parser *parser)
 {
-	Lexer lexer;
-	Fsm ebnf_fsm;
+	parser->handler = ebnf_fsm_ast_handler;
 
-	EventListener ebnf_listener;
-	ebnf_listener.target = ast;
-	ebnf_listener.handler = ebnf_fsm_ast_handler;
-
-	lexer_init(&lexer, input);
-	fsm_init(&ebnf_fsm);
-	ebnf_init_fsm(&ebnf_fsm);
-	ast_init(ast, input);
-
-	Session *session = fsm_start_session(&ebnf_fsm);
-	session_set_listener(session, ebnf_listener);
-
-	while (!input->eof) {
-		lexer_next(&lexer);
-		session_match(session, lexer.symbol, lexer.index);
-		check(
-			session->current->type != ACTION_TYPE_ERROR,
-			"Error parsing grammar at index: %i with symbol: %i",
-			session->index, lexer.symbol
-		);
-	}
-	ast_done(ast);
-	session_dispose(session);
-	fsm_dispose(&ebnf_fsm);
+	fsm_init(&parser->fsm);
+	ebnf_init_fsm(&parser->fsm);
 
 	return 0;
 error:
 	//TODO: free
 
 	return -1;
+}
+
+int ebnf_dispose_parser(Parser *parser)
+{
+	fsm_dispose(&parser->fsm);
 }
 
 void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur);

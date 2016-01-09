@@ -3,39 +3,46 @@
 #include "cmemory.h"
 #include "input.h"
 #include "fsm.h"
+#include "parser.h"
 #include "ebnf_parser.h"
 
 #include <stddef.h>
 #include <stdio.h>
 
-Ast *pars_load_grammar(char *pathname)
+Fsm *pars_load_grammar(char *pathname)
 {
 	Input input;
-	Ast *ast = NULL;
-	Fsm *fsm = c_new(Fsm, 1);
-	check_mem(fsm);
+	Parser parser;
+	Ast ast;
+	int error;
 
 	input_init(&input, pathname);
 
 	check(input.is_open, "Could not find or open grammar file: %s", pathname);
 
-	ast = c_new(Ast,1);
-	check_mem(ast);
-	int error = ebnf_input_to_ast(ast, &input);
+	error = ebnf_init_parser(&parser);
+	check(!error, "Could not build ebnf parser.");
+
+	error = parser_execute(&parser, &ast, &input);
 	check(!error, "Could not build ebnf ast.");
 
-	fsm = c_new(Fsm, 1);
+	ebnf_dispose_parser(&parser);
+
+	Fsm *fsm = c_new(Fsm, 1);
 	check_mem(fsm);
-	ebnf_ast_to_fsm(fsm, ast);
-	return ast;
+
+	fsm_init(fsm);
+	ebnf_ast_to_fsm(fsm, &ast);
+
+	ast_dispose(&ast);
+
+	return fsm;
 
 error:
 	if(input.is_open)
 		input_dispose(&input);
-	if(ast)
-		c_free(ast);
 	if(fsm)
-		c_free(fsm);
+		c_delete(fsm);
 
 	return NULL;
 }
@@ -44,15 +51,18 @@ error:
 int main(int argc, char** argv){
 	if(argc > 1) {
 		log_info("Loading grammar.");
-		Ast *ast = pars_load_grammar(argv[1]);
-		if(ast) {
-			ast_dispose(ast);
-			c_delete(ast);
+		Fsm *fsm = pars_load_grammar(argv[1]);
+		check(fsm, "Could load grammar.");
+		if(fsm) {
+			fsm_dispose(fsm);
+			c_delete(fsm);
 		}
 	} else {
 		log_info("Usage:");
 		log_info("pars <grammar-file>");
 	}
 	return 0;
+error:
+	return -1;
 }
 #endif
