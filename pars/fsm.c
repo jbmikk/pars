@@ -335,16 +335,16 @@ rematch:
 	}
 
 	switch(state->type) {
-		case ACTION_TYPE_CONTEXT_SHIFT:
-			trace("match", session->current, state, symbol, "context shift");
-			FsmArgs cargs;
-			cargs.index = session->index;
-			TRY_TRIGGER(EVENT_CONTEXT_SHIFT, session->listener, &cargs);
-			session_push(session);
-			session->current = state;
-			break;
-		case ACTION_TYPE_ACCEPT:
-			trace("match", session->current, state, symbol, "accept");
+	case ACTION_TYPE_CONTEXT_SHIFT:
+		trace("match", session->current, state, symbol, "context shift");
+		FsmArgs cargs;
+		cargs.index = session->index;
+		TRY_TRIGGER(EVENT_CONTEXT_SHIFT, session->listener, &cargs);
+		session_push(session);
+		session->current = state;
+		break;
+	case ACTION_TYPE_ACCEPT:
+		trace("match", session->current, state, symbol, "accept");
 		session->current = state;
 		break;
 	case ACTION_TYPE_SHIFT:
