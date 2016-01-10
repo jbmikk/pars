@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 #ifdef AST_TRACE
-#define trace(N, A, T, I, L) printf("ast: %i, %s: %c, at: %i, length: %i \n", N, A, (char)T, I, L);
+#define trace(N, A, T, I, L) printf("ast: %p, %s: %c, at: %i, length: %i \n", N, A, (char)T, I, L);
 #else
 #define trace(N, A, T, I, L)
 #endif
