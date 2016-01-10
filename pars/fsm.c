@@ -15,7 +15,7 @@
 #include <stdint.h>
 
 #ifdef FSM_TRACE
-#define trace(M, T1, T2, S, A) printf("trace: [%8i -> %8i] %-5s: %-13s (%3i = '%c')\n", (unsigned int)T1, (unsigned int)T2, M, A, S, (char)S);
+#define trace(M, T1, T2, S, A) printf("trace: [%p -> %p] %-5s: %-13s (%3i = '%c')\n", T1, T2, M, A, S, (char)S);
 #define trace_non_terminal(M, S, L) printf("trace: %-5s: %.*s\n", M, L, S);
 #else
 #define trace(M, T1, T2, S, A)
