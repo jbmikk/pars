@@ -40,7 +40,7 @@ void ast_single_node(Fixture *fix, gconstpointer data){
 	AstCursor cursor;
 	AstNode *node;
 
-	ast_open(&fix->ast, 1);
+	ast_open(&fix->ast, 1, 1, 0);
 	ast_close(&fix->ast, 3, 3, 123);
 	ast_done(&fix->ast);
 
@@ -58,10 +58,11 @@ void ast_single_node(Fixture *fix, gconstpointer data){
 
 void ast_nested_nodes(Fixture *fix, gconstpointer data){
 	AstCursor cursor;
-	AstNode *root, *outer_node, *inner_node, *last;
+	AstNode *root, *outer_node;
+	AstNode *first_child, *second_child, *grand_child, *last;
 
-	ast_open(&fix->ast, 1);
-	ast_open(&fix->ast, 2);
+	ast_open(&fix->ast, 1, 1, 0);
+	ast_open(&fix->ast, 2, 1, 0);
 	ast_close(&fix->ast, 3, 1, 123);
 	ast_close(&fix->ast, 4, 3, 456);
 	ast_done(&fix->ast);
@@ -69,18 +70,34 @@ void ast_nested_nodes(Fixture *fix, gconstpointer data){
 	ast_cursor_init(&cursor, &fix->ast);
 	root = ast_cursor_depth_next(&cursor);
 	outer_node = ast_cursor_depth_next(&cursor);
-	inner_node = ast_cursor_depth_next(&cursor);
+	first_child = ast_cursor_depth_next(&cursor);
+	second_child = ast_cursor_depth_next(&cursor);
+	grand_child = ast_cursor_depth_next(&cursor);
 	last = ast_cursor_depth_next(&cursor);
 
+	//First opened symbol
 	g_assert(outer_node != NULL);
 	g_assert_cmpint(outer_node->index, ==, 1);
 	g_assert_cmpint(outer_node->length, ==, 3);
 	g_assert_cmpint(outer_node->symbol, ==, 456);
 
-	g_assert(inner_node != NULL);
-	g_assert_cmpint(inner_node->index, ==, 2);
-	g_assert_cmpint(inner_node->length, ==, 1);
-	g_assert_cmpint(inner_node->symbol, ==, 123);
+	//First opened symbol's implicit shift
+	g_assert(first_child != NULL);
+	g_assert_cmpint(first_child->index, ==, 1);
+	g_assert_cmpint(first_child->length, ==, 1);
+	g_assert_cmpint(first_child->symbol, ==, 0);
+
+	//Second opened symbol
+	g_assert(second_child != NULL);
+	g_assert_cmpint(second_child->index, ==, 2);
+	g_assert_cmpint(second_child->length, ==, 1);
+	g_assert_cmpint(second_child->symbol, ==, 123);
+
+	//Second opened symbol's implicit shift
+	g_assert(grand_child != NULL);
+	g_assert_cmpint(grand_child->index, ==, 2);
+	g_assert_cmpint(grand_child->length, ==, 1);
+	g_assert_cmpint(grand_child->symbol, ==, 0);
 
 	g_assert(last == NULL);
 
@@ -89,12 +106,13 @@ void ast_nested_nodes(Fixture *fix, gconstpointer data){
 
 void ast_sibling_nodes(Fixture *fix, gconstpointer data){
 	AstCursor cursor;
-	AstNode *root, *outer, *sibling1, *sibling2, *last;
+	AstNode *root, *outer, *outer_child, *sibling1, *sibling2;
+	AstNode *sibling1_child, *sibling2_child, *last;
 
-	ast_open(&fix->ast, 1);
-	ast_open(&fix->ast, 2);
+	ast_open(&fix->ast, 1, 1, 0);
+	ast_open(&fix->ast, 2, 1, 0);
 	ast_close(&fix->ast, 3, 1, 123);
-	ast_open(&fix->ast, 4);
+	ast_open(&fix->ast, 4, 1, 0);
 	ast_close(&fix->ast, 5, 1, 456);
 	ast_close(&fix->ast, 6, 5, 789);
 	ast_done(&fix->ast);
@@ -102,8 +120,11 @@ void ast_sibling_nodes(Fixture *fix, gconstpointer data){
 	ast_cursor_init(&cursor, &fix->ast);
 	root = ast_cursor_depth_next(&cursor);
 	outer = ast_cursor_depth_next(&cursor);
+	outer_child = ast_cursor_depth_next(&cursor);
 	sibling1 = ast_cursor_depth_next(&cursor);
+	sibling1_child = ast_cursor_depth_next(&cursor);
 	sibling2 = ast_cursor_depth_next(&cursor);
+	sibling2_child = ast_cursor_depth_next(&cursor);
 	last = ast_cursor_depth_next(&cursor);
 
 	g_assert(outer != NULL);
@@ -111,15 +132,30 @@ void ast_sibling_nodes(Fixture *fix, gconstpointer data){
 	g_assert_cmpint(outer->length, ==, 5);
 	g_assert_cmpint(outer->symbol, ==, 789);
 
+	g_assert(outer_child != NULL);
+	g_assert_cmpint(outer_child->index, ==, 1);
+	g_assert_cmpint(outer_child->length, ==, 1);
+	g_assert_cmpint(outer_child->symbol, ==, 0);
+
 	g_assert(sibling1 != NULL);
 	g_assert_cmpint(sibling1->index, ==, 2);
 	g_assert_cmpint(sibling1->length, ==, 1);
 	g_assert_cmpint(sibling1->symbol, ==, 123);
 
+	g_assert(sibling1_child != NULL);
+	g_assert_cmpint(sibling1_child->index, ==, 2);
+	g_assert_cmpint(sibling1_child->length, ==, 1);
+	g_assert_cmpint(sibling1_child->symbol, ==, 0);
+
 	g_assert(sibling2 != NULL);
 	g_assert_cmpint(sibling2->index, ==, 4);
 	g_assert_cmpint(sibling2->length, ==, 1);
 	g_assert_cmpint(sibling2->symbol, ==, 456);
+
+	g_assert(sibling2_child != NULL);
+	g_assert_cmpint(sibling2_child->index, ==, 4);
+	g_assert_cmpint(sibling2_child->length, ==, 1);
+	g_assert_cmpint(sibling2_child->symbol, ==, 0);
 
 	g_assert(last == NULL);
 
@@ -128,11 +164,11 @@ void ast_sibling_nodes(Fixture *fix, gconstpointer data){
 
 void ast_same_index_nodes(Fixture *fix, gconstpointer data){
 	AstCursor cursor;
-	AstNode *root, *outer, *inner, *last;
+	AstNode *root, *outer, *inner, *inner_child, *last;
 
-	ast_open(&fix->ast, 1);
+	ast_open(&fix->ast, 1, 1, 0);
 	ast_close(&fix->ast, 4, 3, 123);
-	ast_open(&fix->ast, 1);
+	ast_open(&fix->ast, 1, 1, 0);
 	ast_close(&fix->ast, 5, 4, 456);
 	ast_done(&fix->ast);
 
@@ -140,6 +176,7 @@ void ast_same_index_nodes(Fixture *fix, gconstpointer data){
 	root = ast_cursor_depth_next(&cursor);
 	outer = ast_cursor_depth_next(&cursor);
 	inner = ast_cursor_depth_next(&cursor);
+	inner_child = ast_cursor_depth_next(&cursor);
 	last = ast_cursor_depth_next(&cursor);
 
 	g_assert(outer != NULL);
@@ -152,6 +189,11 @@ void ast_same_index_nodes(Fixture *fix, gconstpointer data){
 	g_assert_cmpint(inner->length, ==, 3);
 	g_assert_cmpint(inner->symbol, ==, 123);
 
+	g_assert(inner_child!= NULL);
+	g_assert_cmpint(inner_child->index, ==, 1);
+	g_assert_cmpint(inner_child->length, ==, 1);
+	g_assert_cmpint(inner_child->symbol, ==, 0);
+
 	g_assert(last == NULL);
 
 	ast_cursor_dispose(&cursor);
@@ -159,12 +201,12 @@ void ast_same_index_nodes(Fixture *fix, gconstpointer data){
 
 void ast_next_symbol(Fixture *fix, gconstpointer data){
 	AstCursor cursor;
-	AstNode *sibling1, *sibling2, *last;
+	AstNode *sibling1, *sibling2, *sibling2_child, *last;
 
-	ast_open(&fix->ast, 1);
-	ast_open(&fix->ast, 2);
+	ast_open(&fix->ast, 1, 1, 0);
+	ast_open(&fix->ast, 2, 1, 0);
 	ast_close(&fix->ast, 3, 1, 123);
-	ast_open(&fix->ast, 4);
+	ast_open(&fix->ast, 4, 1, 0);
 	ast_close(&fix->ast, 5, 1, 123);
 	ast_close(&fix->ast, 6, 5, 456);
 	ast_done(&fix->ast);
@@ -172,6 +214,7 @@ void ast_next_symbol(Fixture *fix, gconstpointer data){
 	ast_cursor_init(&cursor, &fix->ast);
 	sibling1 = ast_cursor_depth_next_symbol(&cursor, 123);
 	sibling2 = ast_cursor_depth_next_symbol(&cursor, 123);
+	sibling2_child = ast_cursor_depth_next(&cursor);
 	last = ast_cursor_depth_next(&cursor);
 
 	g_assert(sibling1 != NULL);
@@ -184,6 +227,11 @@ void ast_next_symbol(Fixture *fix, gconstpointer data){
 	g_assert_cmpint(sibling2->length, ==, 1);
 	g_assert_cmpint(sibling2->symbol, ==, 123);
 
+	g_assert(sibling2_child != NULL);
+	g_assert_cmpint(sibling2_child->index, ==, 4);
+	g_assert_cmpint(sibling2_child->length, ==, 1);
+	g_assert_cmpint(sibling2_child->symbol, ==, 0);
+
 	g_assert(last == NULL);
 
 	ast_cursor_dispose(&cursor);
@@ -193,12 +241,12 @@ void ast_next_sibling_symbol(Fixture *fix, gconstpointer data){
 	AstCursor cursor;
 	AstNode *sibling1, *sibling2, *sibling3, *last;
 
-	ast_open(&fix->ast, 1);
-	ast_open(&fix->ast, 2);
-	ast_open(&fix->ast, 2);
+	ast_open(&fix->ast, 1, 1, 0);
+	ast_open(&fix->ast, 2, 1, 0);
+	ast_open(&fix->ast, 2, 1, 0);
 	ast_close(&fix->ast, 3, 1, 123); //Inner sibling (should not be raeched)
 	ast_close(&fix->ast, 3, 1, 123); //First sibling
-	ast_open(&fix->ast, 4);
+	ast_open(&fix->ast, 4, 1, 0);
 	ast_close(&fix->ast, 5, 1, 123); //Second sibling
 	ast_close(&fix->ast, 6, 5, 456);
 	ast_done(&fix->ast);
@@ -222,19 +270,23 @@ void ast_next_sibling_symbol(Fixture *fix, gconstpointer data){
 	//No sibling after second sibling
 	g_assert(sibling3 == NULL);
 
-	g_assert(last == NULL);
+	g_assert(last != NULL);
+	g_assert_cmpint(last->index, ==, 4);
+	g_assert_cmpint(last->length, ==, 1);
+	g_assert_cmpint(last->symbol, ==, 0);
 
 	ast_cursor_dispose(&cursor);
 }
 
 void ast_push_pop_state(Fixture *fix, gconstpointer data){
 	AstCursor cursor;
-	AstNode *sibling1, *sibling2, *sibling2again, *sibling3, *last;
+	AstNode *sibling1, *sibling1_child, *sibling2, *sibling2_child;
+	AstNode  *sibling2again, *sibling3, *last;
 
-	ast_open(&fix->ast, 1);
-	ast_open(&fix->ast, 2);
+	ast_open(&fix->ast, 1, 1, 0);
+	ast_open(&fix->ast, 2, 1, 0);
 	ast_close(&fix->ast, 3, 1, 123);
-	ast_open(&fix->ast, 4);
+	ast_open(&fix->ast, 4, 1, 0);
 	ast_close(&fix->ast, 5, 1, 456);
 	ast_close(&fix->ast, 6, 5, 789);
 	ast_done(&fix->ast);
@@ -245,9 +297,10 @@ void ast_push_pop_state(Fixture *fix, gconstpointer data){
 	ast_cursor_depth_next(&cursor);
 
 	sibling1 = ast_cursor_depth_next(&cursor);
+	sibling1_child = ast_cursor_depth_next(&cursor);
 	ast_cursor_push(&cursor);
-
 	sibling2 = ast_cursor_depth_next(&cursor);
+	sibling2_child = ast_cursor_depth_next(&cursor);
 	sibling3 = ast_cursor_depth_next(&cursor);
 	ast_cursor_pop(&cursor);
 
@@ -258,10 +311,20 @@ void ast_push_pop_state(Fixture *fix, gconstpointer data){
 	g_assert_cmpint(sibling1->length, ==, 5);
 	g_assert_cmpint(sibling1->symbol, ==, 789);
 
+	g_assert(sibling1_child != NULL);
+	g_assert_cmpint(sibling1_child->index, ==, 1);
+	g_assert_cmpint(sibling1_child->length, ==, 1);
+	g_assert_cmpint(sibling1_child->symbol, ==, 0);
+
 	g_assert(sibling2 != NULL);
 	g_assert_cmpint(sibling2->index, ==, 2);
 	g_assert_cmpint(sibling2->length, ==, 1);
 	g_assert_cmpint(sibling2->symbol, ==, 123);
+
+	g_assert(sibling2_child != NULL);
+	g_assert_cmpint(sibling2_child->index, ==, 2);
+	g_assert_cmpint(sibling2_child->length, ==, 1);
+	g_assert_cmpint(sibling2_child->symbol, ==, 0);
 
 	g_assert(sibling3 != NULL);
 	g_assert_cmpint(sibling3->index, ==, 4);
@@ -279,14 +342,14 @@ void ast_push_pop_state(Fixture *fix, gconstpointer data){
 
 void ast_cursor_get_strings(Fixture *fix, gconstpointer data){
 	AstCursor cursor;
-	AstNode *sibling1, *sibling2, *sibling3, * sibling4;
+	AstNode *sibling1, *sibling1_child, *sibling2, *sibling2_child, *sibling3, *sibling3_child;
 	unsigned char *string;
 	int length, diff;
 
-	ast_open(&fix->ast, 0); // this is a test
-	ast_open(&fix->ast, 5); // is
+	ast_open(&fix->ast, 0, 1, 0); // this is a test
+	ast_open(&fix->ast, 5, 1, 0); // is
 	ast_close(&fix->ast, 6, 2, 123);
-	ast_open(&fix->ast, 8); // a
+	ast_open(&fix->ast, 8, 1, 0); // a
 	ast_close(&fix->ast, 8, 1, 456);
 	ast_close(&fix->ast, 13, 14, 789);
 	ast_done(&fix->ast);
@@ -301,12 +364,27 @@ void ast_cursor_get_strings(Fixture *fix, gconstpointer data){
 	diff = strncmp(string, "this is a test", strlen("this is a test"));
 	g_assert(diff == 0);
 
+	sibling1_child = ast_cursor_depth_next(&cursor);
+	ast_cursor_get_string(&cursor, &string, &length);
+	diff = strncmp(string, "t", strlen("t"));
+	g_assert(diff == 0);
+
 	sibling2 = ast_cursor_depth_next(&cursor);
 	ast_cursor_get_string(&cursor, &string, &length);
 	diff = strncmp(string, "is", strlen("is"));
 	g_assert(diff == 0);
 
+	sibling2_child = ast_cursor_depth_next(&cursor);
+	ast_cursor_get_string(&cursor, &string, &length);
+	diff = strncmp(string, "i", strlen("i"));
+	g_assert(diff == 0);
+
 	sibling3 = ast_cursor_depth_next(&cursor);
+	ast_cursor_get_string(&cursor, &string, &length);
+	diff = strncmp(string, "a", strlen("a"));
+	g_assert(diff == 0);
+
+	sibling3_child = ast_cursor_depth_next(&cursor);
 	ast_cursor_get_string(&cursor, &string, &length);
 	diff = strncmp(string, "a", strlen("a"));
 	g_assert(diff == 0);

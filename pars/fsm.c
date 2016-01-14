@@ -338,7 +338,9 @@ rematch:
 	case ACTION_TYPE_CONTEXT_SHIFT:
 		trace("match", session->current, state, symbol, "context shift");
 		FsmArgs cargs;
+		cargs.symbol = symbol;
 		cargs.index = session->index;
+		cargs.length = 1;
 		TRY_TRIGGER(EVENT_CONTEXT_SHIFT, session->listener, &cargs);
 		session_push(session);
 		session->current = state;

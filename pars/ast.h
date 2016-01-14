@@ -28,7 +28,7 @@ typedef struct _AstCursor {
 
 void ast_init(Ast *ast, Input *input);
 void ast_dispose(Ast *ast);
-void ast_open(Ast *ast, unsigned int index);
+void ast_open(Ast *ast, unsigned int index, unsigned int length, int symbol);
 void ast_close(Ast *ast, unsigned int index, unsigned int length, int symbol);
 void ast_done(Ast *ast);
 void ast_print(Ast *ast);

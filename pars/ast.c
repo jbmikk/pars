@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 #ifdef AST_TRACE
-#define trace(N, A, T, I, L) printf("ast: %p, %s: %c, at: %i, length: %i \n", N, A, (char)T, I, L);
+#define trace(N, A, T, I, L) printf("ast: %p, %s: %c (%i), at: %i, length: %i \n", N, A, (char)T, T, I, L);
 #else
 #define trace(N, A, T, I, L)
 #endif
@@ -54,21 +54,40 @@ void ast_bind_to_parent(AstNode *node)
 	radix_tree_set(&node->parent->children, buffer, size, node);
 }
 
-void ast_open(Ast *ast, unsigned int index)
+void ast_add(Ast *ast, unsigned int index, unsigned int length, int symbol)
+{
+	AstNode *node = c_new(AstNode, 1);
+	ast_node_init(node, ast->current, index);
+
+	node->length = length;
+	node->symbol = symbol;
+	ast_bind_to_parent(node);
+
+	trace(node, "add", symbol, index, length);
+}
+
+void ast_open(Ast *ast, unsigned int index, unsigned int length, int symbol)
 {
 	AstNode *node = c_new(AstNode, 1);
 	ast_node_init(node, ast->current, index);
 
 	trace(node, "open", '?', index, 0);
-	if(ast->previous != NULL) {
-		AstNode *previous = ast->previous;
+	AstNode *previous = ast->previous;
+	if(previous != NULL) {
 		ast->previous = NULL;
 		trace(previous, "previous", '?', previous->index, 0);
-		if(previous->index == node->index)
+		if(previous->index == node->index) {
 			previous->parent = node;
+		}
 		ast_bind_to_parent(previous);
 	}
 	ast->current = node;
+
+	if(previous == NULL || previous->index != node->index) {
+		//Only add shifted symbol if it's not the same
+		//that was just closed.
+		ast_add(ast, index, length, symbol);
+	}
 }
 
 void ast_close(Ast *ast, unsigned int index, unsigned int length, int symbol)

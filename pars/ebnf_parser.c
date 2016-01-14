@@ -108,7 +108,7 @@ int ebnf_fsm_ast_handler(int type, void *target, void *args) {
 		ast_close(ast, red->index, red->length, red->symbol);
 		break;
 	case EVENT_CONTEXT_SHIFT:
-		ast_open(ast, red->index);
+		ast_open(ast, red->index, red->length, red->symbol);
 		break;
 	}
 }
