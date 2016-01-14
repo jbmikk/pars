@@ -192,3 +192,35 @@ void ast_cursor_dispose(AstCursor *cursor)
 	stack_dispose(cursor->stack);
 	cursor->stack = NULL;
 }
+
+void ast_print_node(Ast *ast, AstNode *node, int level) {
+	
+	AstNode *next = (AstNode *)radix_tree_get_next(&node->children, NULL, 0);
+	if(next) {
+		do {
+			unsigned char *src = ast->input->buffer + next->index;
+			int length = next->length;
+			unsigned char name[length+1];
+			int i = 0;
+			for(i; i < length; i++) {
+				name[i] = src[i];
+			}
+			name[length] = '\0';
+
+			unsigned char levelstr[level+1];
+			for(i = 0; i < level; i++) {
+				levelstr[i] = '-';
+			}
+			levelstr[level] = '\0';
+
+			printf("%s> [%i] %s\n", levelstr, next->symbol, name);
+
+			ast_print_node(ast, next, level+1);
+
+		} while(next = ast_get_next_sibling(next));
+	}
+}
+
+void ast_print(Ast* ast) {
+	ast_print_node(ast, &ast->root, 0);
+}

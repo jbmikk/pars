@@ -31,6 +31,7 @@ void ast_dispose(Ast *ast);
 void ast_open(Ast *ast, unsigned int index);
 void ast_close(Ast *ast, unsigned int index, unsigned int length, int symbol);
 void ast_done(Ast *ast);
+void ast_print(Ast *ast);
 void ast_cursor_init(AstCursor *cursor, Ast *ast);
 AstNode *ast_cursor_depth_next(AstCursor *cursor);
 AstNode *ast_cursor_depth_next_symbol(AstCursor *cursor, int symbol);
