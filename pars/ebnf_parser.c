@@ -212,6 +212,10 @@ void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
 		ast_cursor_pop(&a_cur);
 	}
 
+	fsm_cursor_done(&f_cur);
+	//ast_done?
+
 	fsm_cursor_dispose(&f_cur);
 	ast_cursor_dispose(&a_cur);
+	
 }

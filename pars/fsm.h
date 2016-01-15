@@ -23,6 +23,8 @@ typedef struct _State {
 typedef struct _NonTerminal {
 	State *start;
 	int symbol;
+	char *name;
+	int length;
 } NonTerminal;
 
 typedef struct _Fsm {
@@ -36,6 +38,7 @@ typedef struct _FsmCursor {
 	State *current;
 	SNode *stack;
 	SNode *followset_stack;
+	NonTerminal *last_non_terminal;
 } FsmCursor;
 
 typedef struct _SessionNode {

@@ -101,6 +101,7 @@ void fsm_dispose(Fsm *fsm)
 	while((nt = (NonTerminal *)radix_tree_iterator_next(&(fsm->rules), &it)) != NULL) {
 		//Get all states reachable through other rules
 		_fsm_get_states(&all_states, nt->start);
+		c_delete(nt->name);
 		c_delete(nt);
 	}
 	radix_tree_iterator_dispose(&(fsm->rules), &it);
@@ -134,6 +135,7 @@ void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
 	cur->current = NULL;
 	cur->stack = NULL;
 	cur->followset_stack = NULL;
+	cur->last_non_terminal = NULL;
 }
 
 void fsm_cursor_dispose(FsmCursor *cur)
@@ -183,7 +185,14 @@ void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 		NODE_INIT(state->next, 0, 0, NULL);
 		non_terminal->start = state;
 		non_terminal->symbol = cur->fsm->symbol_base--;
+		non_terminal->length = length;
+		non_terminal->name = c_new(char, length); 
+		int i = 0;
+		for(i; i < length; i++) {
+			non_terminal->name[i] = name[i];
+		}
 		radix_tree_set(&cur->fsm->rules, name, length, non_terminal);
+		cur->last_non_terminal = non_terminal;
 		//TODO: Add to non_terminal struct: 
 		// * other terminals references to be resolved
 		// * detect circular references.
@@ -225,6 +234,13 @@ State *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, int
 	//TODO: calling fsm_cursor_set_start multiple times may cause
 	// leaks if adding a duplicate accept action to the state.
 	cur->current = _fsm_cursor_add_action(cur, symbol, ACTION_TYPE_ACCEPT, NONE, NULL);
+}
+
+void fsm_cursor_done(FsmCursor *cur) {
+	NonTerminal *nt = cur->last_non_terminal;
+	if(nt) {
+		fsm_cursor_set_start(cur, nt->name, nt->length, nt->symbol);
+	}
 }
 
 void fsm_cursor_add_shift(FsmCursor *cur, int symbol)
