@@ -150,7 +150,7 @@ void ebnf_build_expression(FsmCursor *f_cur, AstCursor *a_cur)
 		fsm_cursor_add_shift(f_cur, non_terminal->symbol);
 		break;
 	case L_TERMINAL_STRING:
-		fsm_get_state(f_cur->fsm, string, length);
+		ast_cursor_get_string(a_cur, &string, &length);
 		for(i = 1; i < length-1; i++) {
 			//TODO: literal strings should be tokenized into simbols (utf8)
 			fsm_cursor_add_shift(f_cur, string[i]);
