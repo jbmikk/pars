@@ -33,6 +33,10 @@ Fsm *pars_load_grammar(char *pathname)
 	check_mem(fsm);
 
 	fsm_init(fsm);
+
+	//TODO: make optional under a -v flag
+	ast_print(&ast);
+
 	ebnf_ast_to_fsm(fsm, &ast);
 
 	ast_dispose(&ast);
