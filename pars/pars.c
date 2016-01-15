@@ -46,8 +46,11 @@ Fsm *pars_load_grammar(char *pathname)
 error:
 	if(input.is_open)
 		input_dispose(&input);
-	if(fsm)
+
+	if(fsm) {
+		fsm_dispose(fsm);
 		c_delete(fsm);
+	}
 
 	return NULL;
 }
