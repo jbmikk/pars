@@ -40,6 +40,7 @@ Fsm *pars_load_grammar(char *pathname)
 	ebnf_ast_to_fsm(fsm, &ast);
 
 	ast_dispose(&ast);
+	input_dispose(&input);
 
 	return fsm;
 
