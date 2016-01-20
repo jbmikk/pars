@@ -16,11 +16,13 @@ void ast_node_init(AstNode *node, AstNode *parent, unsigned int index)
 	NODE_INIT(node->children, 0, 0, NULL);
 	node->parent = parent;
 	node->index = index;
+	//TODO: Should initialize other fields even if not always used?
 }
 
 void ast_init(Ast *ast, Input *input)
 {
 	ast_node_init(&ast->root, NULL, 0);
+	ast->root.symbol = 0;
 	ast->current = &ast->root;
 	ast->previous = NULL;
 	ast->input = input;
