@@ -31,8 +31,7 @@ next_token:
 
 	c = CURRENT;
 	if (IS_SPACE(c)) {
-		while(1)
-		{
+		while(1) {
 			NEXT;
 			if(END(0))
 				break;
@@ -41,10 +40,8 @@ next_token:
 				break;
 		}
 		token = L_WHITE_SPACE;
-	}
-	else if (BETWEEN(c, 'a', 'z') || BETWEEN(c, 'A', 'Z')) {
-		while(1)
-		{
+	} else if (BETWEEN(c, 'a', 'z') || BETWEEN(c, 'A', 'Z')) {
+		while(1) {
 			NEXT;
 			if(END(0))
 				break;
@@ -53,10 +50,8 @@ next_token:
 				break;
 		}
 		token = L_IDENTIFIER;
-	}
-	else if (BETWEEN(c, '0', '9')) {
-		while(1)
-		{
+	} else if (BETWEEN(c, '0', '9')) {
+		while(1) {
 			NEXT;
 			if(END(0))
 				break;
@@ -65,8 +60,7 @@ next_token:
 				break;
 		}
 		token = L_INTEGER;
-	}
-	else if (c == '"') {
+	} else if (c == '"') {
 		while(1) {
 			unsigned char prev;
 			prev = c;
@@ -80,8 +74,7 @@ next_token:
 			}
 		}
 		token = L_TERMINAL_STRING;
-	}
-	else {
+	} else {
 		token = c;
 		NEXT;
 	}
