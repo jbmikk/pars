@@ -15,9 +15,9 @@
 #define EVENT_CONTEXT_SHIFT 2
 
 typedef struct _State {
-    char type;
-    int reduction;
-    Node next;
+	char type;
+	int reduction;
+	Node next;
 } State;
 
 typedef struct _NonTerminal {
@@ -42,19 +42,19 @@ typedef struct _FsmCursor {
 } FsmCursor;
 
 typedef struct _SessionNode {
-    State *state;
+	State *state;
 	int index;
-    struct _SessionNode *next;
+	struct _SessionNode *next;
 } SessionNode;
 
 typedef struct _Stack {
-    SessionNode *top;
+	SessionNode *top;
 } Stack;
 
 typedef struct _Session {
-    State *current;
+	State *current;
 	unsigned int index;
-    Stack stack;
+	Stack stack;
 	EventListener listener;
 } Session;
 
