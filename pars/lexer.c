@@ -84,5 +84,6 @@ next_token:
 
 eof:
 	lexer->symbol = token;
+	lexer->length = lexer->input->buffer_index - lexer->index;
 }
 

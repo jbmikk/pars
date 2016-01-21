@@ -41,46 +41,76 @@ void teardown(Fixture *fix, gconstpointer data){
 void lexer_input_next__integer_token(Fixture *fix, gconstpointer data){
 	lexer_next(&fix->lexer_integer);
 	g_assert_cmpint(fix->lexer_integer.symbol, ==, L_INTEGER);
+	g_assert_cmpint(fix->lexer_integer.index, ==, 0);
+	g_assert_cmpint(fix->lexer_integer.length, ==, strlen(I_INTEGER));
 }
 
 void lexer_input_next__identifier_token(Fixture *fix, gconstpointer data){
 	lexer_next(&fix->lexer_identifier);
 	g_assert_cmpint(fix->lexer_identifier.symbol, ==, L_IDENTIFIER);
+	g_assert_cmpint(fix->lexer_identifier.index, ==, 0);
+	g_assert_cmpint(fix->lexer_identifier.length, ==, strlen(I_IDENTIFIER));
 }
 
 void lexer_input_next__terminal_string_token(Fixture *fix, gconstpointer data){
 	lexer_next(&fix->lexer_terminal_string);
 	g_assert_cmpint(fix->lexer_terminal_string.symbol, ==, L_TERMINAL_STRING);
+	g_assert_cmpint(fix->lexer_terminal_string.index, ==, 0);
+	g_assert_cmpint(fix->lexer_terminal_string.length, ==, strlen(I_TERMINAL_STRING));
 }
 
 void lexer_input_next__skip_white_space(Fixture *fix, gconstpointer data){
 	lexer_next(&fix->lexer_rule_one);
 	g_assert_cmpint(fix->lexer_rule_one.symbol, ==, L_IDENTIFIER);
+	g_assert_cmpint(fix->lexer_rule_one.index, ==, 0);
+	g_assert_cmpint(fix->lexer_rule_one.length, ==, 3);
 	lexer_next(&fix->lexer_rule_one);
 	g_assert_cmpint(fix->lexer_rule_one.symbol, ==, L_DEFINING_SYMBOL);
+	g_assert_cmpint(fix->lexer_rule_one.index, ==, 4);
+	g_assert_cmpint(fix->lexer_rule_one.length, ==, 1);
 }
 
 void lexer_input_next__whole_rule(Fixture *fix, gconstpointer data){
 	lexer_next(&fix->lexer_rule_one);
 	g_assert_cmpint(fix->lexer_rule_one.symbol, ==, L_IDENTIFIER);
+	g_assert_cmpint(fix->lexer_rule_one.index, ==, 0);
+	g_assert_cmpint(fix->lexer_rule_one.length, ==, 3);
 	lexer_next(&fix->lexer_rule_one);
 	g_assert_cmpint(fix->lexer_rule_one.symbol, ==, L_DEFINING_SYMBOL);
+	g_assert_cmpint(fix->lexer_rule_one.index, ==, 4);
+	g_assert_cmpint(fix->lexer_rule_one.length, ==, 1);
 	lexer_next(&fix->lexer_rule_one);
 	g_assert_cmpint(fix->lexer_rule_one.symbol, ==, L_TERMINAL_STRING);
+	g_assert_cmpint(fix->lexer_rule_one.index, ==, 6);
+	g_assert_cmpint(fix->lexer_rule_one.length, ==, 3);
 	lexer_next(&fix->lexer_rule_one);
 	g_assert_cmpint(fix->lexer_rule_one.symbol, ==, L_CONCATENATE_SYMBOL);
+	g_assert_cmpint(fix->lexer_rule_one.index, ==, 9);
+	g_assert_cmpint(fix->lexer_rule_one.length, ==, 1);
 	lexer_next(&fix->lexer_rule_one);
 	g_assert_cmpint(fix->lexer_rule_one.symbol, ==, L_START_GROUP_SYMBOL);
+	g_assert_cmpint(fix->lexer_rule_one.index, ==, 10);
+	g_assert_cmpint(fix->lexer_rule_one.length, ==, 1);
 	lexer_next(&fix->lexer_rule_one);
 	g_assert_cmpint(fix->lexer_rule_one.symbol, ==, L_TERMINAL_STRING);
+	g_assert_cmpint(fix->lexer_rule_one.index, ==, 11);
+	g_assert_cmpint(fix->lexer_rule_one.length, ==, 3);
 	lexer_next(&fix->lexer_rule_one);
 	g_assert_cmpint(fix->lexer_rule_one.symbol, ==, L_DEFINITION_SEPARATOR_SYMBOL);
+	g_assert_cmpint(fix->lexer_rule_one.index, ==, 14);
+	g_assert_cmpint(fix->lexer_rule_one.length, ==, 1);
 	lexer_next(&fix->lexer_rule_one);
 	g_assert_cmpint(fix->lexer_rule_one.symbol, ==, L_TERMINAL_STRING);
+	g_assert_cmpint(fix->lexer_rule_one.index, ==, 15);
+	g_assert_cmpint(fix->lexer_rule_one.length, ==, 3);
 	lexer_next(&fix->lexer_rule_one);
 	g_assert_cmpint(fix->lexer_rule_one.symbol, ==, L_END_GROUP_SYMBOL);
+	g_assert_cmpint(fix->lexer_rule_one.index, ==, 18);
+	g_assert_cmpint(fix->lexer_rule_one.length, ==, 1);
 	lexer_next(&fix->lexer_rule_one);
 	g_assert_cmpint(fix->lexer_rule_one.symbol, ==, L_EOF);
+	g_assert_cmpint(fix->lexer_rule_one.index, ==, 19);
+	g_assert_cmpint(fix->lexer_rule_one.length, ==, 0);
 }
 
 int main(int argc, char** argv){
