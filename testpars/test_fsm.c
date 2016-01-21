@@ -5,8 +5,8 @@
 
 #include "fsm.h"
 
-#define MATCH(S, Y) session_match(S, Y, 0);
-#define MATCH_AT(S, Y, I) session_match(S, Y, I);
+#define MATCH(S, Y) session_match(S, Y, 0, 0);
+#define MATCH_AT(S, Y, I) session_match(S, Y, I, 0);
 
 typedef struct {
 	Fsm fsm;

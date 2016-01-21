@@ -287,7 +287,7 @@ Session *session_set_listener(Session *session, EventListener listener)
 	session->listener = listener;
 }
 
-State *session_test(Session *session, int symbol, unsigned int index)
+State *session_test(Session *session, int symbol, unsigned int index, unsigned int length)
 {
 	unsigned char buffer[sizeof(int)];
 	unsigned int size;
@@ -327,7 +327,7 @@ State *session_test(Session *session, int symbol, unsigned int index)
 	return state;
 }
 
-void session_match(Session *session, int symbol, unsigned int index)
+void session_match(Session *session, int symbol, unsigned int index, unsigned int length)
 {
 	unsigned char buffer[sizeof(int)];
 	unsigned int size;
@@ -337,6 +337,7 @@ void session_match(Session *session, int symbol, unsigned int index)
 
 rematch:
 	session->index = index;
+	session->length = length;
 	state = radix_tree_get(&session->current->next, buffer, size);
 	if(state == NULL) {
 		//Should jump to error state or throw exception?
@@ -356,7 +357,7 @@ rematch:
 		FsmArgs cargs;
 		cargs.symbol = symbol;
 		cargs.index = session->index;
-		cargs.length = 1;
+		cargs.length = session->length;
 		TRY_TRIGGER(EVENT_CONTEXT_SHIFT, session->listener, &cargs);
 		session_push(session);
 		session->current = state;
@@ -372,12 +373,13 @@ rematch:
 	case ACTION_TYPE_REDUCE:
 		trace("match", session->current, state, symbol, "reduce");
 		session_pop(session);
+		session->length = index - session->index;
 		FsmArgs rargs;
 		rargs.symbol = state->reduction;
 		rargs.index = session->index;
-		rargs.length = index - session->index;
+		rargs.length = session->length;
 		TRY_TRIGGER(EVENT_REDUCE, session->listener, &rargs);
-		session_match(session, state->reduction, session->index);
+		session_match(session, state->reduction, session->index, session->length);
 		goto rematch; // same as session_match(session, symbol);
 		break;
 	default:

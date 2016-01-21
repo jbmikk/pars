@@ -54,6 +54,7 @@ typedef struct _Stack {
 typedef struct _Session {
 	State *current;
 	unsigned int index;
+	unsigned int length;
 	Stack stack;
 	EventListener listener;
 } Session;
@@ -90,7 +91,7 @@ void fsm_cursor_add_reduce(FsmCursor *cur, int symbol, int reduction);
 FsmCursor *fsm_set_start(Fsm *fsm, unsigned char *name, int length, int symbol);
 Session *fsm_start_session(Fsm *fsm);
 Session *session_set_listener(Session *session, EventListener(listener));
-void session_match(Session *session, int symbol, unsigned int index);
-State *session_test(Session *session, int symbol, unsigned int index);
+void session_match(Session *session, int symbol, unsigned int index, unsigned int length);
+State *session_test(Session *session, int symbol, unsigned int index, unsigned int length);
 
 #endif //FSM_H

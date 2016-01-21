@@ -5,8 +5,8 @@
 #include "fsm.h"
 #include "ebnf_parser.h"
 
-#define MATCH(S, I) session_match(S, I, 0);
-#define TEST(S, I) session_test(S, I, 0);
+#define MATCH(S, I) session_match(S, I, 0, 0);
+#define TEST(S, I) session_test(S, I, 0, 0);
 
 typedef struct {
 	Fsm fsm;
