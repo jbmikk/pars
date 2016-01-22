@@ -12,11 +12,7 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 	ast_init(ast, input);
 
 	Session *session = fsm_start_session(fsm);
-
-	EventListener listener;
-	listener.handler = parser->handler;
-	listener.target = ast;
-	session_set_listener(session, listener);
+	session_set_handler(session, parser->handler, ast);
 
 	while (!input->eof) {
 		lexer_next(lexer);

@@ -26,6 +26,9 @@ void session_init(Session *session)
 {
 	session->stack.top = NULL;
 	session->index = 0;
+	session->handler.context_shift = NULL;
+	session->handler.reduce = NULL;
+	session->target = NULL;
 }
 
 void session_push(Session *session)
@@ -277,15 +280,17 @@ Session *fsm_start_session(Fsm *fsm)
 {
 	Session *session = c_new(Session, 1);
 	session->current = fsm->start;
-	session->listener.handler = NULL;
+	session->handler.reduce = NULL;
+	session->handler.context_shift = NULL;
 	session_init(session);
 	session_push(session);
 	return session;
 }
 
-Session *session_set_listener(Session *session, EventListener listener)
+Session *session_set_handler(Session *session, FsmHandler handler, void *target)
 {
-	session->listener = listener;
+	session->handler = handler;
+	session->target = target;
 }
 
 State *session_test(Session *session, int symbol, unsigned int index, unsigned int length)
@@ -355,11 +360,9 @@ rematch:
 	switch(state->type) {
 	case ACTION_TYPE_CONTEXT_SHIFT:
 		trace("match", session->current, state, symbol, "context shift");
-		FsmArgs cargs;
-		cargs.symbol = symbol;
-		cargs.index = session->index;
-		cargs.length = session->length;
-		TRY_TRIGGER(EVENT_CONTEXT_SHIFT, session->listener, &cargs);
+		if(session->handler.context_shift) {
+			session->handler.context_shift(session->target, session->index, session->length, symbol);
+		}
 		session_push(session);
 		session->current = state;
 		break;
@@ -375,11 +378,9 @@ rematch:
 		trace("match", session->current, state, symbol, "reduce");
 		session_pop(session);
 		session->length = index - session->index;
-		FsmArgs rargs;
-		rargs.symbol = state->reduction;
-		rargs.index = session->index;
-		rargs.length = session->length;
-		TRY_TRIGGER(EVENT_REDUCE, session->listener, &rargs);
+		if(session->handler.reduce) {
+			session->handler.reduce(session->target, session->index, session->length, state->reduction);
+		}
 		session_match(session, state->reduction, session->index, session->length);
 		goto rematch; // same as session_match(session, symbol);
 		break;

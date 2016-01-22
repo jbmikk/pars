@@ -8,7 +8,7 @@
 typedef struct _Parser {
 	Lexer lexer;
 	Fsm fsm;
-	EVENT_HANDLER(handler);
+	FsmHandler handler;
 } Parser;
 
 int parser_execute(Parser *parser, Ast *ast, Input *input);

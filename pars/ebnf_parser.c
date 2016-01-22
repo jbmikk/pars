@@ -99,23 +99,10 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_dispose(&cur);
 }
 
-int ebnf_fsm_ast_handler(int type, void *target, void *args) {
-	Ast *ast = (Ast *)target;
-	FsmArgs *red = (FsmArgs *)args;
-
-	switch(type) {
-	case EVENT_REDUCE:
-		ast_close(ast, red->index, red->length, red->symbol);
-		break;
-	case EVENT_CONTEXT_SHIFT:
-		ast_open(ast, red->index, red->length, red->symbol);
-		break;
-	}
-}
-
 int ebnf_init_parser(Parser *parser)
 {
-	parser->handler = ebnf_fsm_ast_handler;
+	parser->handler.context_shift = ast_open;
+	parser->handler.reduce = ast_close;
 
 	fsm_init(&parser->fsm);
 	ebnf_init_fsm(&parser->fsm);

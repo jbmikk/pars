@@ -2,7 +2,6 @@
 #define FSM_H
 
 #include "structs.h"
-#include "event.h"
 
 #define ACTION_TYPE_START 0
 #define ACTION_TYPE_SHIFT 1
@@ -10,9 +9,6 @@
 #define ACTION_TYPE_CONTEXT_SHIFT 3
 #define ACTION_TYPE_ACCEPT 4
 #define ACTION_TYPE_ERROR 5
-
-#define EVENT_REDUCE 1
-#define EVENT_CONTEXT_SHIFT 2
 
 typedef struct _State {
 	char type;
@@ -51,19 +47,19 @@ typedef struct _Stack {
 	SessionNode *top;
 } Stack;
 
+typedef struct _FsmHandler {
+	int (*context_shift)(void *target, unsigned int index, unsigned int length, int symbol);
+	int (*reduce)(void *target, unsigned int index, unsigned int length, int symbol);
+} FsmHandler;
+
 typedef struct _Session {
 	State *current;
 	unsigned int index;
 	unsigned int length;
 	Stack stack;
-	EventListener listener;
+	FsmHandler handler;
+	void *target;
 } Session;
-
-typedef struct _FsmArgs{
-	int symbol;
-	unsigned int index;
-	unsigned int length;
-} FsmArgs;
 
 
 void session_init(Session *session);
@@ -90,7 +86,7 @@ void fsm_cursor_add_followset(FsmCursor *cur, State *state);
 void fsm_cursor_add_reduce(FsmCursor *cur, int symbol, int reduction);
 FsmCursor *fsm_set_start(Fsm *fsm, unsigned char *name, int length, int symbol);
 Session *fsm_start_session(Fsm *fsm);
-Session *session_set_listener(Session *session, EventListener(listener));
+Session *session_set_handler(Session *session, FsmHandler handler, void *target);
 void session_match(Session *session, int symbol, unsigned int index, unsigned int length);
 State *session_test(Session *session, int symbol, unsigned int index, unsigned int length);
 

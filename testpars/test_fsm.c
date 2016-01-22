@@ -12,7 +12,13 @@ typedef struct {
 	Fsm fsm;
 } Fixture;
 
-FsmArgs reduction;
+typedef struct {
+	int symbol;
+	unsigned int index;
+	unsigned int length;
+} Token;
+
+Token token;
 
 void setup(Fixture *fix, gconstpointer data){
 	fsm_init(&fix->fsm);
@@ -107,9 +113,11 @@ void session_match__reduce_shift(Fixture *fix, gconstpointer data){
 	session_dispose(session);
 }
 
-int reduce_handler(int type, void *target, void *args) {
-	if(type == EVENT_REDUCE)
-		reduction = *((FsmArgs *)args);
+int reduce_handler(void *target, unsigned int index, unsigned int length, int symbol)
+{
+	token.index = index;
+	token.length = length;
+	token.symbol = symbol;
 }
 
 void session_match__reduce_handler(Fixture *fix, gconstpointer data){
@@ -138,24 +146,24 @@ void session_match__reduce_handler(Fixture *fix, gconstpointer data){
 	fsm_cursor_set_start(&cur, nzs("sum"), 'S');
 
 	Session *session = fsm_start_session(&fix->fsm);
-	EventListener listener;
-	listener.target = NULL;
-	listener.handler = reduce_handler;
-	session_set_listener(session, listener);
+	FsmHandler handler;
+	handler.context_shift = NULL;
+	handler.reduce = reduce_handler;
+	session_set_handler(session, handler, NULL);
 	MATCH_AT(session, '1', 0);
 	MATCH_AT(session, '+', 1);
-	g_assert_cmpint(reduction.symbol, ==, 'N');
-	g_assert_cmpint(reduction.index, ==, 0);
-	g_assert_cmpint(reduction.length, ==, 1);
+	g_assert_cmpint(token.symbol, ==, 'N');
+	g_assert_cmpint(token.index, ==, 0);
+	g_assert_cmpint(token.length, ==, 1);
 	g_assert_cmpint(session->index, ==, 1);
 	MATCH_AT(session, 'w', 2);
 	MATCH_AT(session, 'o', 3);
 	MATCH_AT(session, 'r', 4);
 	MATCH_AT(session, 'd', 5);
 	MATCH_AT(session, '\0', 6);
-	g_assert_cmpint(reduction.symbol, ==, 'S');
-	g_assert_cmpint(reduction.index, ==, 0);
-	g_assert_cmpint(reduction.length, ==, 6);
+	g_assert_cmpint(token.symbol, ==, 'S');
+	g_assert_cmpint(token.index, ==, 0);
+	g_assert_cmpint(token.length, ==, 6);
 	g_assert(session->current->type == ACTION_TYPE_ACCEPT);
 	session_dispose(session);
 }
