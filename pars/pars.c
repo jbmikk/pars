@@ -44,7 +44,7 @@ error:
 
 	fsm_dispose(fsm);
 
-	return NULL;
+	return -1;
 }
 
 #ifndef LIBRARY
