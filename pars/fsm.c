@@ -60,6 +60,7 @@ void fsm_init(Fsm *fsm)
 {
 	NODE_INIT(fsm->rules, 0, 0, NULL);
 	fsm->symbol_base = -1;
+	fsm->start = NULL;
 }
 
 void _fsm_get_states(Node *states, State *state)
