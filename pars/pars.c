@@ -9,14 +9,14 @@
 #include <stddef.h>
 #include <stdio.h>
 
-Fsm *pars_load_grammar(char *pathname)
+int pars_load_grammar(char *pathname, Fsm *fsm)
 {
 	Input input;
 	Parser parser;
 	Ast ast;
-	Fsm *fsm = NULL;
 	int error;
 
+	fsm_init(fsm);
 	input_init(&input, pathname);
 
 	check(input.is_open, "Could not find or open grammar file: %s", pathname);
@@ -29,11 +29,6 @@ Fsm *pars_load_grammar(char *pathname)
 
 	ebnf_dispose_parser(&parser);
 
-	fsm = c_new(Fsm, 1);
-	check_mem(fsm);
-
-	fsm_init(fsm);
-
 	//TODO: make optional under a -v flag
 	ast_print(&ast);
 
@@ -42,30 +37,26 @@ Fsm *pars_load_grammar(char *pathname)
 	ast_dispose(&ast);
 	input_dispose(&input);
 
-	return fsm;
-
+	return 0;
 error:
 	if(input.is_open)
 		input_dispose(&input);
 
-	if(fsm) {
-		fsm_dispose(fsm);
-		c_delete(fsm);
-	}
+	fsm_dispose(fsm);
 
 	return NULL;
 }
 
 #ifndef LIBRARY
 int main(int argc, char** argv){
+	Fsm fsm;
+	int error;
 	if(argc > 1) {
 		log_info("Loading grammar.");
-		Fsm *fsm = pars_load_grammar(argv[1]);
-		check(fsm, "Could not load grammar.");
-		if(fsm) {
-			fsm_dispose(fsm);
-			c_delete(fsm);
-		}
+		error = pars_load_grammar(argv[1], &fsm);
+		check(error, "Could not load grammar.");
+
+		fsm_dispose(&fsm);
 	} else {
 		log_info("Usage:");
 		log_info("pars <grammar-file>");

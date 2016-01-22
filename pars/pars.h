@@ -9,6 +9,6 @@
 
 #define BUFFER_SIZE 4096
 
-Fsm *pars_load_grammar(char *pathname);
+int pars_load_grammar(char *pathname, Fsm *fsm);
 
 #endif //PARS_H

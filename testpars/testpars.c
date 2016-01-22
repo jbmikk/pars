@@ -14,8 +14,9 @@ void pars_teardown(Fixture *fix, gconstpointer data){
 }
 
 void test_load_grammar(Fixture *fix, gconstpointer data){
-	pars_load_grammar(NULL);
-	g_assert_cmpstr("bla", ==, "bla");
+	Fsm fsm;
+	int error = pars_load_grammar("not-a-valid-file-name", &fsm);
+	g_assert_cmpint(error, <=, 0);
 }
 
 int main(int argc, char** argv){
