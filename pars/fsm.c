@@ -337,7 +337,6 @@ void session_match(Session *session, int symbol, unsigned int index, unsigned in
 {
 	unsigned char buffer[sizeof(int)];
 	unsigned int size;
-	int prev_symbol = 0;
 	State *state;
 	symbol_to_buffer(buffer, &size, symbol);
 
