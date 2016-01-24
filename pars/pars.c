@@ -54,7 +54,7 @@ int main(int argc, char** argv){
 	if(argc > 1) {
 		log_info("Loading grammar.");
 		error = pars_load_grammar(argv[1], &fsm);
-		check(error, "Could not load grammar.");
+		check(!error, "Could not load grammar.");
 
 		fsm_dispose(&fsm);
 	} else {
