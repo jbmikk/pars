@@ -243,8 +243,8 @@ void ast_next_sibling_symbol(Fixture *fix, gconstpointer data){
 
 	ast_open(&fix->ast, 1, 1, 0);
 	ast_open(&fix->ast, 2, 1, 0);
-	ast_open(&fix->ast, 2, 1, 0);
 	ast_close(&fix->ast, 3, 1, 123); //Inner sibling (should not be raeched)
+	ast_open(&fix->ast, 2, 1, 0);
 	ast_close(&fix->ast, 3, 1, 123); //First sibling
 	ast_open(&fix->ast, 4, 1, 0);
 	ast_close(&fix->ast, 5, 1, 123); //Second sibling
