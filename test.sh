@@ -52,6 +52,16 @@ run_test $MODE ./testpars
 
 cd ..
 
+echo ""
+echo "PARSE GRAMMARS:"
+echo "--------------"
+cd pars
+run_test $MODE "./pars ../testpars/grammars/empty_file.txt"
+run_test $MODE "./pars ../testpars/grammars/abtest.txt"
+cd ..
+
+cd ..
+
 cd ..
 
 # TODO: short version for leaks
