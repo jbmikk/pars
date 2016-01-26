@@ -306,13 +306,9 @@ State *session_test(Session *session, int symbol, unsigned int index, unsigned i
 
 	state = radix_tree_get(&session->current->next, buffer, size);
 	if(state == NULL) {
-		//Should jump to error state or throw exception?
 		if(session->current->type != ACTION_TYPE_ACCEPT) {
 			trace("test", session->current, state, symbol, "error");
-			State *error = c_new(State, 1);
-			STATE_INIT(*error, ACTION_TYPE_ERROR, NONE);
-			NODE_INIT(error->next, 0, 0, NULL);
-			session->current = error;
+			session->current = &session->fsm->error;
 		}
 		return session->current;
 	}
