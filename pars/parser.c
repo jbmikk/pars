@@ -30,6 +30,8 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 	return 0;
 error:
 	//TODO: free
+	session_dispose(session);
+	ast_dispose(ast);
 
 	return -1;
 }

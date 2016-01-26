@@ -25,6 +25,7 @@ typedef struct _NonTerminal {
 
 typedef struct _Fsm {
 	State *start;
+	State error;
 	Node rules;
 	int symbol_base;
 } Fsm;
@@ -53,6 +54,7 @@ typedef struct _FsmHandler {
 } FsmHandler;
 
 typedef struct _Session {
+	Fsm *fsm;
 	State *current;
 	unsigned int index;
 	unsigned int length;

@@ -64,6 +64,8 @@ void fsm_init(Fsm *fsm)
 	NODE_INIT(fsm->rules, 0, 0, NULL);
 	fsm->symbol_base = -1;
 	fsm->start = NULL;
+	STATE_INIT(fsm->error, ACTION_TYPE_ERROR, NONE);
+	NODE_INIT(fsm->error.next, 0, 0, NULL);
 }
 
 void _fsm_get_states(Node *states, State *state)
@@ -279,6 +281,7 @@ void fsm_cursor_add_reduce(FsmCursor *cur, int symbol, int reduction)
 Session *fsm_start_session(Fsm *fsm)
 {
 	Session *session = c_new(Session, 1);
+	session->fsm = fsm;
 	session->current = fsm->start;
 	session->handler.reduce = NULL;
 	session->handler.context_shift = NULL;
@@ -345,13 +348,9 @@ rematch:
 	session->length = length;
 	state = radix_tree_get(&session->current->next, buffer, size);
 	if(state == NULL) {
-		//Should jump to error state or throw exception?
 		if(session->current->type != ACTION_TYPE_ACCEPT) {
 			trace("match", session->current, state, symbol, "error");
-			State *error = c_new(State, 1);
-			STATE_INIT(*error, ACTION_TYPE_ERROR, NONE);
-			NODE_INIT(error->next, 0, 0, NULL);
-			session->current = error;
+			session->current = &session->fsm->error;
 		}
 		return;
 	}
