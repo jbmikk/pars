@@ -46,6 +46,11 @@ void _ast_dispose_node(AstNode *node)
 void ast_dispose(Ast *ast)
 {
 	_ast_dispose_node(&ast->root);
+
+	if(ast->previous) {
+		//TODO: write test for open ast tree
+		_ast_dispose_node(ast->previous);
+	}
 }
 
 void ast_bind_to_parent(AstNode *node)
