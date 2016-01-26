@@ -22,13 +22,17 @@
 #define trace_non_terminal(M, S, L)
 #endif
 
-void session_init(Session *session)
+void session_init(Session *session, Fsm *fsm)
 {
+	session->fsm = fsm;
+	session->current = fsm->start;
 	session->stack.top = NULL;
 	session->index = 0;
 	session->handler.context_shift = NULL;
 	session->handler.reduce = NULL;
 	session->target = NULL;
+	//TODO: Avoid calling push in init
+	session_push(session);
 }
 
 void session_push(Session *session)
@@ -54,9 +58,6 @@ void session_dispose(Session *session)
 	while(session->stack.top) {
 		session_pop(session);
 	}
-	//TODO: Instance should not be deleted here
-	//Also, it should not be instanced in fsm_start_session
-	c_delete(session);
 }
 
 void fsm_init(Fsm *fsm)
@@ -276,18 +277,6 @@ void fsm_cursor_add_followset(FsmCursor *cur, State *state)
 void fsm_cursor_add_reduce(FsmCursor *cur, int symbol, int reduction)
 {
 	_fsm_cursor_add_action(cur, symbol, ACTION_TYPE_REDUCE, reduction, NULL);
-}
-
-Session *fsm_start_session(Fsm *fsm)
-{
-	Session *session = c_new(Session, 1);
-	session->fsm = fsm;
-	session->current = fsm->start;
-	session->handler.reduce = NULL;
-	session->handler.context_shift = NULL;
-	session_init(session);
-	session_push(session);
-	return session;
 }
 
 Session *session_set_handler(Session *session, FsmHandler handler, void *target)

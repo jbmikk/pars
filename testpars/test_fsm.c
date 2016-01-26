@@ -5,8 +5,8 @@
 
 #include "fsm.h"
 
-#define MATCH(S, Y) session_match(S, Y, 0, 0);
-#define MATCH_AT(S, Y, I) session_match(S, Y, I, 0);
+#define MATCH(S, Y) session_match(&(S), Y, 0, 0);
+#define MATCH_AT(S, Y, I) session_match(&(S), Y, I, 0);
 
 typedef struct {
 	Fsm fsm;
@@ -63,12 +63,13 @@ void session_match__shift(Fixture *fix, gconstpointer data){
 
 	fsm_cursor_set_start(&cur, nzs("name"), 'N');
 
-	Session *session = fsm_start_session(&fix->fsm);
+	Session session;
+	session_init(&session, &fix->fsm);
 	MATCH(session, 'a');
 	MATCH(session, 'b');
 	MATCH(session, '.');
-	g_assert(session->current->type == ACTION_TYPE_CONTEXT_SHIFT);
-	session_dispose(session);
+	g_assert(session.current->type == ACTION_TYPE_CONTEXT_SHIFT);
+	session_dispose(&session);
 }
 
 void session_match__reduce(Fixture *fix, gconstpointer data){
@@ -80,11 +81,12 @@ void session_match__reduce(Fixture *fix, gconstpointer data){
 	fsm_cursor_add_reduce(&cur, '\0', 'N');
 
 	fsm_cursor_set_start(&cur, nzs("number"), 'N');
-	Session *session = fsm_start_session(&fix->fsm);
+	Session session;
+	session_init(&session, &fix->fsm);
 	MATCH(session, '1');
 	MATCH(session, '\0');
-	g_assert(session->current->type == ACTION_TYPE_ACCEPT);
-	session_dispose(session);
+	g_assert(session.current->type == ACTION_TYPE_ACCEPT);
+	session_dispose(&session);
 }
 
 void session_match__reduce_shift(Fixture *fix, gconstpointer data){
@@ -104,13 +106,14 @@ void session_match__reduce_shift(Fixture *fix, gconstpointer data){
 
 	fsm_cursor_set_start(&cur, nzs("sum"), 'S');
 
-	Session *session = fsm_start_session(&fix->fsm);
+	Session session;
+	session_init(&session, &fix->fsm);
 	MATCH(session, '1');
 	MATCH(session, '+');
 	MATCH(session, '2');
 	MATCH(session, '\0');
-	g_assert(session->current->type == ACTION_TYPE_ACCEPT);
-	session_dispose(session);
+	g_assert(session.current->type == ACTION_TYPE_ACCEPT);
+	session_dispose(&session);
 }
 
 int reduce_handler(void *target, unsigned int index, unsigned int length, int symbol)
@@ -145,17 +148,18 @@ void session_match__reduce_handler(Fixture *fix, gconstpointer data){
 
 	fsm_cursor_set_start(&cur, nzs("sum"), 'S');
 
-	Session *session = fsm_start_session(&fix->fsm);
+	Session session;
+	session_init(&session, &fix->fsm);
 	FsmHandler handler;
 	handler.context_shift = NULL;
 	handler.reduce = reduce_handler;
-	session_set_handler(session, handler, NULL);
+	session_set_handler(&session, handler, NULL);
 	MATCH_AT(session, '1', 0);
 	MATCH_AT(session, '+', 1);
 	g_assert_cmpint(token.symbol, ==, 'N');
 	g_assert_cmpint(token.index, ==, 0);
 	g_assert_cmpint(token.length, ==, 1);
-	g_assert_cmpint(session->index, ==, 1);
+	g_assert_cmpint(session.index, ==, 1);
 	MATCH_AT(session, 'w', 2);
 	MATCH_AT(session, 'o', 3);
 	MATCH_AT(session, 'r', 4);
@@ -164,8 +168,8 @@ void session_match__reduce_handler(Fixture *fix, gconstpointer data){
 	g_assert_cmpint(token.symbol, ==, 'S');
 	g_assert_cmpint(token.index, ==, 0);
 	g_assert_cmpint(token.length, ==, 6);
-	g_assert(session->current->type == ACTION_TYPE_ACCEPT);
-	session_dispose(session);
+	g_assert(session.current->type == ACTION_TYPE_ACCEPT);
+	session_dispose(&session);
 }
 
 int main(int argc, char** argv){
