@@ -17,12 +17,12 @@ int pars_load_grammar(char *pathname, Fsm *fsm)
 	int error;
 
 	fsm_init(fsm);
-	input_init(&input, pathname);
-
-	check(input.is_open, "Could not find or open grammar file: %s", pathname);
 
 	error = ebnf_init_parser(&parser);
 	check(!error, "Could not build ebnf parser.");
+
+	input_init(&input, pathname);
+	check(input.is_open, "Could not find or open grammar file: %s", pathname);
 
 	error = parser_execute(&parser, &ast, &input);
 	check(!error, "Could not build ebnf ast.");
@@ -39,6 +39,12 @@ int pars_load_grammar(char *pathname, Fsm *fsm)
 
 	return 0;
 error:
+	//TODO: remove risk of disposing uninitialized structures
+	// _init functions should not return errors, thus ensuring
+	// all of them have been executed and _dispose functions are
+	// safe to call.
+	ebnf_dispose_parser(&parser);
+
 	if(input.is_open)
 		input_dispose(&input);
 
