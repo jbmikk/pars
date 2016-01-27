@@ -20,6 +20,14 @@
 #define trace_node(M, NODE)
 #endif
 
+
+void radix_tree_init(Node *tree, char type, unsigned char size, void *child)
+{
+	tree->type = type;
+	tree->size = size;
+	tree->child = child;
+}
+
 /**
  * Seek next node in the tree matching the current scan status
  */
@@ -213,7 +221,7 @@ Node *radix_tree_build_node(Node *node, char *string, unsigned int length)
 	if(length > 1) {
 		DataNode* array_node = c_new(DataNode, 1);
 		char *keys = c_malloc_n(length);
-		NODE_INIT(*node, NODE_TYPE_ARRAY, length, array_node);
+		radix_tree_init(node, NODE_TYPE_ARRAY, length, array_node);
 
 		//copy array
 		unsigned int i = 0;
@@ -225,7 +233,7 @@ Node *radix_tree_build_node(Node *node, char *string, unsigned int length)
 		array_node->node.type = NODE_TYPE_LEAF;
 		node = (Node*)array_node;
 	} else if (length == 1) {
-		NODE_INIT(*node, NODE_TYPE_TREE, 0, NULL);
+		radix_tree_init(node, NODE_TYPE_TREE, 0, NULL);
 		node = bsearch_insert(node, string[0]);
 	} else {
 		//TODO: add sentinel?
@@ -253,27 +261,27 @@ DataNode * radix_tree_split_node(Node *node, ScanStatus *status)
 
 	if (new_suffix_size == 0) {
                 //No new suffix, then we append data node right here
-		NODE_INIT(*node, NODE_TYPE_DATA, 0, data_node);
+		radix_tree_init(node, NODE_TYPE_DATA, 0, data_node);
 		node = &data_node->node;
 
                 //After the data node we append the old suffix
 		node = radix_tree_build_node(node, old_suffix, old_suffix_size);
-		NODE_INIT(*node, old->node.type, old->node.size, old->node.child);
+		radix_tree_init(node, old->node.type, old->node.size, old->node.child);
 	} else {
 		//make node point to new tree node
-		NODE_INIT(*node, NODE_TYPE_TREE, 0, NULL);
+		radix_tree_init(node, NODE_TYPE_TREE, 0, NULL);
 
 		//add branch to hold old suffix and delete old data
 		Node *branch1 = bsearch_insert(node, old_suffix[0]);
 		branch1 = radix_tree_build_node(branch1, old_suffix+1, old_suffix_size-1);
-		NODE_INIT(*branch1, old->node.type, old->node.size, old->node.child);
+		radix_tree_init(branch1, old->node.type, old->node.size, old->node.child);
 
 		//add branch to hold new suffix and return new node
 		Node *branch2 = bsearch_insert(node, new_suffix[0]);
 		branch2 = radix_tree_build_node(branch2, new_suffix+1, new_suffix_size -1);
 
-		NODE_INIT(*branch2, NODE_TYPE_DATA, 0, data_node);
-		NODE_INIT(data_node->node, NODE_TYPE_LEAF, 0, NULL);
+		radix_tree_init(branch2, NODE_TYPE_DATA, 0, data_node);
+		radix_tree_init(&data_node->node, NODE_TYPE_LEAF, 0, NULL);
 	}
 	//delete old data
 	c_free(old->data);
@@ -368,7 +376,7 @@ void radix_tree_compact_nodes(Node *node1, Node *node2, Node *node3)
 		//Build new node
 		trace("new size: %i", joined_size);
 		Node *new_branch = radix_tree_build_node(target, joined, joined_size);
-		NODE_INIT(*new_branch, cont->type, cont->size, cont->child);
+		radix_tree_init(new_branch, cont->type, cont->size, cont->child);
 		trace_node("CONT", cont);
 		trace_node("NEW", new_branch);
 		trace_node("TARG", target);
@@ -480,8 +488,8 @@ void radix_tree_set(Node *tree, char *string, unsigned int length, void *data)
 			node = bsearch_insert(node, string[status.index++]);
 		node = radix_tree_build_node(node, string+status.index, length-status.index);
 		data_node = c_new(DataNode, 1);
-		NODE_INIT(*node, NODE_TYPE_DATA, 0, data_node);
-		NODE_INIT(data_node->node, NODE_TYPE_LEAF, 0, NULL);
+		radix_tree_init(node, NODE_TYPE_DATA, 0, data_node);
+		radix_tree_init(&data_node->node, NODE_TYPE_LEAF, 0, NULL);
 	}
 	data_node->data = data;
 }

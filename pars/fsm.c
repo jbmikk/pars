@@ -62,11 +62,11 @@ void session_dispose(Session *session)
 
 void fsm_init(Fsm *fsm)
 {
-	NODE_INIT(fsm->rules, 0, 0, NULL);
+	radix_tree_init(&fsm->rules, 0, 0, NULL);
 	fsm->symbol_base = -1;
 	fsm->start = NULL;
 	STATE_INIT(fsm->error, ACTION_TYPE_ERROR, NONE);
-	NODE_INIT(fsm->error.next, 0, 0, NULL);
+	radix_tree_init(&fsm->error.next, 0, 0, NULL);
 }
 
 void _fsm_get_states(Node *states, State *state)
@@ -97,7 +97,7 @@ void fsm_dispose(Fsm *fsm)
 	NonTerminal *nt;
 	Iterator it;
 
-	NODE_INIT(all_states, 0, 0, NULL);
+	radix_tree_init(&all_states, 0, 0, NULL);
 
 	//Get all states reachable through the starting state
 	if(fsm->start) {
@@ -189,7 +189,7 @@ void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 		non_terminal = c_new(NonTerminal, 1);
 		state = c_new(State, 1);
 		STATE_INIT(*state, ACTION_TYPE_SHIFT, NONE);
-		NODE_INIT(state->next, 0, 0, NULL);
+		radix_tree_init(&state->next, 0, 0, NULL);
 		non_terminal->start = state;
 		non_terminal->symbol = cur->fsm->symbol_base--;
 		non_terminal->length = length;
@@ -213,7 +213,7 @@ State *_fsm_cursor_add_action_buffer(FsmCursor *cur, unsigned char *buffer, unsi
 	if(state == NULL) {
 		state = c_new(State, 1);
 		STATE_INIT(*state, action, reduction);
-		NODE_INIT(state->next, 0, 0, NULL);
+		radix_tree_init(&state->next, 0, 0, NULL);
 		//trace("init", state, action, "");
 	}
 

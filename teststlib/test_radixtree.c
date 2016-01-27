@@ -16,7 +16,7 @@ typedef struct {
 }RadixTreeFixture;
 
 void radix_tree_setup(RadixTreeFixture* fixture, gconstpointer data){
-	NODE_INIT(fixture->tree, 0, 0, NULL);
+	radix_tree_init(&fixture->tree, 0, 0, NULL);
 }
 void radix_tree_teardown(RadixTreeFixture* fixture, gconstpointer data){
 	radix_tree_dispose(&fixture->tree);

@@ -3,6 +3,7 @@
 #include <glib.h>
 
 #include "bsearch.h"
+#include "radixtree.h"
 
 typedef struct {
 	Node node;
@@ -14,7 +15,7 @@ typedef struct {
 }BSearchFixture;
 
 void bsearch_setup(BSearchFixture* fixture, gconstpointer data){
-	NODE_INIT(fixture->node, 0, 0, NULL);
+	radix_tree_init(&fixture->node, 0, 0, NULL);
 }
 void bsearch_teardown(BSearchFixture* fixture, gconstpointer data){
 	bsearch_delete_all(&fixture->node);

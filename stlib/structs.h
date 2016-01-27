@@ -33,8 +33,6 @@ typedef struct _SNode {
 	struct _SNode *next;
 } SNode;
 
-#define NODE_INIT(V, T, S, C) ((V).type=T,(V).size=S,(V).child=C)
-
 #define nzs(S) (S), (strlen(S))
 
 #endif // CSTRUCT

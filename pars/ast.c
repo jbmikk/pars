@@ -13,7 +13,7 @@
 
 void ast_node_init(AstNode *node, AstNode *parent, unsigned int index)
 {
-	NODE_INIT(node->children, 0, 0, NULL);
+	radix_tree_init(&node->children, 0, 0, NULL);
 	node->parent = parent;
 	node->index = index;
 	//TODO: Should initialize other fields even if not always used?
