@@ -42,7 +42,7 @@ void input_init(Input *input, char *pathname)
 
 void input_dispose(Input *input)
 {
-	if(input->file != NULL) {
+	if(input->is_open) {
 		c_delete(input->buffer);
 		input->buffer = NULL;
 		fclose(input->file);

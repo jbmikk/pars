@@ -44,10 +44,7 @@ error:
 	// all of them have been executed and _dispose functions are
 	// safe to call.
 	ebnf_dispose_parser(&parser);
-
-	if(input.is_open)
-		input_dispose(&input);
-
+	input_dispose(&input);
 	fsm_dispose(fsm);
 
 	return -1;
