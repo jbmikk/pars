@@ -55,10 +55,7 @@ void ast_dispose(Ast *ast)
 
 void ast_bind_to_parent(AstNode *node)
 {
-	unsigned char buffer[sizeof(int)];
-	unsigned int size;
-	symbol_to_buffer(buffer, &size, node->index);
-	radix_tree_set(&node->parent->children, buffer, size, node);
+	radix_tree_set_int(&node->parent->children, node->index, node);
 }
 
 void ast_add(Ast *ast, unsigned int index, unsigned int length, int symbol)
@@ -126,11 +123,7 @@ AstNode *ast_get_next_sibling(AstNode *node) {
 	AstNode *parent = node->parent;
 	AstNode *sibling;
 
-	unsigned char buffer[sizeof(int)];
-	unsigned int size;
-	symbol_to_buffer(buffer, &size, node->index);
-
-	sibling = (AstNode *)radix_tree_get_next(&parent->children, buffer, size);
+	sibling = (AstNode *)radix_tree_get_next_int(&parent->children, node->index);
 	return sibling;
 }
 

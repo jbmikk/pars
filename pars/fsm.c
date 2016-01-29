@@ -287,13 +287,10 @@ Session *session_set_handler(Session *session, FsmHandler handler, void *target)
 
 State *session_test(Session *session, int symbol, unsigned int index, unsigned int length)
 {
-	unsigned char buffer[sizeof(int)];
-	unsigned int size;
-	symbol_to_buffer(buffer, &size, symbol);
 	State *state;
 	State *prev;
 
-	state = radix_tree_get(&session->current->next, buffer, size);
+	state = radix_tree_get_int(&session->current->next, symbol);
 	if(state == NULL) {
 		if(session->current->type != ACTION_TYPE_ACCEPT) {
 			trace("test", session->current, state, symbol, "error");
@@ -323,15 +320,12 @@ State *session_test(Session *session, int symbol, unsigned int index, unsigned i
 
 void session_match(Session *session, int symbol, unsigned int index, unsigned int length)
 {
-	unsigned char buffer[sizeof(int)];
-	unsigned int size;
 	State *state;
-	symbol_to_buffer(buffer, &size, symbol);
 
 rematch:
 	session->index = index;
 	session->length = length;
-	state = radix_tree_get(&session->current->next, buffer, size);
+	state = radix_tree_get_int(&session->current->next, symbol);
 	if(state == NULL) {
 		if(session->current->type != ACTION_TYPE_ACCEPT) {
 			trace("match", session->current, state, symbol, "error");
