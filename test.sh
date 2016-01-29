@@ -72,7 +72,7 @@ echo "PARSE GRAMMARS:"
 echo "--------------"
 cd pars
 run_test $MODE $PATTERN "./pars ../testpars/grammars/empty_file.txt"
-run_test $MODE $PATTERN "./pars ../testpars/grammars/abtest.txt"
+run_test $MODE $PATTERN "./pars ../testpars/grammars/abtest.txt ../testpars/grammars/ab-source.txt"
 cd ..
 
 cd ..

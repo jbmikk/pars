@@ -50,6 +50,34 @@ error:
 	return -1;
 }
 
+int pars_parse_source(char *pathname, Fsm *fsm)
+{
+	Input input;
+	Parser parser;
+	Ast ast;
+	int error;
+
+	//TODO: Maybe the fsm should be a pointer.
+	parser.fsm = *fsm;
+	parser.handler.context_shift = ast_open;
+	parser.handler.reduce = ast_close;
+
+	input_init(&input, pathname);
+	check(input.is_open, "Could not find or open source file: %s", pathname);
+
+	error = parser_execute(&parser, &ast, &input);
+	check(!error, "Could not build ast with grammar %s.", pathname);
+
+	input_dispose(&input);
+
+	return 0;
+error:
+
+	input_dispose(&input);
+
+	return -1;
+}
+
 #ifndef LIBRARY
 int main(int argc, char** argv){
 	Fsm fsm;
@@ -59,6 +87,10 @@ int main(int argc, char** argv){
 		error = pars_load_grammar(argv[1], &fsm);
 		check(!error, "Could not load grammar.");
 
+		if(argc > 2) {
+			error = pars_parse_source(argv[2], &fsm);
+		}
+
 		fsm_dispose(&fsm);
 	} else {
 		log_info("Usage:");
@@ -66,6 +98,7 @@ int main(int argc, char** argv){
 	}
 	return 0;
 error:
+	//TODO: free fsm?
 	return -1;
 }
 #endif
