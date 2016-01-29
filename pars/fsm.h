@@ -49,8 +49,8 @@ typedef struct _Stack {
 } Stack;
 
 typedef struct _FsmHandler {
-	int (*context_shift)(void *target, unsigned int index, unsigned int length, int symbol);
-	int (*reduce)(void *target, unsigned int index, unsigned int length, int symbol);
+	void (*context_shift)(void *target, unsigned int index, unsigned int length, int symbol);
+	void (*reduce)(void *target, unsigned int index, unsigned int length, int symbol);
 } FsmHandler;
 
 typedef struct _Session {

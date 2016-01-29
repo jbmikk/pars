@@ -73,8 +73,9 @@ void ast_add(Ast *ast, unsigned int index, unsigned int length, int symbol)
 	trace(node, "add", symbol, index, length);
 }
 
-void ast_open(Ast *ast, unsigned int index, unsigned int length, int symbol)
+void ast_open(void *ast_p, unsigned int index, unsigned int length, int symbol)
 {
+	Ast *ast = (Ast *)ast_p;
 	AstNode *node = c_new(AstNode, 1);
 	ast_node_init(node, ast->current, index);
 
@@ -97,8 +98,9 @@ void ast_open(Ast *ast, unsigned int index, unsigned int length, int symbol)
 	}
 }
 
-void ast_close(Ast *ast, unsigned int index, unsigned int length, int symbol)
+void ast_close(void *ast_p, unsigned int index, unsigned int length, int symbol)
 {
+	Ast *ast = (Ast *)ast_p;
 	AstNode *node = ast->current;
 
 	node->length = length;
