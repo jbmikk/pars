@@ -109,6 +109,7 @@ void fsm_dispose(Fsm *fsm)
 		//Get all states reachable through other rules
 		_fsm_get_states(&all_states, nt->start);
 		c_delete(nt->name);
+		radix_tree_dispose(&nt->child_refs);
 		c_delete(nt);
 	}
 	radix_tree_iterator_dispose(&(fsm->rules), &it);
@@ -130,6 +131,33 @@ NonTerminal *fsm_get_non_terminal(Fsm *fsm, unsigned char *name, int length)
 {
 	return radix_tree_get(&fsm->rules, name, length);
 }
+
+NonTerminal *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
+{
+	NonTerminal *non_terminal = fsm_get_non_terminal(fsm, name, length);
+	State *state;
+	if(non_terminal == NULL) {
+		non_terminal = c_new(NonTerminal, 1);
+		state = c_new(State, 1);
+		STATE_INIT(*state, ACTION_TYPE_SHIFT, NONE);
+		radix_tree_init(&state->next, 0, 0, NULL);
+		non_terminal->start = state;
+		non_terminal->symbol = fsm->symbol_base--;
+		non_terminal->length = length;
+		non_terminal->name = c_new(char, length); 
+		radix_tree_init(&non_terminal->child_refs, 0, 0, NULL);
+		int i = 0;
+		for(i; i < length; i++) {
+			non_terminal->name[i] = name[i];
+		}
+		radix_tree_set(&fsm->rules, name, length, non_terminal);
+		//TODO: Add to non_terminal struct: 
+		// * other terminals references to be resolved
+		// * detect circular references.
+	}
+	return non_terminal;
+}
+
 
 State *fsm_get_state(Fsm *fsm, unsigned char *name, int length)
 {
@@ -183,29 +211,21 @@ void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length)
 
 void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 {
-	NonTerminal *non_terminal = fsm_get_non_terminal(cur->fsm, name, length);
-	State *state;
-	if(non_terminal == NULL) {
-		non_terminal = c_new(NonTerminal, 1);
-		state = c_new(State, 1);
-		STATE_INIT(*state, ACTION_TYPE_SHIFT, NONE);
-		radix_tree_init(&state->next, 0, 0, NULL);
-		non_terminal->start = state;
-		non_terminal->symbol = cur->fsm->symbol_base--;
-		non_terminal->length = length;
-		non_terminal->name = c_new(char, length); 
-		int i = 0;
-		for(i; i < length; i++) {
-			non_terminal->name[i] = name[i];
-		}
-		radix_tree_set(&cur->fsm->rules, name, length, non_terminal);
-		cur->last_non_terminal = non_terminal;
-		//TODO: Add to non_terminal struct: 
-		// * other terminals references to be resolved
-		// * detect circular references.
-	}
+	NonTerminal *nt = fsm_create_non_terminal(cur->fsm, name, length);
+	cur->last_non_terminal = nt;
+	cur->current = nt->start;
 	trace_non_terminal("set", name, length);
-	cur->current = non_terminal->start;
+}
+
+void fsm_cursor_add_cref(FsmCursor *cur, unsigned char *name, int length)
+{
+	NonTerminal *nt = fsm_create_non_terminal(cur->fsm, name, length);
+
+	unsigned char buffer[sizeof(intptr_t)];
+	unsigned int size;
+	symbol_to_buffer(buffer, &size, (intptr_t)nt);
+
+	radix_tree_set(&cur->last_non_terminal->child_refs, buffer, size, nt);
 }
 
 State *_fsm_cursor_add_action_buffer(FsmCursor *cur, unsigned char *buffer, unsigned int size, int action, int reduction, State *state)

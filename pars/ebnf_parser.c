@@ -131,6 +131,7 @@ void ebnf_build_expression(FsmCursor *f_cur, AstCursor *a_cur)
 	switch(node->symbol) {
 	case L_IDENTIFIER:
 		ast_cursor_get_string(a_cur, &string, &length);
+		fsm_cursor_add_cref(f_cur, string, length);
 		//TODO: Need to be able to reference yet to be defined non terminals
 		non_terminal = fsm_get_non_terminal(f_cur->fsm, string, length);
 		fsm_cursor_add_followset(f_cur, non_terminal->start);
@@ -183,6 +184,8 @@ void ebnf_build_non_terminal_declaration(FsmCursor *f_cur, AstCursor *a_cur)
 
 	ast_cursor_next_sibling_symbol(a_cur, E_DEFINITIONS_LIST);
 	ebnf_build_definitions_list(f_cur, a_cur);
+	//for each parent reference add reduction
+	//fsm_cursor_add_reduce(f_cur, , f_cur->last_non_terminal->symbol);
 }	
 
 void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
