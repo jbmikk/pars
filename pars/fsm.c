@@ -109,7 +109,12 @@ void fsm_dispose(Fsm *fsm)
 		//Get all states reachable through other rules
 		_fsm_get_states(&all_states, nt->start);
 		c_delete(nt->name);
-		radix_tree_dispose(&nt->child_refs);
+		Reference *ref = nt->child_refs;
+		while(ref) {
+			Reference *oldref = ref;
+			ref = ref->next;
+			c_delete(oldref);
+		}
 		c_delete(nt);
 	}
 	radix_tree_iterator_dispose(&(fsm->rules), &it);
@@ -145,7 +150,7 @@ NonTerminal *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 		non_terminal->symbol = fsm->symbol_base--;
 		non_terminal->length = length;
 		non_terminal->name = c_new(char, length); 
-		radix_tree_init(&non_terminal->child_refs, 0, 0, NULL);
+		non_terminal->child_refs = NULL;
 		int i = 0;
 		for(i; i < length; i++) {
 			non_terminal->name[i] = name[i];
@@ -221,11 +226,12 @@ void fsm_cursor_add_cref(FsmCursor *cur, unsigned char *name, int length)
 {
 	NonTerminal *nt = fsm_create_non_terminal(cur->fsm, name, length);
 
-	unsigned char buffer[sizeof(intptr_t)];
-	unsigned int size;
-	symbol_to_buffer(buffer, &size, (intptr_t)nt);
+	Reference *ref = c_new(Reference, 1);
+	ref->state = cur->current;
+	ref->non_terminal = nt;
+	ref->next = cur->last_non_terminal->child_refs;
 
-	radix_tree_set(&cur->last_non_terminal->child_refs, buffer, size, nt);
+	cur->last_non_terminal->child_refs = ref;
 }
 
 State *_fsm_cursor_add_action_buffer(FsmCursor *cur, unsigned char *buffer, unsigned int size, int action, int reduction, State *state)

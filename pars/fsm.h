@@ -21,8 +21,14 @@ typedef struct _NonTerminal {
 	int symbol;
 	char *name;
 	int length;
-	Node child_refs;
+	struct _Reference *child_refs;
 } NonTerminal;
+
+typedef struct _Reference {
+	State *state;
+	NonTerminal *non_terminal;
+	struct _Reference *next;
+} Reference;
 
 typedef struct _Fsm {
 	State *start;
