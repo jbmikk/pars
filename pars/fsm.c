@@ -109,11 +109,18 @@ void fsm_dispose(Fsm *fsm)
 		//Get all states reachable through other rules
 		_fsm_get_states(&all_states, nt->start);
 		c_delete(nt->name);
-		Reference *ref = nt->child_refs;
+		Reference *ref;
+		ref = nt->child_refs;
 		while(ref) {
-			Reference *oldref = ref;
+			Reference *cref = ref;
 			ref = ref->next;
-			c_delete(oldref);
+			c_delete(cref);
+		}
+		ref = nt->parent_refs;
+		while(ref) {
+			Reference *pref = ref;
+			ref = ref->next;
+			c_delete(pref);
 		}
 		c_delete(nt);
 	}
@@ -151,6 +158,7 @@ NonTerminal *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 		non_terminal->length = length;
 		non_terminal->name = c_new(char, length); 
 		non_terminal->child_refs = NULL;
+		non_terminal->parent_refs = NULL;
 		int i = 0;
 		for(i; i < length; i++) {
 			non_terminal->name[i] = name[i];
@@ -222,16 +230,25 @@ void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 	trace_non_terminal("set", name, length);
 }
 
-void fsm_cursor_add_cref(FsmCursor *cur, unsigned char *name, int length)
+void fsm_cursor_add_reference(FsmCursor *cur, unsigned char *name, int length)
 {
 	NonTerminal *nt = fsm_create_non_terminal(cur->fsm, name, length);
 
-	Reference *ref = c_new(Reference, 1);
-	ref->state = cur->current;
-	ref->non_terminal = nt;
-	ref->next = cur->last_non_terminal->child_refs;
+	//Child reference on parent
+	Reference *cref = c_new(Reference, 1);
+	cref->state = cur->current;
+	cref->non_terminal = nt;
+	cref->next = cur->last_non_terminal->child_refs;
 
-	cur->last_non_terminal->child_refs = ref;
+	cur->last_non_terminal->child_refs = cref;
+
+	//Parent reference on child
+	Reference *pref = c_new(Reference, 1);
+	pref->state = cur->current;
+	pref->non_terminal = cur->last_non_terminal;
+	pref->next = nt->parent_refs;
+
+	nt->parent_refs = pref;
 }
 
 State *_fsm_cursor_add_action_buffer(FsmCursor *cur, unsigned char *buffer, unsigned int size, int action, int reduction, State *state)

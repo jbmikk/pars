@@ -131,7 +131,7 @@ void ebnf_build_expression(FsmCursor *f_cur, AstCursor *a_cur)
 	switch(node->symbol) {
 	case L_IDENTIFIER:
 		ast_cursor_get_string(a_cur, &string, &length);
-		fsm_cursor_add_cref(f_cur, string, length);
+		fsm_cursor_add_reference(f_cur, string, length);
 		//TODO: Need to be able to reference yet to be defined non terminals
 		non_terminal = fsm_get_non_terminal(f_cur->fsm, string, length);
 		fsm_cursor_add_followset(f_cur, non_terminal->start);
