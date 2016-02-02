@@ -251,7 +251,7 @@ void fsm_cursor_add_reference(FsmCursor *cur, unsigned char *name, int length)
 	nt->parent_refs = pref;
 }
 
-State *_fsm_cursor_add_action_buffer(FsmCursor *cur, unsigned char *buffer, unsigned int size, int action, int reduction, State *state)
+State *_add_action_buffer(State *from, unsigned char *buffer, unsigned int size, int action, int reduction, State *state)
 {
 	if(state == NULL) {
 		state = c_new(State, 1);
@@ -262,19 +262,31 @@ State *_fsm_cursor_add_action_buffer(FsmCursor *cur, unsigned char *buffer, unsi
 
 	//TODO: risk of leak when transitioning using the same symbol
 	// on the same state twice.
-	radix_tree_set(&cur->current->next, buffer, size, state);
+	radix_tree_set(&from->next, buffer, size, state);
 	return state;
 }
 
-State *_fsm_cursor_add_action(FsmCursor *cur, int symbol, int action, int reduction, State *state)
+State *_add_action(State *from, int symbol, int action, int reduction, State *state)
 {
 	unsigned char buffer[sizeof(int)];
 	unsigned int size;
 	symbol_to_buffer(buffer, &size, symbol);
 
-	state = _fsm_cursor_add_action_buffer(cur, buffer, size, action, reduction, state);
-	trace("add", cur->current, state, symbol, "action");
+	state = _add_action_buffer(from, buffer, size, action, reduction, state);
+	trace("add", from, state, symbol, "action");
 	return state;
+}
+
+void _add_followset(State *from, State *state)
+{
+	State *s;
+	Iterator it;
+	radix_tree_iterator_init(&(state->next), &it);
+	while((s = (State *)radix_tree_iterator_next(&(state->next), &it)) != NULL) {
+		_add_action_buffer(from, it.key, it.size, 0, 0, s);
+		trace("add", from, s, buffer_to_symbol(it.key, it.size), "follow");
+	}
+	radix_tree_iterator_dispose(&(state->next), &it);
 }
 
 State *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, int symbol)
@@ -283,7 +295,7 @@ State *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, int
 	cur->fsm->start = cur->current;
 	//TODO: calling fsm_cursor_set_start multiple times may cause
 	// leaks if adding a duplicate accept action to the state.
-	cur->current = _fsm_cursor_add_action(cur, symbol, ACTION_TYPE_ACCEPT, NONE, NULL);
+	cur->current = _add_action(cur->current, symbol, ACTION_TYPE_ACCEPT, NONE, NULL);
 }
 
 void fsm_cursor_done(FsmCursor *cur) {
@@ -295,31 +307,24 @@ void fsm_cursor_done(FsmCursor *cur) {
 
 void fsm_cursor_add_shift(FsmCursor *cur, int symbol)
 {
-	State *state = _fsm_cursor_add_action(cur, symbol, ACTION_TYPE_SHIFT, NONE, NULL);
+	State *state = _add_action(cur->current, symbol, ACTION_TYPE_SHIFT, NONE, NULL);
 	cur->current = state;
 }
 
 void fsm_cursor_add_context_shift(FsmCursor *cur, int symbol)
 {
-	State *state = _fsm_cursor_add_action(cur, symbol, ACTION_TYPE_CONTEXT_SHIFT, NONE, NULL);
+	State *state = _add_action(cur->current, symbol, ACTION_TYPE_CONTEXT_SHIFT, NONE, NULL);
 	cur->current = state;
 }
 
 void fsm_cursor_add_followset(FsmCursor *cur, State *state)
 {
-	State *s;
-	Iterator it;
-	radix_tree_iterator_init(&(state->next), &it);
-	while((s = (State *)radix_tree_iterator_next(&(state->next), &it)) != NULL) {
-		_fsm_cursor_add_action_buffer(cur, it.key, it.size, 0, 0, s);
-		trace("add", cur->current, s, buffer_to_symbol(it.key, it.size), "follow");
-	}
-	radix_tree_iterator_dispose(&(state->next), &it);
+	_add_followset(cur->current, state);
 }
 
 void fsm_cursor_add_reduce(FsmCursor *cur, int symbol, int reduction)
 {
-	_fsm_cursor_add_action(cur, symbol, ACTION_TYPE_REDUCE, reduction, NULL);
+	_add_action(cur->current, symbol, ACTION_TYPE_REDUCE, reduction, NULL);
 }
 
 Session *session_set_handler(Session *session, FsmHandler handler, void *target)
