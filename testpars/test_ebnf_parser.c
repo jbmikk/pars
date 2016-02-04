@@ -197,14 +197,8 @@ void ebnf_start_parsing__group(Fixture *fix, gconstpointer data){
 }
 
 void ebnf_start_parsing__syntax(Fixture *fix, gconstpointer data){
-	FsmCursor cur;
-	fsm_cursor_init(&cur, &fix->fsm);
-
-	fsm_cursor_define(&cur, "syntax", 6);
 	State *state;
 
-	//Already an accepting state, calling it again causes leak.
-	//fsm_cursor_set_start(&cur, "syntax", 6, E_SYNTAX);
 	Session session;
 	session_init(&session, &fix->fsm);
 	MATCH(session, L_IDENTIFIER);
@@ -224,8 +218,6 @@ void ebnf_start_parsing__syntax(Fixture *fix, gconstpointer data){
 	MATCH(session, L_EOF);
 	g_assert(session.current->type == ACTION_TYPE_ACCEPT);
 	session_dispose(&session);
-
-	fsm_cursor_dispose(&cur);
 }
 
 int main(int argc, char** argv){
