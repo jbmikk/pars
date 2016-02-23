@@ -61,6 +61,7 @@ int pars_parse_source(char *pathname, Fsm *fsm)
 	parser.fsm = *fsm;
 	parser.handler.context_shift = ast_open;
 	parser.handler.reduce = ast_close;
+	parser.lexer_handler = identity_lexer;
 
 	input_init(&input, pathname);
 	check(input.is_open, "Could not find or open source file: %s", pathname);
@@ -88,6 +89,7 @@ int main(int argc, char** argv){
 		check(!error, "Could not load grammar.");
 
 		if(argc > 2) {
+			log_info("Parsing source.");
 			error = pars_parse_source(argv[2], &fsm);
 		}
 

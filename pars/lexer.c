@@ -1,14 +1,46 @@
 #include "lexer.h"
 
-void lexer_init(Lexer *lexer, Input *input)
+void lexer_init(Lexer *lexer, Input *input, void (*handler)(Lexer *lexer))
 {
 	lexer->input = input;
 	lexer->index = 0;
 	lexer->length = 0;
 	lexer->symbol = 0;
+	lexer->handler = handler;
 }
 
 void lexer_next(Lexer *lexer)
+{
+	lexer->handler(lexer);
+}
+
+void identity_lexer(Lexer *lexer)
+{
+	LToken token;
+	unsigned char c;
+
+#define CURRENT (lexer->input->buffer[lexer->input->buffer_index])
+#define NEXT (++lexer->input->buffer_index)
+#define END(V) (lexer->input->buffer_index >= lexer->input->buffer_size-V)
+
+next_token:
+	lexer->index = lexer->input->buffer_index;
+
+	if (END(0)) {
+		token = L_EOF;
+		lexer->input->eof = 1;
+		goto eof;
+	}
+
+	c = CURRENT;
+	token = c;
+	NEXT;
+eof:
+	lexer->symbol = token;
+	lexer->length = lexer->input->buffer_index - lexer->index;
+}
+
+void ebnf_lexer(Lexer *lexer)
 {
 	LToken token;
 	unsigned char c;

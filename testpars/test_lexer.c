@@ -25,10 +25,10 @@ void setup(Fixture *fix, gconstpointer data){
 	input_init_buffer(&fix->input_identifier, I_IDENTIFIER, strlen(I_IDENTIFIER));
 	input_init_buffer(&fix->input_terminal_string, I_TERMINAL_STRING, strlen(I_TERMINAL_STRING));
 	input_init_buffer(&fix->input_rule_one, I_RULE_ONE, strlen(I_RULE_ONE));
-	lexer_init(&fix->lexer_integer, &fix->input_integer);
-	lexer_init(&fix->lexer_identifier, &fix->input_identifier);
-	lexer_init(&fix->lexer_terminal_string, &fix->input_terminal_string);
-	lexer_init(&fix->lexer_rule_one, &fix->input_rule_one);
+	lexer_init(&fix->lexer_integer, &fix->input_integer, ebnf_lexer);
+	lexer_init(&fix->lexer_identifier, &fix->input_identifier, ebnf_lexer);
+	lexer_init(&fix->lexer_terminal_string, &fix->input_terminal_string, ebnf_lexer);
+	lexer_init(&fix->lexer_rule_one, &fix->input_rule_one, ebnf_lexer);
 }
 
 void teardown(Fixture *fix, gconstpointer data){

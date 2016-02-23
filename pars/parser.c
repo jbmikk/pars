@@ -8,7 +8,7 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 	Lexer *lexer = &parser->lexer;
 	Fsm *fsm = &parser->fsm;
 
-	lexer_init(lexer, input);
+	lexer_init(lexer, input, parser->lexer_handler);
 	ast_init(ast, input);
 
 	Session session;
@@ -20,8 +20,8 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 		session_match(&session, lexer->symbol, lexer->index, lexer->length);
 		check(
 			session.current->type != ACTION_TYPE_ERROR,
-			"Error parsing grammar at index: %i with symbol: %i",
-			session.index, lexer->symbol
+			"Error parsing grammar at index: %i with symbol: %i, length: %i",
+			session.index, lexer->symbol, lexer->length
 		);
 	}
 
