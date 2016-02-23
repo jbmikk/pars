@@ -93,8 +93,7 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_add_shift(&cur, E_NON_TERMINAL_DECLARATION);
 	fsm_cursor_add_followset(&cur, fsm_cursor_pop_followset(&cur));
 
-	//fsm_set_start(fsm, "definitions_list", 16, E_SINGLE_DEFINITION);
-	fsm_cursor_set_start(&cur, "syntax", 6, E_SYNTAX);
+	fsm_cursor_done(&cur);
 
 	fsm_cursor_dispose(&cur);
 }
