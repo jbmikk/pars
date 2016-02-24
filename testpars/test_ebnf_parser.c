@@ -28,6 +28,7 @@ void setup(Fixture *fix, gconstpointer data){
 	token_index = 0;
 	diff = 0;
 	count = 0;
+	fsm_init(&fix->fsm);
 	ebnf_init_fsm(&fix->fsm);
 }
 
