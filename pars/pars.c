@@ -50,11 +50,10 @@ error:
 	return -1;
 }
 
-int pars_parse_source(char *pathname, Fsm *fsm)
+int pars_parse_source(char *pathname, Fsm *fsm, Ast *ast)
 {
 	Input input;
 	Parser parser;
-	Ast ast;
 	int error;
 
 	//TODO: Maybe the fsm should be a pointer.
@@ -66,8 +65,10 @@ int pars_parse_source(char *pathname, Fsm *fsm)
 	input_init(&input, pathname);
 	check(input.is_open, "Could not find or open source file: %s", pathname);
 
-	error = parser_execute(&parser, &ast, &input);
+	error = parser_execute(&parser, ast, &input);
 	check(!error, "Could not build ast with grammar %s.", pathname);
+
+	ast_print(ast);
 
 	input_dispose(&input);
 
@@ -82,6 +83,7 @@ error:
 #ifndef LIBRARY
 int main(int argc, char** argv){
 	Fsm fsm;
+	Ast ast;
 	int error;
 	if(argc > 1) {
 		log_info("Loading grammar.");
@@ -90,7 +92,8 @@ int main(int argc, char** argv){
 
 		if(argc > 2) {
 			log_info("Parsing source.");
-			error = pars_parse_source(argv[2], &fsm);
+			error = pars_parse_source(argv[2], &fsm, &ast);
+			ast_dispose(&ast);
 		}
 
 		fsm_dispose(&fsm);
