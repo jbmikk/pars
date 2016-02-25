@@ -18,6 +18,7 @@ typedef struct _State {
 
 typedef struct _NonTerminal {
 	State *start;
+	State *end;
 	int symbol;
 	char *name;
 	int length;

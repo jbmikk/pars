@@ -154,6 +154,7 @@ NonTerminal *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 		STATE_INIT(*state, ACTION_TYPE_SHIFT, NONE);
 		radix_tree_init(&state->next, 0, 0, NULL);
 		non_terminal->start = state;
+		non_terminal->end = state;
 		non_terminal->symbol = fsm->symbol_base--;
 		non_terminal->length = length;
 		non_terminal->name = c_new(char, length); 
@@ -289,6 +290,18 @@ void _add_followset(State *from, State *state)
 	radix_tree_iterator_dispose(&(state->next), &it);
 }
 
+void _reduce_followset(State *from, State *to, int symbol)
+{
+	State *s;
+	Iterator it;
+	radix_tree_iterator_init(&(to->next), &it);
+	while((s = (State *)radix_tree_iterator_next(&(to->next), &it)) != NULL) {
+		_add_action_buffer(from, it.key, it.size, ACTION_TYPE_REDUCE, symbol, NULL);
+		trace("add", from, s, buffer_to_symbol(it.key, it.size), "reduce-follow");
+	}
+	radix_tree_iterator_dispose(&(to->next), &it);
+}
+
 State *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, int symbol)
 {
 	cur->current = fsm_get_state(cur->fsm, name, length);
@@ -298,22 +311,57 @@ State *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, int
 	cur->current = _add_action(cur->current, symbol, ACTION_TYPE_ACCEPT, NONE, NULL);
 }
 
-void fsm_cursor_done(FsmCursor *cur) {
+void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 	NonTerminal *nt = cur->last_non_terminal;
 	if(nt) {
+		//TODO: May cause leaks if L_EOF previously added
+		_add_action(nt->end, eof_symbol, ACTION_TYPE_REDUCE, nt->symbol, NULL);
 		fsm_cursor_set_start(cur, nt->name, nt->length, nt->symbol);
 	}
+	
+	//Solve child and parent references
+	Node * rules = &cur->fsm->rules;
+
+	Iterator it;
+	radix_tree_iterator_init(rules, &it);
+	while(nt = (NonTerminal *)radix_tree_iterator_next(rules, &it)) {
+		Reference *ref;
+		ref = nt->child_refs;
+		while(ref) {
+			_add_followset(ref->state, ref->non_terminal->start);
+			ref = ref->next;
+		}
+
+		ref = nt->parent_refs;
+		while(ref) {
+			State *cont = radix_tree_get_int(&ref->state->next, nt->symbol);
+			_reduce_followset(nt->end, cont, nt->symbol);
+			ref = ref->next;
+		}
+	}
+	radix_tree_iterator_dispose(rules, &it);
 }
 
 void fsm_cursor_add_shift(FsmCursor *cur, int symbol)
 {
-	State *state = _add_action(cur->current, symbol, ACTION_TYPE_SHIFT, NONE, NULL);
+	int action;
+	if(cur->last_non_terminal->start == cur->current) {
+		action = ACTION_TYPE_CONTEXT_SHIFT;
+	} else {
+		action = ACTION_TYPE_SHIFT;
+	}
+	State *state = _add_action(cur->current, symbol, action, NONE, NULL);
+	cur->last_non_terminal->end = state;
 	cur->current = state;
 }
 
+/**
+ * TODO: Deprecated by dynamic action shift
+ */
 void fsm_cursor_add_context_shift(FsmCursor *cur, int symbol)
 {
 	State *state = _add_action(cur->current, symbol, ACTION_TYPE_CONTEXT_SHIFT, NONE, NULL);
+	cur->last_non_terminal->end = state;
 	cur->current = state;
 }
 

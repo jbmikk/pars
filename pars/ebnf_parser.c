@@ -93,7 +93,7 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_add_shift(&cur, E_NON_TERMINAL_DECLARATION);
 	fsm_cursor_add_followset(&cur, fsm_cursor_pop_followset(&cur));
 
-	fsm_cursor_done(&cur);
+	fsm_cursor_done(&cur, L_EOF);
 
 	fsm_cursor_dispose(&cur);
 }
@@ -184,8 +184,6 @@ void ebnf_build_non_terminal_declaration(FsmCursor *f_cur, AstCursor *a_cur)
 
 	ast_cursor_next_sibling_symbol(a_cur, E_DEFINITIONS_LIST);
 	ebnf_build_definitions_list(f_cur, a_cur);
-	//for each parent reference add reduction
-	//fsm_cursor_add_reduce(f_cur, , f_cur->last_non_terminal->symbol);
 }	
 
 void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
@@ -202,7 +200,7 @@ void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
 		ast_cursor_pop(&a_cur);
 	}
 
-	fsm_cursor_done(&f_cur);
+	fsm_cursor_done(&f_cur, L_EOF);
 	//ast_done?
 
 	fsm_cursor_dispose(&f_cur);
