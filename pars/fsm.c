@@ -327,6 +327,7 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 	while(nt = (NonTerminal *)radix_tree_iterator_next(rules, &it)) {
 		Reference *ref;
 		ref = nt->child_refs;
+		trace_non_terminal("solve", nt->name, nt->length);
 		while(ref) {
 			_add_followset(ref->state, ref->non_terminal->start);
 			ref = ref->next;
