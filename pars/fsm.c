@@ -85,7 +85,7 @@ void _fsm_get_states(Node *states, State *state)
 		State *st;
 		Iterator it;
 		radix_tree_iterator_init(&(state->next), &it);
-		while((st = (State *)radix_tree_iterator_next(&(state->next), &it)) != NULL) {
+		while(st = (State *)radix_tree_iterator_next(&(state->next), &it)) {
 			_fsm_get_states(states, st);
 		}
 		radix_tree_iterator_dispose(&(state->next), &it);
@@ -106,7 +106,7 @@ void fsm_dispose(Fsm *fsm)
 	}
 
 	radix_tree_iterator_init(&(fsm->rules), &it);
-	while((nt = (NonTerminal *)radix_tree_iterator_next(&(fsm->rules), &it)) != NULL) {
+	while(nt = (NonTerminal *)radix_tree_iterator_next(&(fsm->rules), &it)) {
 		//Get all states reachable through other rules
 		_fsm_get_states(&all_states, nt->start);
 		c_delete(nt->name);
@@ -131,7 +131,7 @@ void fsm_dispose(Fsm *fsm)
 	//Delete all states
 	State *st;
 	radix_tree_iterator_init(&all_states, &it);
-	while((st = (State *)radix_tree_iterator_next(&all_states, &it)) != NULL) {
+	while(st = (State *)radix_tree_iterator_next(&all_states, &it)) {
 		radix_tree_dispose(&st->next);
 		c_delete(st);
 	}
@@ -325,7 +325,7 @@ void _add_followset(State *from, State *state)
 	State *s;
 	Iterator it;
 	radix_tree_iterator_init(&(state->next), &it);
-	while((s = (State *)radix_tree_iterator_next(&(state->next), &it)) != NULL) {
+	while(s = (State *)radix_tree_iterator_next(&(state->next), &it)) {
 		_add_action_buffer(from, it.key, it.size, 0, 0, s);
 		trace("add", from, s, buffer_to_symbol(it.key, it.size), "follow");
 	}
@@ -337,7 +337,7 @@ void _reduce_followset(State *from, State *to, int symbol)
 	State *s;
 	Iterator it;
 	radix_tree_iterator_init(&(to->next), &it);
-	while((s = (State *)radix_tree_iterator_next(&(to->next), &it)) != NULL) {
+	while(s = (State *)radix_tree_iterator_next(&(to->next), &it)) {
 		_add_action_buffer(from, it.key, it.size, ACTION_TYPE_REDUCE, symbol, NULL);
 		trace("add", from, s, buffer_to_symbol(it.key, it.size), "reduce-follow");
 	}

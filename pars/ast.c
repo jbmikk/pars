@@ -34,7 +34,7 @@ void _ast_dispose_node(AstNode *node)
 	Iterator it;
 
 	radix_tree_iterator_init(&node->children, &it);
-	while((an = (AstNode *)radix_tree_iterator_next(&node->children, &it)) != NULL) {
+	while(an = (AstNode *)radix_tree_iterator_next(&node->children, &it)) {
 		_ast_dispose_node(an);
 		c_delete(an);
 	}
