@@ -310,15 +310,11 @@ State *_add_action_buffer(State *from, unsigned char *buffer, unsigned int size,
 
 State *_add_action(State *from, int symbol, int action, int reduction)
 {
-	unsigned char buffer[sizeof(int)];
-	unsigned int size;
-	symbol_to_buffer(buffer, &size, symbol);
-
 	State * state = c_new(State, 1);
 	_state_init(state, action, reduction);
 	//TODO: risk of leak when transitioning using the same symbol
 	// on the same state twice.
-	radix_tree_set(&from->next, buffer, size, state);
+	radix_tree_set_int(&from->next, symbol, state);
 
 	trace("add", from, state, symbol, "action");
 	return state;
