@@ -40,16 +40,16 @@ void fsm_cursor_define__two_gets(Fixture *fix, gconstpointer data){
 	fsm_cursor_init(&cur, &fix->fsm);
 
 	fsm_cursor_define(&cur, nzs("rule1"));
-	State *state1 = cur.current;
+	Action *action1 = cur.current;
 	fsm_cursor_define(&cur, nzs("rule2"));
-	State *state2 = cur.current;
+	Action *action2 = cur.current;
 	fsm_cursor_define(&cur, nzs("rule1"));
-	State *state3 = cur.current;
+	Action *action3 = cur.current;
 
-	g_assert(state1 != NULL);
-	g_assert(state2 != NULL);
-	g_assert(state3 != NULL);
-	g_assert(state1 == state3);
+	g_assert(action1 != NULL);
+	g_assert(action2 != NULL);
+	g_assert(action3 != NULL);
+	g_assert(action1 == action3);
 }
 
 void session_match__shift(Fixture *fix, gconstpointer data){
@@ -98,7 +98,7 @@ void session_match__reduce_shift(Fixture *fix, gconstpointer data){
 	fsm_cursor_add_reduce(&cur, '+', 'N');
 
 	fsm_cursor_define(&cur, "sum", 3);
-	fsm_cursor_add_followset(&cur, fsm_get_state(&fix->fsm, nzs("number")));
+	fsm_cursor_add_followset(&cur, fsm_get_action(&fix->fsm, nzs("number")));
 	fsm_cursor_add_context_shift(&cur, 'N');
 	fsm_cursor_add_shift(&cur, '+');
 	fsm_cursor_add_shift(&cur, '2');
@@ -139,10 +139,10 @@ void session_match__reduce_handler(Fixture *fix, gconstpointer data){
 	fsm_cursor_add_reduce(&cur, '\0', 'W');
 
 	fsm_cursor_define(&cur, nzs("sum"));
-	fsm_cursor_add_followset(&cur, fsm_get_state(&fix->fsm, nzs("number")));
+	fsm_cursor_add_followset(&cur, fsm_get_action(&fix->fsm, nzs("number")));
 	fsm_cursor_add_context_shift(&cur, 'N');
 	fsm_cursor_add_shift(&cur, '+');
-	fsm_cursor_add_followset(&cur, fsm_get_state(&fix->fsm, nzs("word")));
+	fsm_cursor_add_followset(&cur, fsm_get_action(&fix->fsm, nzs("word")));
 	fsm_cursor_add_shift(&cur, 'W');
 	fsm_cursor_add_reduce(&cur, '\0', 'S');
 

@@ -41,24 +41,24 @@ void ebnf_start_parsing__identifier(Fixture *fix, gconstpointer data){
 	fsm_cursor_init(&cur, &fix->fsm);
 
 	fsm_cursor_define(&cur, "expression", 10);
-	State *state;
+	Action *action;
 
 	fsm_cursor_set_start(&cur, "expression", 10, E_EXPRESSION);
 	Session session;
 	session_init(&session, &fix->fsm);
 	MATCH(session, L_IDENTIFIER);
 
-	state = TEST(session, L_CONCATENATE_SYMBOL);
-	g_assert(state->type == ACTION_TYPE_REDUCE);
-	g_assert(state->reduction == E_EXPRESSION);
+	action = TEST(session, L_CONCATENATE_SYMBOL);
+	g_assert(action->type == ACTION_TYPE_REDUCE);
+	g_assert(action->reduction == E_EXPRESSION);
 
-	state = TEST(session, L_DEFINITION_SEPARATOR_SYMBOL);
-	g_assert(state->type == ACTION_TYPE_REDUCE);
-	g_assert(state->reduction == E_EXPRESSION);
+	action = TEST(session, L_DEFINITION_SEPARATOR_SYMBOL);
+	g_assert(action->type == ACTION_TYPE_REDUCE);
+	g_assert(action->reduction == E_EXPRESSION);
 
-	state = TEST(session, L_TERMINATOR_SYMBOL);
-	g_assert(state->type == ACTION_TYPE_REDUCE);
-	g_assert(state->reduction == E_EXPRESSION);
+	action = TEST(session, L_TERMINATOR_SYMBOL);
+	g_assert(action->type == ACTION_TYPE_REDUCE);
+	g_assert(action->reduction == E_EXPRESSION);
 	MATCH(session, L_TERMINATOR_SYMBOL);
 	session_dispose(&session);
 
@@ -70,24 +70,24 @@ void ebnf_start_parsing__terminal(Fixture *fix, gconstpointer data){
 	fsm_cursor_init(&cur, &fix->fsm);
 
 	fsm_cursor_define(&cur, "expression", 10);
-	State *state;
+	Action *action;
 
 	fsm_cursor_set_start(&cur, "expression", 10, E_EXPRESSION);
 	Session session;
 	session_init(&session, &fix->fsm);
 	MATCH(session, L_TERMINAL_STRING);
 
-	state = TEST(session, L_CONCATENATE_SYMBOL);
-	g_assert(state->type == ACTION_TYPE_REDUCE);
-	g_assert(state->reduction == E_EXPRESSION);
+	action = TEST(session, L_CONCATENATE_SYMBOL);
+	g_assert(action->type == ACTION_TYPE_REDUCE);
+	g_assert(action->reduction == E_EXPRESSION);
 
-	state = TEST(session, L_DEFINITION_SEPARATOR_SYMBOL);
-	g_assert(state->type == ACTION_TYPE_REDUCE);
-	g_assert(state->reduction == E_EXPRESSION);
+	action = TEST(session, L_DEFINITION_SEPARATOR_SYMBOL);
+	g_assert(action->type == ACTION_TYPE_REDUCE);
+	g_assert(action->reduction == E_EXPRESSION);
 
-	state = TEST(session, L_TERMINATOR_SYMBOL);
-	g_assert(state->type == ACTION_TYPE_REDUCE);
-	g_assert(state->reduction == E_EXPRESSION);
+	action = TEST(session, L_TERMINATOR_SYMBOL);
+	g_assert(action->type == ACTION_TYPE_REDUCE);
+	g_assert(action->reduction == E_EXPRESSION);
 	MATCH(session, L_TERMINATOR_SYMBOL);
 	session_dispose(&session);
 
@@ -99,7 +99,7 @@ void ebnf_start_parsing__concatenate(Fixture *fix, gconstpointer data){
 	fsm_cursor_init(&cur, &fix->fsm);
 
 	fsm_cursor_define(&cur, "single_definition", 17);
-	State *state;
+	Action *action;
 
 	fsm_cursor_set_start(&cur, "single_definition", 17, E_SINGLE_DEFINITION);
 	Session session;
@@ -108,13 +108,13 @@ void ebnf_start_parsing__concatenate(Fixture *fix, gconstpointer data){
 	MATCH(session, L_CONCATENATE_SYMBOL);
 	MATCH(session, L_TERMINAL_STRING);
 
-	state = TEST(session, L_DEFINITION_SEPARATOR_SYMBOL);
-	g_assert(state->type == ACTION_TYPE_REDUCE);
-	g_assert(state->reduction == E_EXPRESSION);
+	action = TEST(session, L_DEFINITION_SEPARATOR_SYMBOL);
+	g_assert(action->type == ACTION_TYPE_REDUCE);
+	g_assert(action->reduction == E_EXPRESSION);
 
-	state = TEST(session, L_TERMINATOR_SYMBOL);
-	g_assert(state->type == ACTION_TYPE_REDUCE);
-	g_assert(state->reduction == E_EXPRESSION);
+	action = TEST(session, L_TERMINATOR_SYMBOL);
+	g_assert(action->type == ACTION_TYPE_REDUCE);
+	g_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_DEFINITION_SEPARATOR_SYMBOL);
 	session_dispose(&session);
@@ -127,7 +127,7 @@ void ebnf_start_parsing__separator(Fixture *fix, gconstpointer data){
 	fsm_cursor_init(&cur, &fix->fsm);
 
 	fsm_cursor_define(&cur, "definitions_list", 16);
-	State *state;
+	Action *action;
 
 	fsm_cursor_set_start(&cur, "definitions_list", 16, E_DEFINITIONS_LIST);
 	Session session;
@@ -136,9 +136,9 @@ void ebnf_start_parsing__separator(Fixture *fix, gconstpointer data){
 	MATCH(session, L_DEFINITION_SEPARATOR_SYMBOL);
 	MATCH(session, L_TERMINAL_STRING);
 
-	state = TEST(session, L_TERMINATOR_SYMBOL);
-	g_assert(state->type == ACTION_TYPE_REDUCE);
-	g_assert(state->reduction == E_EXPRESSION);
+	action = TEST(session, L_TERMINATOR_SYMBOL);
+	g_assert(action->type == ACTION_TYPE_REDUCE);
+	g_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
 	session_dispose(&session);
@@ -151,7 +151,7 @@ void ebnf_start_parsing__declaration(Fixture *fix, gconstpointer data){
 	fsm_cursor_init(&cur, &fix->fsm);
 
 	fsm_cursor_define(&cur, "non_terminal_declaration", 24);
-	State *state;
+	Action *action;
 
 	fsm_cursor_set_start(&cur, "non_terminal_declaration", 24, E_NON_TERMINAL_DECLARATION);
 	Session session;
@@ -163,9 +163,9 @@ void ebnf_start_parsing__declaration(Fixture *fix, gconstpointer data){
 	MATCH(session, L_IDENTIFIER);
 	MATCH(session, L_TERMINATOR_SYMBOL);
 
-	state = TEST(session, L_EOF);
-	g_assert(state->type == ACTION_TYPE_REDUCE);
-	g_assert(state->reduction == E_NON_TERMINAL_DECLARATION);
+	action = TEST(session, L_EOF);
+	g_assert(action->type == ACTION_TYPE_REDUCE);
+	g_assert(action->reduction == E_NON_TERMINAL_DECLARATION);
 
 	MATCH(session, L_EOF);
 	session_dispose(&session);
@@ -178,7 +178,7 @@ void ebnf_start_parsing__group(Fixture *fix, gconstpointer data){
 	fsm_cursor_init(&cur, &fix->fsm);
 
 	fsm_cursor_define(&cur, "expression", 10);
-	State *state;
+	Action *action;
 
 	fsm_cursor_set_start(&cur, "expression", 10, E_EXPRESSION);
 	Session session;
@@ -187,9 +187,9 @@ void ebnf_start_parsing__group(Fixture *fix, gconstpointer data){
 	MATCH(session, L_TERMINAL_STRING);
 	MATCH(session, L_END_GROUP_SYMBOL);
 
-	state = TEST(session, L_TERMINATOR_SYMBOL);
-	g_assert(state->type == ACTION_TYPE_REDUCE);
-	g_assert(state->reduction == E_EXPRESSION);
+	action = TEST(session, L_TERMINATOR_SYMBOL);
+	g_assert(action->type == ACTION_TYPE_REDUCE);
+	g_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
 	session_dispose(&session);
@@ -198,7 +198,7 @@ void ebnf_start_parsing__group(Fixture *fix, gconstpointer data){
 }
 
 void ebnf_start_parsing__syntax(Fixture *fix, gconstpointer data){
-	State *state;
+	Action *action;
 
 	Session session;
 	session_init(&session, &fix->fsm);
@@ -211,10 +211,10 @@ void ebnf_start_parsing__syntax(Fixture *fix, gconstpointer data){
 	MATCH(session, L_IDENTIFIER);
 	MATCH(session, L_TERMINATOR_SYMBOL);
 
-	state = TEST(session, L_EOF);
-	g_assert(state->type == ACTION_TYPE_REDUCE);
+	action = TEST(session, L_EOF);
+	g_assert(action->type == ACTION_TYPE_REDUCE);
 	//First reduction only, not recursive
-	g_assert(state->reduction == E_NON_TERMINAL_DECLARATION); 
+	g_assert(action->reduction == E_NON_TERMINAL_DECLARATION); 
 
 	MATCH(session, L_EOF);
 	g_assert(session.current->type == ACTION_TYPE_ACCEPT);
