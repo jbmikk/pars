@@ -320,6 +320,7 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 	NonTerminal *nt = cur->last_non_terminal;
 	if(nt) {
 		//TODO: May cause leaks if L_EOF previously added
+		trace_non_terminal("main", nt->name, nt->length);
 		_add_action(nt->end, eof_symbol, ACTION_TYPE_REDUCE, nt->symbol, NULL);
 		fsm_cursor_set_start(cur, nt->name, nt->length, nt->symbol);
 	}
