@@ -183,13 +183,13 @@ void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
 	cur->fsm = fsm;
 	cur->current = NULL;
 	cur->stack = NULL;
-	cur->followset_stack = NULL;
+	cur->continuations = NULL;
 	cur->last_non_terminal = NULL;
 }
 
 void fsm_cursor_dispose(FsmCursor *cur)
 {
-	stack_dispose(cur->followset_stack);
+	stack_dispose(cur->continuations);
 	stack_dispose(cur->stack);
 	cur->current = NULL;
 	cur->fsm = NULL;
@@ -211,15 +211,15 @@ void fsm_cursor_reset(FsmCursor *cursor)
 	cursor->current = (State *)cursor->stack->data;
 }
 
-void fsm_cursor_push_followset(FsmCursor *cursor) 
+void fsm_cursor_push_continuation(FsmCursor *cursor)
 {
-	cursor->followset_stack = stack_push(cursor->followset_stack, cursor->current);
+	cursor->continuations = stack_push(cursor->continuations, cursor->current);
 }
 
-State *fsm_cursor_pop_followset(FsmCursor *cursor) 
+State *fsm_cursor_pop_continuation(FsmCursor *cursor)
 {
-	State *state = (State *)cursor->followset_stack->data;
-	cursor->followset_stack = stack_pop(cursor->followset_stack);
+	State *state = (State *)cursor->continuations->data;
+	cursor->continuations = stack_pop(cursor->continuations);
 	return state;
 }
 
