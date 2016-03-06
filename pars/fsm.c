@@ -308,13 +308,18 @@ State *_add_action_buffer(State *from, unsigned char *buffer, unsigned int size,
 	return state;
 }
 
-State *_add_action(State *from, int symbol, int action, int reduction, State *state)
+State *_add_action(State *from, int symbol, int action, int reduction)
 {
 	unsigned char buffer[sizeof(int)];
 	unsigned int size;
 	symbol_to_buffer(buffer, &size, symbol);
 
-	state = _add_action_buffer(from, buffer, size, action, reduction, state);
+	State * state = c_new(State, 1);
+	_state_init(state, action, reduction);
+	//TODO: risk of leak when transitioning using the same symbol
+	// on the same state twice.
+	radix_tree_set(&from->next, buffer, size, state);
+
 	trace("add", from, state, symbol, "action");
 	return state;
 }
@@ -349,7 +354,7 @@ State *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, int
 	cur->fsm->start = cur->current;
 	//TODO: calling fsm_cursor_set_start multiple times may cause
 	// leaks if adding a duplicate accept action to the state.
-	cur->current = _add_action(cur->current, symbol, ACTION_TYPE_ACCEPT, NONE, NULL);
+	cur->current = _add_action(cur->current, symbol, ACTION_TYPE_ACCEPT, NONE);
 	//TODO: cur->previous = NULL;
 }
 
@@ -358,7 +363,7 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 	if(nt) {
 		//TODO: May cause leaks if L_EOF previously added
 		trace_non_terminal("main", nt->name, nt->length);
-		_add_action(nt->end, eof_symbol, ACTION_TYPE_REDUCE, nt->symbol, NULL);
+		_add_action(nt->end, eof_symbol, ACTION_TYPE_REDUCE, nt->symbol);
 		fsm_cursor_set_start(cur, nt->name, nt->length, nt->symbol);
 	}
 	
@@ -394,7 +399,7 @@ void fsm_cursor_add_shift(FsmCursor *cur, int symbol)
 	} else {
 		action = ACTION_TYPE_SHIFT;
 	}
-	State *state = _add_action(cur->current, symbol, action, NONE, NULL);
+	State *state = _add_action(cur->current, symbol, action, NONE);
 	cur->last_non_terminal->end = state;
 	cur->previous = cur->current;
 	cur->last_symbol = symbol;
@@ -406,7 +411,7 @@ void fsm_cursor_add_shift(FsmCursor *cur, int symbol)
  */
 void fsm_cursor_add_context_shift(FsmCursor *cur, int symbol)
 {
-	State *state = _add_action(cur->current, symbol, ACTION_TYPE_CONTEXT_SHIFT, NONE, NULL);
+	State *state = _add_action(cur->current, symbol, ACTION_TYPE_CONTEXT_SHIFT, NONE);
 	cur->last_non_terminal->end = state;
 	cur->previous = cur->current;
 	cur->last_symbol = symbol;
@@ -420,7 +425,7 @@ void fsm_cursor_add_followset(FsmCursor *cur, State *state)
 
 void fsm_cursor_add_reduce(FsmCursor *cur, int symbol, int reduction)
 {
-	_add_action(cur->current, symbol, ACTION_TYPE_REDUCE, reduction, NULL);
+	_add_action(cur->current, symbol, ACTION_TYPE_REDUCE, reduction);
 }
 
 Session *session_set_handler(Session *session, FsmHandler handler, void *target)
