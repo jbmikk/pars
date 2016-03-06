@@ -581,19 +581,20 @@ void radix_tree_dispose(Node *tree)
 	}
 }
 
-void radix_tree_iterator_init(Node *tree, Iterator *iterator)
+void radix_tree_iterator_init(Iterator *iterator, Node *tree)
 {
+	iterator->root = tree;
 	iterator->key = NULL;
 	iterator->size = 0;
 	iterator->data= NULL;
 }
 
-void radix_tree_iterator_dispose(Node *tree, Iterator *iterator)
+void radix_tree_iterator_dispose(Iterator *iterator)
 {
 	c_delete(iterator->key);
 }
 
-void **radix_tree_iterator_next(Node *tree, Iterator *iterator)
+void **radix_tree_iterator_next(Iterator *iterator)
 {
 	DataNode *res;
 	ScanStatus status;
@@ -601,7 +602,7 @@ void **radix_tree_iterator_next(Node *tree, Iterator *iterator)
 
 	init_status(&status, &poststatus, iterator->key, iterator->size);
 
-	res = radix_tree_scan(tree, &status, &poststatus);
+	res = radix_tree_scan(iterator->root, &status, &poststatus);
 
 	if(iterator->key) {
 		c_delete(iterator->key);

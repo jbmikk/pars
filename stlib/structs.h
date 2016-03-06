@@ -14,6 +14,7 @@ typedef struct _DataNode {
 } DataNode;
 
 typedef struct _Iterator {
+    Node *root;
     void *key;
     unsigned char size;
     void *data;

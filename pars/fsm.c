@@ -84,11 +84,11 @@ void _fsm_get_actions(Node *actions, Action *action)
 
 		Action *st;
 		Iterator it;
-		radix_tree_iterator_init(&(action->next), &it);
-		while(st = (Action *)radix_tree_iterator_next(&(action->next), &it)) {
+		radix_tree_iterator_init(&it, &(action->next));
+		while(st = (Action *)radix_tree_iterator_next(&it)) {
 			_fsm_get_actions(actions, st);
 		}
-		radix_tree_iterator_dispose(&(action->next), &it);
+		radix_tree_iterator_dispose(&it);
 	}
 }
 
@@ -105,8 +105,8 @@ void fsm_dispose(Fsm *fsm)
 		_fsm_get_actions(&all_actions, fsm->start);
 	}
 
-	radix_tree_iterator_init(&(fsm->rules), &it);
-	while(nt = (NonTerminal *)radix_tree_iterator_next(&(fsm->rules), &it)) {
+	radix_tree_iterator_init(&it, &(fsm->rules));
+	while(nt = (NonTerminal *)radix_tree_iterator_next(&it)) {
 		//Get all actions reachable through other rules
 		_fsm_get_actions(&all_actions, nt->start);
 		c_delete(nt->name);
@@ -125,17 +125,17 @@ void fsm_dispose(Fsm *fsm)
 		}
 		c_delete(nt);
 	}
-	radix_tree_iterator_dispose(&(fsm->rules), &it);
+	radix_tree_iterator_dispose(&it);
 	radix_tree_dispose(&(fsm->rules));
 
 	//Delete all actions
 	Action *st;
-	radix_tree_iterator_init(&all_actions, &it);
-	while(st = (Action *)radix_tree_iterator_next(&all_actions, &it)) {
+	radix_tree_iterator_init(&it, &all_actions);
+	while(st = (Action *)radix_tree_iterator_next(&it)) {
 		radix_tree_dispose(&st->next);
 		c_delete(st);
 	}
-	radix_tree_iterator_dispose(&all_actions, &it);
+	radix_tree_iterator_dispose(&it);
 
 	radix_tree_dispose(&all_actions);
 }
@@ -324,24 +324,24 @@ void _add_followset(Action *from, Action *action)
 {
 	Action *s;
 	Iterator it;
-	radix_tree_iterator_init(&(action->next), &it);
-	while(s = (Action *)radix_tree_iterator_next(&(action->next), &it)) {
+	radix_tree_iterator_init(&it, &(action->next));
+	while(s = (Action *)radix_tree_iterator_next(&it)) {
 		_add_action_buffer(from, it.key, it.size, 0, 0, s);
 		trace("add", from, s, buffer_to_symbol(it.key, it.size), "follow");
 	}
-	radix_tree_iterator_dispose(&(action->next), &it);
+	radix_tree_iterator_dispose(&it);
 }
 
 void _reduce_followset(Action *from, Action *to, int symbol)
 {
 	Action *s;
 	Iterator it;
-	radix_tree_iterator_init(&(to->next), &it);
-	while(s = (Action *)radix_tree_iterator_next(&(to->next), &it)) {
+	radix_tree_iterator_init(&it, &(to->next));
+	while(s = (Action *)radix_tree_iterator_next(&it)) {
 		_add_action_buffer(from, it.key, it.size, ACTION_TYPE_REDUCE, symbol, NULL);
 		trace("add", from, s, buffer_to_symbol(it.key, it.size), "reduce-follow");
 	}
-	radix_tree_iterator_dispose(&(to->next), &it);
+	radix_tree_iterator_dispose(&it);
 }
 
 Action *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, int symbol)
@@ -367,8 +367,8 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 	Node * rules = &cur->fsm->rules;
 
 	Iterator it;
-	radix_tree_iterator_init(rules, &it);
-	while(nt = (NonTerminal *)radix_tree_iterator_next(rules, &it)) {
+	radix_tree_iterator_init(&it, rules);
+	while(nt = (NonTerminal *)radix_tree_iterator_next(&it)) {
 		Reference *ref;
 		ref = nt->child_refs;
 		trace_non_terminal("solve", nt->name, nt->length);
@@ -384,7 +384,7 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 			ref = ref->next;
 		}
 	}
-	radix_tree_iterator_dispose(rules, &it);
+	radix_tree_iterator_dispose(&it);
 }
 
 void fsm_cursor_add_shift(FsmCursor *cur, int symbol)
