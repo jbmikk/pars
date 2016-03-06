@@ -162,13 +162,14 @@ void ebnf_build_single_definition(FsmCursor *f_cur, AstCursor *a_cur)
 void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur)
 {
 	ast_cursor_depth_next_symbol(a_cur, E_SINGLE_DEFINITION);
+	fsm_cursor_push(f_cur);
 	do {
 		ast_cursor_push(a_cur);
-		fsm_cursor_push(f_cur);
 		ebnf_build_single_definition(f_cur, a_cur);
-		fsm_cursor_pop(f_cur);
+		fsm_cursor_reset(f_cur);
 		ast_cursor_pop(a_cur);
 	} while(ast_cursor_next_sibling_symbol(a_cur, E_SINGLE_DEFINITION));
+	fsm_cursor_pop(f_cur);
 }
 
 void ebnf_build_non_terminal_declaration(FsmCursor *f_cur, AstCursor *a_cur)

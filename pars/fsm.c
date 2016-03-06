@@ -206,6 +206,11 @@ void fsm_cursor_pop(FsmCursor *cursor)
 	cursor->stack = stack_pop(cursor->stack);
 }
 
+void fsm_cursor_reset(FsmCursor *cursor) 
+{
+	cursor->current = (State *)cursor->stack->data;
+}
+
 void fsm_cursor_push_followset(FsmCursor *cursor) 
 {
 	cursor->followset_stack = stack_push(cursor->followset_stack, cursor->current);
