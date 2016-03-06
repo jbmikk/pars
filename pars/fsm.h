@@ -42,6 +42,8 @@ typedef struct _Fsm {
 typedef struct _FsmCursor {
 	Fsm *fsm;
 	State *current;
+	State *previous;
+	int last_symbol;
 	SNode *stack;
 	SNode *continuations;
 	NonTerminal *last_non_terminal;
@@ -90,7 +92,10 @@ void fsm_cursor_push(FsmCursor *cur);
 void fsm_cursor_pop(FsmCursor *cur);
 void fsm_cursor_reset(FsmCursor *cur);
 void fsm_cursor_push_continuation(FsmCursor *cur);
+void fsm_cursor_push_new_continuation(FsmCursor *cur);
 State *fsm_cursor_pop_continuation(FsmCursor *cur);
+void fsm_cursor_join_continuation(FsmCursor *cur);
+void fsm_cursor_follow_continuation(FsmCursor *cur);
 void fsm_cursor_dispose(FsmCursor *cur);
 
 void fsm_cursor_add_shift(FsmCursor *cur, int symbol);

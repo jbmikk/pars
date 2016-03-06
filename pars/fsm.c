@@ -203,17 +203,28 @@ void fsm_cursor_push(FsmCursor *cursor)
 void fsm_cursor_pop(FsmCursor *cursor) 
 {
 	cursor->current = (State *)cursor->stack->data;
+	cursor->previous = NULL;
 	cursor->stack = stack_pop(cursor->stack);
 }
 
 void fsm_cursor_reset(FsmCursor *cursor) 
 {
 	cursor->current = (State *)cursor->stack->data;
+	cursor->previous = NULL;
 }
 
 void fsm_cursor_push_continuation(FsmCursor *cursor)
 {
 	cursor->continuations = stack_push(cursor->continuations, cursor->current);
+}
+
+void fsm_cursor_push_new_continuation(FsmCursor *cursor)
+{
+	State *state = c_new(State, 1);
+	STATE_INIT(*state, ACTION_TYPE_SHIFT, NONE);
+	radix_tree_init(&state->next, 0, 0, NULL);
+	cursor->continuations = stack_push(cursor->continuations, state);
+	trace("add", state, NULL, 0, "continuation");
 }
 
 State *fsm_cursor_pop_continuation(FsmCursor *cursor)
@@ -223,9 +234,36 @@ State *fsm_cursor_pop_continuation(FsmCursor *cursor)
 	return state;
 }
 
+void fsm_cursor_join_continuation(FsmCursor *cursor)
+{
+	State *cont = (State *)cursor->continuations->data;
+	int symbol = cursor->last_symbol;
+
+	trace("add", cursor->previous, cont, symbol, "join");
+
+	State *old = radix_tree_get_int(&cursor->previous->next, symbol);
+	//TODO: Ugly hack. This will not work for mixed branches.
+	//Branches with a single transition mixed with branches with
+	//multiple transitions will have different actions (shift + cs);
+	cont->type = old->type;
+
+	radix_tree_set_int(&cursor->previous->next, symbol, cont);
+	radix_tree_dispose(&old->next);
+	c_delete(old);
+
+	cursor->current = cont;
+	cursor->last_non_terminal->end = cont;
+}
+
+void fsm_cursor_follow_continuation(FsmCursor *cursor)
+{
+	cursor->current = fsm_cursor_pop_continuation(cursor);
+}
+
 void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length)
 {
 	cur->current = fsm_get_state(cur->fsm, name, length);
+	cur->previous = NULL;
 }
 
 void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
@@ -233,6 +271,7 @@ void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 	NonTerminal *nt = fsm_create_non_terminal(cur->fsm, name, length);
 	cur->last_non_terminal = nt;
 	cur->current = nt->start;
+	cur->previous = NULL;
 	trace_non_terminal("set", name, length);
 }
 
@@ -314,6 +353,7 @@ State *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, int
 	//TODO: calling fsm_cursor_set_start multiple times may cause
 	// leaks if adding a duplicate accept action to the state.
 	cur->current = _add_action(cur->current, symbol, ACTION_TYPE_ACCEPT, NONE, NULL);
+	//TODO: cur->previous = NULL;
 }
 
 void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
@@ -359,6 +399,8 @@ void fsm_cursor_add_shift(FsmCursor *cur, int symbol)
 	}
 	State *state = _add_action(cur->current, symbol, action, NONE, NULL);
 	cur->last_non_terminal->end = state;
+	cur->previous = cur->current;
+	cur->last_symbol = symbol;
 	cur->current = state;
 }
 
@@ -369,6 +411,8 @@ void fsm_cursor_add_context_shift(FsmCursor *cur, int symbol)
 {
 	State *state = _add_action(cur->current, symbol, ACTION_TYPE_CONTEXT_SHIFT, NONE, NULL);
 	cur->last_non_terminal->end = state;
+	cur->previous = cur->current;
+	cur->last_symbol = symbol;
 	cur->current = state;
 }
 
