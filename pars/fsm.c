@@ -5,11 +5,6 @@
 #include "radixtree.h"
 #include "symbols.h"
 
-#define STATE_INIT(V, T, R) (\
-		(V).type = (T),\
-		(V).reduction = (R)\
-	)
-
 #define NONE 0
 #include <stdio.h>
 #include <stdint.h>
@@ -21,6 +16,13 @@
 #define trace(M, T1, T2, S, A)
 #define trace_non_terminal(M, S, L)
 #endif
+
+void _state_init(State *state, char action, int reduction)
+{
+	state->type = action;
+	state->reduction = reduction;
+	radix_tree_init(&state->next, 0, 0, NULL);
+}
 
 void session_init(Session *session, Fsm *fsm)
 {
@@ -65,8 +67,7 @@ void fsm_init(Fsm *fsm)
 	radix_tree_init(&fsm->rules, 0, 0, NULL);
 	fsm->symbol_base = -1;
 	fsm->start = NULL;
-	STATE_INIT(fsm->error, ACTION_TYPE_ERROR, NONE);
-	radix_tree_init(&fsm->error.next, 0, 0, NULL);
+	_state_init(&fsm->error, ACTION_TYPE_ERROR, NONE);
 }
 
 void _fsm_get_states(Node *states, State *state)
@@ -151,8 +152,7 @@ NonTerminal *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 	if(non_terminal == NULL) {
 		non_terminal = c_new(NonTerminal, 1);
 		state = c_new(State, 1);
-		STATE_INIT(*state, ACTION_TYPE_SHIFT, NONE);
-		radix_tree_init(&state->next, 0, 0, NULL);
+		_state_init(state, ACTION_TYPE_SHIFT, NONE);
 		non_terminal->start = state;
 		non_terminal->end = state;
 		non_terminal->symbol = fsm->symbol_base--;
@@ -221,8 +221,7 @@ void fsm_cursor_push_continuation(FsmCursor *cursor)
 void fsm_cursor_push_new_continuation(FsmCursor *cursor)
 {
 	State *state = c_new(State, 1);
-	STATE_INIT(*state, ACTION_TYPE_SHIFT, NONE);
-	radix_tree_init(&state->next, 0, 0, NULL);
+	_state_init(state, ACTION_TYPE_SHIFT, NONE);
 	cursor->continuations = stack_push(cursor->continuations, state);
 	trace("add", state, NULL, 0, "continuation");
 }
@@ -300,9 +299,7 @@ State *_add_action_buffer(State *from, unsigned char *buffer, unsigned int size,
 {
 	if(state == NULL) {
 		state = c_new(State, 1);
-		STATE_INIT(*state, action, reduction);
-		radix_tree_init(&state->next, 0, 0, NULL);
-		//trace("init", state, action, "");
+		_state_init(state, action, reduction);
 	}
 
 	//TODO: risk of leak when transitioning using the same symbol
