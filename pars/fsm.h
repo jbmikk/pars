@@ -13,7 +13,7 @@
 typedef struct _Action {
 	char type;
 	int reduction;
-	Node next;
+	Node actions;
 } Action;
 
 typedef struct _NonTerminal {

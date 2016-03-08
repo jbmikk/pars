@@ -21,7 +21,7 @@ void _action_init(Action *action, char type, int reduction)
 {
 	action->type = type;
 	action->reduction = reduction;
-	radix_tree_init(&action->next, 0, 0, NULL);
+	radix_tree_init(&action->actions, 0, 0, NULL);
 }
 
 void session_init(Session *session, Fsm *fsm)
@@ -84,7 +84,7 @@ void _fsm_get_actions(Node *actions, Action *action)
 
 		Action *st;
 		Iterator it;
-		radix_tree_iterator_init(&it, &(action->next));
+		radix_tree_iterator_init(&it, &(action->actions));
 		while(st = (Action *)radix_tree_iterator_next(&it)) {
 			_fsm_get_actions(actions, st);
 		}
@@ -132,7 +132,7 @@ void fsm_dispose(Fsm *fsm)
 	Action *st;
 	radix_tree_iterator_init(&it, &all_actions);
 	while(st = (Action *)radix_tree_iterator_next(&it)) {
-		radix_tree_dispose(&st->next);
+		radix_tree_dispose(&st->actions);
 		c_delete(st);
 	}
 	radix_tree_iterator_dispose(&it);
@@ -240,14 +240,14 @@ void fsm_cursor_join_continuation(FsmCursor *cursor)
 
 	trace("add", cursor->previous, cont, symbol, "join");
 
-	Action *old = radix_tree_get_int(&cursor->previous->next, symbol);
+	Action *old = radix_tree_get_int(&cursor->previous->actions, symbol);
 	//TODO: Ugly hack. This will not work for mixed branches.
 	//Branches with a single transition mixed with branches with
 	//multiple transitions will have different actions (shift + cs);
 	cont->type = old->type;
 
-	radix_tree_set_int(&cursor->previous->next, symbol, cont);
-	radix_tree_dispose(&old->next);
+	radix_tree_set_int(&cursor->previous->actions, symbol, cont);
+	radix_tree_dispose(&old->actions);
 	c_delete(old);
 
 	cursor->current = cont;
@@ -304,7 +304,7 @@ Action *_add_action_buffer(Action *from, unsigned char *buffer, unsigned int siz
 
 	//TODO: risk of leak when transitioning using the same symbol
 	// on the same action twice.
-	radix_tree_set(&from->next, buffer, size, action);
+	radix_tree_set(&from->actions, buffer, size, action);
 	return action;
 }
 
@@ -314,7 +314,7 @@ Action *_add_action(Action *from, int symbol, int type, int reduction)
 	_action_init(action, type, reduction);
 	//TODO: risk of leak when transitioning using the same symbol
 	// on the same action twice.
-	radix_tree_set_int(&from->next, symbol, action);
+	radix_tree_set_int(&from->actions, symbol, action);
 
 	trace("add", from, action, symbol, "action");
 	return action;
@@ -324,7 +324,7 @@ void _add_followset(Action *from, Action *action)
 {
 	Action *s;
 	Iterator it;
-	radix_tree_iterator_init(&it, &(action->next));
+	radix_tree_iterator_init(&it, &(action->actions));
 	while(s = (Action *)radix_tree_iterator_next(&it)) {
 		_add_action_buffer(from, it.key, it.size, 0, 0, s);
 		trace("add", from, s, buffer_to_symbol(it.key, it.size), "follow");
@@ -336,7 +336,7 @@ void _reduce_followset(Action *from, Action *to, int symbol)
 {
 	Action *s;
 	Iterator it;
-	radix_tree_iterator_init(&it, &(to->next));
+	radix_tree_iterator_init(&it, &(to->actions));
 	while(s = (Action *)radix_tree_iterator_next(&it)) {
 		_add_action_buffer(from, it.key, it.size, ACTION_TYPE_REDUCE, symbol, NULL);
 		trace("add", from, s, buffer_to_symbol(it.key, it.size), "reduce-follow");
@@ -379,7 +379,7 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 
 		ref = nt->parent_refs;
 		while(ref) {
-			Action *cont = radix_tree_get_int(&ref->action->next, nt->symbol);
+			Action *cont = radix_tree_get_int(&ref->action->actions, nt->symbol);
 			_reduce_followset(nt->end, cont, nt->symbol);
 			ref = ref->next;
 		}
@@ -435,7 +435,7 @@ Action *session_test(Session *session, int symbol, unsigned int index, unsigned 
 	Action *action;
 	Action *prev;
 
-	action = radix_tree_get_int(&session->current->next, symbol);
+	action = radix_tree_get_int(&session->current->actions, symbol);
 	if(action == NULL) {
 		if(session->current->type != ACTION_TYPE_ACCEPT) {
 			trace("test", session->current, action, symbol, "error");
@@ -470,7 +470,7 @@ void session_match(Session *session, int symbol, unsigned int index, unsigned in
 rematch:
 	session->index = index;
 	session->length = length;
-	action = radix_tree_get_int(&session->current->next, symbol);
+	action = radix_tree_get_int(&session->current->actions, symbol);
 	if(action == NULL) {
 		if(session->current->type != ACTION_TYPE_ACCEPT) {
 			trace("match", session->current, action, symbol, "error");
