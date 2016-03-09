@@ -10,10 +10,14 @@
 #define ACTION_TYPE_ACCEPT 4
 #define ACTION_TYPE_ERROR 5
 
+typedef struct _State {
+	Node actions;
+} State;
+
 typedef struct _Action {
 	char type;
 	int reduction;
-	Node actions;
+	State *state;
 } Action;
 
 typedef struct _NonTerminal {
@@ -42,8 +46,6 @@ typedef struct _Fsm {
 typedef struct _FsmCursor {
 	Fsm *fsm;
 	Action *current;
-	Action *previous;
-	int last_symbol;
 	SNode *stack;
 	SNode *continuations;
 	NonTerminal *last_non_terminal;
@@ -83,6 +85,7 @@ void fsm_init(Fsm *fsm);
 void fsm_dispose(Fsm *fsm);
 NonTerminal *fsm_get_non_terminal(Fsm *fsm, unsigned char *name, int length);
 Action *fsm_get_action(Fsm *fsm, unsigned char *name, int length);
+State *fsm_get_state(Fsm *fsm, unsigned char *name, int length);
 
 void fsm_cursor_init(FsmCursor *cur, Fsm *fsm);
 void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length);
@@ -93,14 +96,13 @@ void fsm_cursor_pop(FsmCursor *cur);
 void fsm_cursor_reset(FsmCursor *cur);
 void fsm_cursor_push_continuation(FsmCursor *cur);
 void fsm_cursor_push_new_continuation(FsmCursor *cur);
-Action *fsm_cursor_pop_continuation(FsmCursor *cur);
+State *fsm_cursor_pop_continuation(FsmCursor *cur);
 void fsm_cursor_join_continuation(FsmCursor *cur);
-void fsm_cursor_follow_continuation(FsmCursor *cur);
 void fsm_cursor_dispose(FsmCursor *cur);
 
 void fsm_cursor_add_shift(FsmCursor *cur, int symbol);
 void fsm_cursor_add_context_shift(FsmCursor *cur, int symbol);
-void fsm_cursor_add_followset(FsmCursor *cur, Action *action);
+void fsm_cursor_add_followset(FsmCursor *cur, State *state);
 void fsm_cursor_add_reduce(FsmCursor *cur, int symbol, int reduction);
 FsmCursor *fsm_set_start(Fsm *fsm, unsigned char *name, int length, int symbol);
 Session *session_set_handler(Session *session, FsmHandler handler, void *target);

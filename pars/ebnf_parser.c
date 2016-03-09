@@ -39,33 +39,33 @@ void ebnf_init_fsm(Fsm *fsm)
 
 	//Single Definition
 	fsm_cursor_define(&cur, nzs("single_definition"));
-	fsm_cursor_add_followset(&cur, fsm_get_action(fsm, nzs("expression")));
+	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, nzs("expression")));
 	fsm_cursor_add_context_shift(&cur, E_EXPRESSION);
 	fsm_cursor_push_continuation(&cur);
 	fsm_cursor_add_reduce(&cur, L_DEFINITION_SEPARATOR_SYMBOL, E_SINGLE_DEFINITION);
 	fsm_cursor_add_reduce(&cur, L_TERMINATOR_SYMBOL, E_SINGLE_DEFINITION);
 	fsm_cursor_add_reduce(&cur, L_END_GROUP_SYMBOL, E_SINGLE_DEFINITION);
 	fsm_cursor_add_shift(&cur, L_CONCATENATE_SYMBOL);
-	fsm_cursor_add_followset(&cur, fsm_get_action(fsm, nzs("expression")));
+	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, nzs("expression")));
 	fsm_cursor_add_shift(&cur, E_EXPRESSION);
 	//Loop using first state followset to avoid context shift
 	fsm_cursor_add_followset(&cur, fsm_cursor_pop_continuation(&cur));
 
 	//Definitions List
 	fsm_cursor_define(&cur, nzs("definitions_list"));
-	fsm_cursor_add_followset(&cur, fsm_get_action(fsm, nzs("single_definition")));
+	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, nzs("single_definition")));
 	fsm_cursor_add_context_shift(&cur, E_SINGLE_DEFINITION);
 	fsm_cursor_push_continuation(&cur);
 	fsm_cursor_add_reduce(&cur, L_TERMINATOR_SYMBOL, E_DEFINITIONS_LIST);
 	fsm_cursor_add_reduce(&cur, L_END_GROUP_SYMBOL, E_DEFINITIONS_LIST);
 	fsm_cursor_add_shift(&cur, L_DEFINITION_SEPARATOR_SYMBOL);
-	fsm_cursor_add_followset(&cur, fsm_get_action(fsm, nzs("single_definition")));
+	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, nzs("single_definition")));
 	fsm_cursor_add_shift(&cur, E_SINGLE_DEFINITION);
 	fsm_cursor_add_followset(&cur, fsm_cursor_pop_continuation(&cur));
 
 	//Finish Expression
 	fsm_cursor_pop(&cur);
-	fsm_cursor_add_followset(&cur, fsm_get_action(fsm, nzs("definitions_list")));
+	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, nzs("definitions_list")));
 	fsm_cursor_add_shift(&cur, E_DEFINITIONS_LIST);
 	fsm_cursor_add_shift(&cur, L_END_GROUP_SYMBOL);
 	fsm_cursor_add_reduce(&cur, L_CONCATENATE_SYMBOL, E_EXPRESSION);
@@ -77,7 +77,7 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_define(&cur, nzs("non_terminal_declaration"));
 	fsm_cursor_add_context_shift(&cur, L_IDENTIFIER);
 	fsm_cursor_add_shift(&cur, L_DEFINING_SYMBOL);
-	fsm_cursor_add_followset(&cur, fsm_get_action(fsm, nzs("definitions_list")));
+	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, nzs("definitions_list")));
 	fsm_cursor_add_shift(&cur, E_DEFINITIONS_LIST);
 	fsm_cursor_add_shift(&cur, L_TERMINATOR_SYMBOL);
 	fsm_cursor_add_reduce(&cur, L_IDENTIFIER, E_NON_TERMINAL_DECLARATION);
@@ -85,11 +85,11 @@ void ebnf_init_fsm(Fsm *fsm)
 
 	//Syntax
 	fsm_cursor_define(&cur, "syntax", 6);
-	fsm_cursor_add_followset(&cur, fsm_get_action(fsm, nzs("non_terminal_declaration")));
+	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, nzs("non_terminal_declaration")));
 	fsm_cursor_add_context_shift(&cur, E_NON_TERMINAL_DECLARATION);
 	fsm_cursor_push_continuation(&cur);
 	fsm_cursor_add_reduce(&cur, L_EOF, E_SYNTAX);
-	fsm_cursor_add_followset(&cur, fsm_get_action(fsm, nzs("non_terminal_declaration")));
+	fsm_cursor_add_followset(&cur, fsm_get_state(fsm, nzs("non_terminal_declaration")));
 	fsm_cursor_add_shift(&cur, E_NON_TERMINAL_DECLARATION);
 	fsm_cursor_add_followset(&cur, fsm_cursor_pop_continuation(&cur));
 
@@ -171,7 +171,6 @@ void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur)
 		fsm_cursor_reset(f_cur);
 		ast_cursor_pop(a_cur);
 	} while(ast_cursor_next_sibling_symbol(a_cur, E_SINGLE_DEFINITION));
-	fsm_cursor_follow_continuation(f_cur);
 	fsm_cursor_pop(f_cur);
 }
 

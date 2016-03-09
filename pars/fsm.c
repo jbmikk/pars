@@ -11,17 +11,24 @@
 
 #ifdef FSM_TRACE
 #define trace(M, T1, T2, S, A) printf("trace: [%p -> %p] %-5s: %-13s (%3i = '%c')\n", T1, T2, M, A, S, (char)S);
+#define trace_state(M, S1, S2, A) printf("trace: [%p -> %p] %-5s: %-13s\n", S1, S2, M, A);
 #define trace_non_terminal(M, S, L) printf("trace: %-5s: %.*s\n", M, L, S);
 #else
 #define trace(M, T1, T2, S, A)
+#define trace_state(M, S1, S2, A)
 #define trace_non_terminal(M, S, L)
 #endif
 
-void _action_init(Action *action, char type, int reduction)
+void _state_init(State *state)
+{
+	radix_tree_init(&state->actions, 0, 0, NULL);
+}
+
+void _action_init(Action *action, char type, int reduction, State *state)
 {
 	action->type = type;
 	action->reduction = reduction;
-	radix_tree_init(&action->actions, 0, 0, NULL);
+	action->state = state;
 }
 
 void session_init(Session *session, Fsm *fsm)
@@ -67,48 +74,60 @@ void fsm_init(Fsm *fsm)
 	radix_tree_init(&fsm->rules, 0, 0, NULL);
 	fsm->symbol_base = -1;
 	fsm->start = NULL;
-	_action_init(&fsm->error, ACTION_TYPE_ERROR, NONE);
+	_action_init(&fsm->error, ACTION_TYPE_ERROR, NONE, NULL);
 }
 
-void _fsm_get_actions(Node *actions, Action *action)
+void _fsm_get_actions(Node *actions, Node *states, Action *action)
 {
 	unsigned char buffer[sizeof(intptr_t)];
 	unsigned int size;
 	//TODO: Should have a separate ptr_to_buffer function
 	symbol_to_buffer(buffer, &size, (intptr_t)action);
 
-	Action *contained = radix_tree_get(actions, buffer, size);
+	Action *in_actions = radix_tree_get(actions, buffer, size);
 
-	if(!contained) {
+	if(!in_actions) {
 		radix_tree_set(actions, buffer, size, action);
 
-		Action *st;
-		Iterator it;
-		radix_tree_iterator_init(&it, &(action->actions));
-		while(st = (Action *)radix_tree_iterator_next(&it)) {
-			_fsm_get_actions(actions, st);
+		State *state = action->state;
+		if(state) {
+			Action *ac;
+			Iterator it;
+			radix_tree_iterator_init(&it, &(state->actions));
+			while(ac = (Action *)radix_tree_iterator_next(&it)) {
+				_fsm_get_actions(actions, states, ac);
+			}
+			radix_tree_iterator_dispose(&it);
+
+			//Add state to states
+			symbol_to_buffer(buffer, &size, (intptr_t)state);
+			State *in_states = radix_tree_get(states, buffer, size);
+			if(!in_states) {
+				radix_tree_set(states, buffer, size, state);
+			}
 		}
-		radix_tree_iterator_dispose(&it);
 	}
 }
 
 void fsm_dispose(Fsm *fsm)
 {
 	Node all_actions;
+	Node all_states;
 	NonTerminal *nt;
 	Iterator it;
 
 	radix_tree_init(&all_actions, 0, 0, NULL);
+	radix_tree_init(&all_states, 0, 0, NULL);
 
 	//Get all actions reachable through the starting action
 	if(fsm->start) {
-		_fsm_get_actions(&all_actions, fsm->start);
+		_fsm_get_actions(&all_actions, &all_states, fsm->start);
 	}
 
 	radix_tree_iterator_init(&it, &(fsm->rules));
 	while(nt = (NonTerminal *)radix_tree_iterator_next(&it)) {
 		//Get all actions reachable through other rules
-		_fsm_get_actions(&all_actions, nt->start);
+		_fsm_get_actions(&all_actions, &all_states, nt->start);
 		c_delete(nt->name);
 		Reference *ref;
 		ref = nt->child_refs;
@@ -129,15 +148,25 @@ void fsm_dispose(Fsm *fsm)
 	radix_tree_dispose(&(fsm->rules));
 
 	//Delete all actions
-	Action *st;
+	Action *ac;
 	radix_tree_iterator_init(&it, &all_actions);
-	while(st = (Action *)radix_tree_iterator_next(&it)) {
+	while(ac = (Action *)radix_tree_iterator_next(&it)) {
+		c_delete(ac);
+	}
+	radix_tree_iterator_dispose(&it);
+
+	radix_tree_dispose(&all_actions);
+
+	//Delete all states
+	State *st;
+	radix_tree_iterator_init(&it, &all_states);
+	while(st = (State *)radix_tree_iterator_next(&it)) {
 		radix_tree_dispose(&st->actions);
 		c_delete(st);
 	}
 	radix_tree_iterator_dispose(&it);
 
-	radix_tree_dispose(&all_actions);
+	radix_tree_dispose(&all_states);
 }
 
 NonTerminal *fsm_get_non_terminal(Fsm *fsm, unsigned char *name, int length)
@@ -152,7 +181,7 @@ NonTerminal *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 	if(non_terminal == NULL) {
 		non_terminal = c_new(NonTerminal, 1);
 		action = c_new(Action, 1);
-		_action_init(action, ACTION_TYPE_SHIFT, NONE);
+		_action_init(action, ACTION_TYPE_SHIFT, NONE, NULL);
 		non_terminal->start = action;
 		non_terminal->end = action;
 		non_terminal->symbol = fsm->symbol_base--;
@@ -176,6 +205,11 @@ NonTerminal *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 Action *fsm_get_action(Fsm *fsm, unsigned char *name, int length)
 {
 	return fsm_get_non_terminal(fsm, name, length)->start;
+}
+
+State *fsm_get_state(Fsm *fsm, unsigned char *name, int length)
+{
+	return fsm_get_non_terminal(fsm, name, length)->start->state;
 }
 
 void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
@@ -203,66 +237,55 @@ void fsm_cursor_push(FsmCursor *cursor)
 void fsm_cursor_pop(FsmCursor *cursor) 
 {
 	cursor->current = (Action *)cursor->stack->data;
-	cursor->previous = NULL;
 	cursor->stack = stack_pop(cursor->stack);
 }
 
 void fsm_cursor_reset(FsmCursor *cursor) 
 {
 	cursor->current = (Action *)cursor->stack->data;
-	cursor->previous = NULL;
 }
 
 void fsm_cursor_push_continuation(FsmCursor *cursor)
 {
-	cursor->continuations = stack_push(cursor->continuations, cursor->current);
+	State *state;
+	if(cursor->current->state) {
+		state = cursor->current->state;
+	} else {
+		state = c_new(State, 1);
+		_state_init(state);
+		cursor->current->state = state;
+	}
+
+	cursor->continuations = stack_push(cursor->continuations, state);
 }
 
 void fsm_cursor_push_new_continuation(FsmCursor *cursor)
 {
-	Action *action = c_new(Action, 1);
-	_action_init(action, ACTION_TYPE_SHIFT, NONE);
-	cursor->continuations = stack_push(cursor->continuations, action);
-	trace("add", action, NULL, 0, "continuation");
+	State *state = c_new(State, 1);
+	_state_init(state);
+	cursor->continuations = stack_push(cursor->continuations, state);
+	trace_state("add", state, NULL, "continuation");
 }
 
-Action *fsm_cursor_pop_continuation(FsmCursor *cursor)
+State *fsm_cursor_pop_continuation(FsmCursor *cursor)
 {
-	Action *action = (Action *)cursor->continuations->data;
+	State *state = (State *)cursor->continuations->data;
 	cursor->continuations = stack_pop(cursor->continuations);
-	return action;
+	return state;
 }
 
 void fsm_cursor_join_continuation(FsmCursor *cursor)
 {
-	Action *cont = (Action *)cursor->continuations->data;
-	int symbol = cursor->last_symbol;
+	State *state = (State *)cursor->continuations->data;
 
-	trace("add", cursor->previous, cont, symbol, "join");
+	trace("add", cursor->current, state, 0, "join");
 
-	Action *old = radix_tree_get_int(&cursor->previous->actions, symbol);
-	//TODO: Ugly hack. This will not work for mixed branches.
-	//Branches with a single transition mixed with branches with
-	//multiple transitions will have different actions (shift + cs);
-	cont->type = old->type;
-
-	radix_tree_set_int(&cursor->previous->actions, symbol, cont);
-	radix_tree_dispose(&old->actions);
-	c_delete(old);
-
-	cursor->current = cont;
-	cursor->last_non_terminal->end = cont;
-}
-
-void fsm_cursor_follow_continuation(FsmCursor *cursor)
-{
-	cursor->current = fsm_cursor_pop_continuation(cursor);
+	cursor->current->state = state;
 }
 
 void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length)
 {
 	cur->current = fsm_get_action(cur->fsm, name, length);
-	cur->previous = NULL;
 }
 
 void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
@@ -270,7 +293,6 @@ void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 	NonTerminal *nt = fsm_create_non_terminal(cur->fsm, name, length);
 	cur->last_non_terminal = nt;
 	cur->current = nt->start;
-	cur->previous = NULL;
 	trace_non_terminal("set", name, length);
 }
 
@@ -299,47 +321,55 @@ Action *_add_action_buffer(Action *from, unsigned char *buffer, unsigned int siz
 {
 	if(action == NULL) {
 		action = c_new(Action, 1);
-		_action_init(action, type, reduction);
+		_action_init(action, type, reduction, NULL);
 	}
 
 	//TODO: risk of leak when transitioning using the same symbol
 	// on the same action twice.
-	radix_tree_set(&from->actions, buffer, size, action);
+	if(!from->state) {
+		from->state = c_new(State, 1);
+		_state_init(from->state);
+	}
+	radix_tree_set(&from->state->actions, buffer, size, action);
 	return action;
 }
 
 Action *_add_action(Action *from, int symbol, int type, int reduction)
 {
 	Action * action = c_new(Action, 1);
-	_action_init(action, type, reduction);
+	_action_init(action, type, reduction, NULL);
 	//TODO: risk of leak when transitioning using the same symbol
 	// on the same action twice.
-	radix_tree_set_int(&from->actions, symbol, action);
+	if(!from->state) {
+		from->state = c_new(State, 1);
+		_state_init(from->state);
+	}
+	radix_tree_set_int(&from->state->actions, symbol, action);
 
 	trace("add", from, action, symbol, "action");
 	return action;
 }
 
-void _add_followset(Action *from, Action *action)
+void _add_followset(Action *from, State* state)
 {
-	Action *s;
+	Action *ac;
 	Iterator it;
-	radix_tree_iterator_init(&it, &(action->actions));
-	while(s = (Action *)radix_tree_iterator_next(&it)) {
-		_add_action_buffer(from, it.key, it.size, 0, 0, s);
-		trace("add", from, s, buffer_to_symbol(it.key, it.size), "follow");
+	radix_tree_iterator_init(&it, &(state->actions));
+	while(ac = (Action *)radix_tree_iterator_next(&it)) {
+		_add_action_buffer(from, it.key, it.size, 0, 0, ac);
+		trace("add", from, ac, buffer_to_symbol(it.key, it.size), "follow");
 	}
 	radix_tree_iterator_dispose(&it);
 }
 
 void _reduce_followset(Action *from, Action *to, int symbol)
 {
-	Action *s;
+	Action *ac;
 	Iterator it;
-	radix_tree_iterator_init(&it, &(to->actions));
-	while(s = (Action *)radix_tree_iterator_next(&it)) {
+	radix_tree_iterator_init(&it, &(to->state->actions));
+	while(ac = (Action *)radix_tree_iterator_next(&it)) {
 		_add_action_buffer(from, it.key, it.size, ACTION_TYPE_REDUCE, symbol, NULL);
-		trace("add", from, s, buffer_to_symbol(it.key, it.size), "reduce-follow");
+		trace("add", from, ac, buffer_to_symbol(it.key, it.size), "reduce-follow");
 	}
 	radix_tree_iterator_dispose(&it);
 }
@@ -351,7 +381,10 @@ Action *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, in
 	//TODO: calling fsm_cursor_set_start multiple times may cause
 	// leaks if adding a duplicate accept action to the action.
 	cur->current = _add_action(cur->current, symbol, ACTION_TYPE_ACCEPT, NONE);
-	//TODO: cur->previous = NULL;
+
+	State *state = c_new(State, 1);
+	_state_init(state);
+	cur->current->state = state;
 }
 
 void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
@@ -373,13 +406,13 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 		ref = nt->child_refs;
 		trace_non_terminal("solve", nt->name, nt->length);
 		while(ref) {
-			_add_followset(ref->action, ref->non_terminal->start);
+			_add_followset(ref->action, ref->non_terminal->start->state);
 			ref = ref->next;
 		}
 
 		ref = nt->parent_refs;
 		while(ref) {
-			Action *cont = radix_tree_get_int(&ref->action->actions, nt->symbol);
+			Action *cont = radix_tree_get_int(&ref->action->state->actions, nt->symbol);
 			_reduce_followset(nt->end, cont, nt->symbol);
 			ref = ref->next;
 		}
@@ -397,8 +430,6 @@ void fsm_cursor_add_shift(FsmCursor *cur, int symbol)
 	}
 	Action *action = _add_action(cur->current, symbol, type, NONE);
 	cur->last_non_terminal->end = action;
-	cur->previous = cur->current;
-	cur->last_symbol = symbol;
 	cur->current = action;
 }
 
@@ -409,14 +440,12 @@ void fsm_cursor_add_context_shift(FsmCursor *cur, int symbol)
 {
 	Action *action = _add_action(cur->current, symbol, ACTION_TYPE_CONTEXT_SHIFT, NONE);
 	cur->last_non_terminal->end = action;
-	cur->previous = cur->current;
-	cur->last_symbol = symbol;
 	cur->current = action;
 }
 
-void fsm_cursor_add_followset(FsmCursor *cur, Action *action)
+void fsm_cursor_add_followset(FsmCursor *cur, State *state)
 {
-	_add_followset(cur->current, action);
+	_add_followset(cur->current, state);
 }
 
 void fsm_cursor_add_reduce(FsmCursor *cur, int symbol, int reduction)
@@ -435,7 +464,7 @@ Action *session_test(Session *session, int symbol, unsigned int index, unsigned 
 	Action *action;
 	Action *prev;
 
-	action = radix_tree_get_int(&session->current->actions, symbol);
+	action = radix_tree_get_int(&session->current->state->actions, symbol);
 	if(action == NULL) {
 		if(session->current->type != ACTION_TYPE_ACCEPT) {
 			trace("test", session->current, action, symbol, "error");
@@ -470,7 +499,7 @@ void session_match(Session *session, int symbol, unsigned int index, unsigned in
 rematch:
 	session->index = index;
 	session->length = length;
-	action = radix_tree_get_int(&session->current->actions, symbol);
+	action = radix_tree_get_int(&session->current->state->actions, symbol);
 	if(action == NULL) {
 		if(session->current->type != ACTION_TYPE_ACCEPT) {
 			trace("match", session->current, action, symbol, "error");
