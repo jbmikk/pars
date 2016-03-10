@@ -315,6 +315,8 @@ void fsm_cursor_add_reference(FsmCursor *cur, unsigned char *name, int length)
 	pref->next = nt->parent_refs;
 
 	nt->parent_refs = pref;
+
+	fsm_cursor_add_shift(cur, nt->symbol);
 }
 
 Action *_add_action_buffer(Action *from, unsigned char *buffer, unsigned int size, int type, int reduction, Action *action)
