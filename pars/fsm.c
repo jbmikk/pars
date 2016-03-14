@@ -10,7 +10,15 @@
 #include <stdint.h>
 
 #ifdef FSM_TRACE
-#define trace(M, T1, T2, S, A) printf("trace: [%p -> %p] %-5s: %-13s (%3i = '%c')\n", T1, T2, M, A, S, (char)S);
+#define trace(M, T1, T2, S, A) \
+	printf( \
+		"%-5s: [%-9p --(%-9p)--> %-9p] %-13s (%3i = '%c')\n", \
+		M, \
+		((Action*)T1)->state, \
+		T2, \
+		T2? ((Action*)T2)->state: NULL, \
+		A, S, (char)S \
+	)
 #define trace_state(M, S1, S2, A) printf("trace: [%p -> %p] %-5s: %-13s\n", S1, S2, M, A);
 #define trace_non_terminal(M, S, L) printf("trace: %-5s: %.*s\n", M, L, S);
 #else
@@ -278,9 +286,9 @@ void fsm_cursor_join_continuation(FsmCursor *cursor)
 {
 	State *state = (State *)cursor->continuations->data;
 
-	trace("add", cursor->current, state, 0, "join");
-
 	cursor->current->state = state;
+
+	trace("add", cursor->current, NULL, 0, "join");
 }
 
 void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length)
@@ -348,7 +356,17 @@ Action *_add_action(Action *from, int symbol, int type, int reduction)
 	}
 	radix_tree_set_int(&from->state->actions, symbol, action);
 
-	trace("add", from, action, symbol, "action");
+	if(type == ACTION_TYPE_CONTEXT_SHIFT) {
+		trace("add", from, action, symbol, "context-shift");
+	} else if(type == ACTION_TYPE_SHIFT) {
+		trace("add", from, action, symbol, "shift");
+	} else if(type == ACTION_TYPE_REDUCE) {
+		trace("add", from, action, symbol, "reduce");
+	} else if(type == ACTION_TYPE_ACCEPT) {
+		trace("add", from, action, symbol, "accept");
+	} else {
+		trace("add", from, action, symbol, "action");
+	}
 	return action;
 }
 
