@@ -14,16 +14,20 @@
 	printf( \
 		"%-5s: [%-9p --(%-9p)--> %-9p] %-13s (%3i = '%c')\n", \
 		M, \
-		((Action*)T1)->state, \
+		T1? ((Action*)T1)->state: NULL, \
 		T2, \
 		T2? ((Action*)T2)->state: NULL, \
 		A, S, (char)S \
 	)
-#define trace_state(M, S1, S2, A) printf("trace: [%p -> %p] %-5s: %-13s\n", S1, S2, M, A);
+#define trace_state(M, S, A) \
+	printf( \
+		"%-5s: [%-9p --(%-9p)--> %-9p] %-13s\n", \
+		M, NULL, NULL, S, A \
+	)
 #define trace_non_terminal(M, S, L) printf("trace: %-5s: %.*s\n", M, L, S);
 #else
 #define trace(M, T1, T2, S, A)
-#define trace_state(M, S1, S2, A)
+#define trace_state(M, S, A)
 #define trace_non_terminal(M, S, L)
 #endif
 
@@ -272,7 +276,7 @@ void fsm_cursor_push_new_continuation(FsmCursor *cursor)
 	State *state = c_new(State, 1);
 	_state_init(state);
 	cursor->continuations = stack_push(cursor->continuations, state);
-	trace_state("add", state, NULL, "continuation");
+	trace_state("add", state, "continuation");
 }
 
 State *fsm_cursor_pop_continuation(FsmCursor *cursor)
@@ -288,7 +292,7 @@ void fsm_cursor_join_continuation(FsmCursor *cursor)
 
 	cursor->current->state = state;
 
-	trace("add", cursor->current, NULL, 0, "join");
+	trace("add", NULL, cursor->current, 0, "join");
 }
 
 void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length)
