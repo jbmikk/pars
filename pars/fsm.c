@@ -201,13 +201,13 @@ NonTerminal *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 		non_terminal->name = c_new(char, length); 
 		non_terminal->child_refs = NULL;
 		non_terminal->parent_refs = NULL;
+		non_terminal->unsolved_parents = 0;
 		int i = 0;
 		for(i; i < length; i++) {
 			non_terminal->name[i] = name[i];
 		}
 		radix_tree_set(&fsm->rules, name, length, non_terminal);
 		//TODO: Add to non_terminal struct: 
-		// * other terminals references to be resolved
 		// * detect circular references.
 	}
 	return non_terminal;
@@ -317,6 +317,7 @@ void fsm_cursor_add_reference(FsmCursor *cur, unsigned char *name, int length)
 	cref->action = cur->current;
 	cref->non_terminal = nt;
 	cref->next = cur->last_non_terminal->child_refs;
+	cref->status = REF_PENDING;
 
 	cur->last_non_terminal->child_refs = cref;
 
@@ -325,8 +326,10 @@ void fsm_cursor_add_reference(FsmCursor *cur, unsigned char *name, int length)
 	pref->action = cur->current;
 	pref->non_terminal = cur->last_non_terminal;
 	pref->next = nt->parent_refs;
+	cref->status = REF_PENDING;
 
 	nt->parent_refs = pref;
+	nt->unsolved_parents++;
 
 	fsm_cursor_add_shift(cur, nt->symbol);
 }
@@ -411,6 +414,79 @@ Action *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, in
 	cur->current->state = state;
 }
 
+void _solve_child_references(FsmCursor *cur) {
+	Node * rules = &cur->fsm->rules;
+	Iterator it;
+	NonTerminal *nt;
+	radix_tree_iterator_init(&it, rules);
+	while(nt = (NonTerminal *)radix_tree_iterator_next(&it)) {
+		Reference *ref;
+		ref = nt->child_refs;
+		trace_non_terminal("solve children", nt->name, nt->length);
+		while(ref) {
+			_add_followset(ref->action, ref->non_terminal->start->state);
+			ref = ref->next;
+		}
+	}
+	radix_tree_iterator_dispose(&it);
+}
+
+void _solve_parent_references(FsmCursor *cur) {
+	Node * rules = &cur->fsm->rules;
+	Iterator it;
+	NonTerminal *nt;
+	int some_unsolved;
+retry:
+	some_unsolved = 0;
+	radix_tree_iterator_init(&it, rules);
+	while(nt = (NonTerminal *)radix_tree_iterator_next(&it)) {
+		if(!nt->unsolved_parents) {
+			//No pending parents to solve
+			continue;
+		}
+
+		trace_non_terminal("solve parents", nt->name, nt->length);
+		Reference *ref;
+		ref = nt->parent_refs;
+		while(ref) {
+			if(ref->status == REF_SOLVED) {
+				//Ref already solved
+				goto next_ref;
+			}
+
+			Action *cont = radix_tree_get_int(&ref->action->state->actions, nt->symbol);
+			if(ref->non_terminal->unsolved_parents && ref->non_terminal->end->state == cont->state) {
+				some_unsolved = 1;
+				trace_non_terminal(
+					"skip ref",
+					ref->non_terminal->name,
+					ref->non_terminal->length
+				);
+				goto next_ref;
+			}
+
+			//Solve reference
+			trace_non_terminal(
+				"solve ref",
+				ref->non_terminal->name,
+				ref->non_terminal->length
+			);
+			_reduce_followset(nt->end, cont, nt->symbol);
+			ref->status = REF_SOLVED;
+			nt->unsolved_parents--;
+
+		next_ref:
+			ref = ref->next;
+		}
+	}
+	if(some_unsolved) {
+		//Keep trying until no refs pending.
+		//TODO: Detect infinite loops
+		goto retry;
+	}
+	radix_tree_iterator_dispose(&it);
+}
+
 void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 	NonTerminal *nt = cur->last_non_terminal;
 	if(nt) {
@@ -419,29 +495,9 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 		_add_action(nt->end, eof_symbol, ACTION_TYPE_REDUCE, nt->symbol);
 		fsm_cursor_set_start(cur, nt->name, nt->length, nt->symbol);
 	}
-	
-	//Solve child and parent references
-	Node * rules = &cur->fsm->rules;
 
-	Iterator it;
-	radix_tree_iterator_init(&it, rules);
-	while(nt = (NonTerminal *)radix_tree_iterator_next(&it)) {
-		Reference *ref;
-		ref = nt->child_refs;
-		trace_non_terminal("solve", nt->name, nt->length);
-		while(ref) {
-			_add_followset(ref->action, ref->non_terminal->start->state);
-			ref = ref->next;
-		}
-
-		ref = nt->parent_refs;
-		while(ref) {
-			Action *cont = radix_tree_get_int(&ref->action->state->actions, nt->symbol);
-			_reduce_followset(nt->end, cont, nt->symbol);
-			ref = ref->next;
-		}
-	}
-	radix_tree_iterator_dispose(&it);
+	_solve_child_references(cur);
+	_solve_parent_references(cur);
 }
 
 void fsm_cursor_add_shift(FsmCursor *cur, int symbol)

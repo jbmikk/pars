@@ -10,6 +10,9 @@
 #define ACTION_TYPE_ACCEPT 4
 #define ACTION_TYPE_ERROR 5
 
+#define REF_PENDING 0
+#define REF_SOLVED 1
+
 typedef struct _State {
 	Node actions;
 } State;
@@ -26,6 +29,7 @@ typedef struct _NonTerminal {
 	int symbol;
 	char *name;
 	int length;
+	char unsolved_parents;
 	struct _Reference *child_refs;
 	struct _Reference *parent_refs;
 } NonTerminal;
@@ -33,6 +37,7 @@ typedef struct _NonTerminal {
 typedef struct _Reference {
 	Action *action;
 	NonTerminal *non_terminal;
+	char status;
 	struct _Reference *next;
 } Reference;
 
