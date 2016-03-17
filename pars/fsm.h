@@ -29,15 +29,16 @@ typedef struct _NonTerminal {
 	int symbol;
 	char *name;
 	int length;
-	char unsolved_parents;
-	struct _Reference *child_refs;
+	char unsolved_returns;
+	char unsolved_invokes;
 	struct _Reference *parent_refs;
 } NonTerminal;
 
 typedef struct _Reference {
 	Action *action;
 	NonTerminal *non_terminal;
-	char status;
+	char return_status;
+	char invoke_status;
 	struct _Reference *next;
 } Reference;
 

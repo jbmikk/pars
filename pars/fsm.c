@@ -141,14 +141,7 @@ void fsm_dispose(Fsm *fsm)
 		//Get all actions reachable through other rules
 		_fsm_get_actions(&all_actions, &all_states, nt->start);
 		c_delete(nt->name);
-		Reference *ref;
-		ref = nt->child_refs;
-		while(ref) {
-			Reference *cref = ref;
-			ref = ref->next;
-			c_delete(cref);
-		}
-		ref = nt->parent_refs;
+		Reference *ref = nt->parent_refs;
 		while(ref) {
 			Reference *pref = ref;
 			ref = ref->next;
@@ -199,9 +192,9 @@ NonTerminal *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 		non_terminal->symbol = fsm->symbol_base--;
 		non_terminal->length = length;
 		non_terminal->name = c_new(char, length); 
-		non_terminal->child_refs = NULL;
 		non_terminal->parent_refs = NULL;
-		non_terminal->unsolved_parents = 0;
+		non_terminal->unsolved_returns = 0;
+		non_terminal->unsolved_invokes = 0;
 		int i = 0;
 		for(i; i < length; i++) {
 			non_terminal->name[i] = name[i];
@@ -312,24 +305,21 @@ void fsm_cursor_add_reference(FsmCursor *cur, unsigned char *name, int length)
 {
 	NonTerminal *nt = fsm_create_non_terminal(cur->fsm, name, length);
 
-	//Child reference on parent
-	Reference *cref = c_new(Reference, 1);
-	cref->action = cur->current;
-	cref->non_terminal = nt;
-	cref->next = cur->last_non_terminal->child_refs;
-	cref->status = REF_PENDING;
-
-	cur->last_non_terminal->child_refs = cref;
-
 	//Parent reference on child
 	Reference *pref = c_new(Reference, 1);
 	pref->action = cur->current;
 	pref->non_terminal = cur->last_non_terminal;
 	pref->next = nt->parent_refs;
-	cref->status = REF_PENDING;
+	pref->invoke_status = REF_PENDING;
+	pref->return_status = REF_PENDING;
 
 	nt->parent_refs = pref;
-	nt->unsolved_parents++;
+	nt->unsolved_returns++;
+
+	//Only count children at the beginning of a non terminal
+	if(pref->action == pref->non_terminal->start) {
+		pref->non_terminal->unsolved_invokes++;
+	}
 
 	fsm_cursor_add_shift(cur, nt->symbol);
 }
@@ -414,24 +404,65 @@ Action *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, in
 	cur->current->state = state;
 }
 
-void _solve_child_references(FsmCursor *cur) {
-	Node * rules = &cur->fsm->rules;
-	Iterator it;
-	NonTerminal *nt;
-	radix_tree_iterator_init(&it, rules);
-	while(nt = (NonTerminal *)radix_tree_iterator_next(&it)) {
-		Reference *ref;
-		ref = nt->child_refs;
-		trace_non_terminal("solve children", nt->name, nt->length);
-		while(ref) {
-			_add_followset(ref->action, ref->non_terminal->start->state);
-			ref = ref->next;
-		}
+int _solve_return_reference(NonTerminal *nt, Reference *ref) {
+	if(ref->return_status == REF_SOLVED) {
+		//Ref already solved
+		return 0;
 	}
-	radix_tree_iterator_dispose(&it);
+
+	Action *cont = radix_tree_get_int(&ref->action->state->actions, nt->symbol);
+	if(ref->non_terminal->unsolved_returns && ref->non_terminal->end->state == cont->state) {
+		trace_non_terminal(
+			"skip return ref",
+			ref->non_terminal->name,
+			ref->non_terminal->length
+		);
+		return 1;
+	}
+
+	//Solve reference
+	trace_non_terminal(
+		"solve return ref",
+		ref->non_terminal->name,
+		ref->non_terminal->length
+	);
+	_reduce_followset(nt->end, cont, nt->symbol);
+	ref->return_status = REF_SOLVED;
+	nt->unsolved_returns--;
+	return 0;
 }
 
-void _solve_parent_references(FsmCursor *cur) {
+int _solve_invoke_reference(NonTerminal *nt, Reference *ref) {
+	if(ref->invoke_status == REF_SOLVED) {
+		//Ref already solved
+		return 0;
+	}
+
+	Action *cont = radix_tree_get_int(&ref->action->state->actions, nt->symbol);
+	if(nt->unsolved_invokes) {
+		trace_non_terminal(
+			"skip child ref",
+			ref->non_terminal->name,
+			ref->non_terminal->length
+		);
+		return 1;
+	}
+
+	//Solve reference
+	trace_non_terminal(
+		"solve child ref",
+		ref->non_terminal->name,
+		ref->non_terminal->length
+	);
+	_add_followset(ref->action, nt->start->state);
+	ref->invoke_status = REF_SOLVED;
+	if(ref->action == ref->non_terminal->start) {
+		ref->non_terminal->unsolved_invokes--;
+	}
+	return 0;
+}
+
+void _solve_references(FsmCursor *cur) {
 	Node * rules = &cur->fsm->rules;
 	Iterator it;
 	NonTerminal *nt;
@@ -440,42 +471,12 @@ retry:
 	some_unsolved = 0;
 	radix_tree_iterator_init(&it, rules);
 	while(nt = (NonTerminal *)radix_tree_iterator_next(&it)) {
-		if(!nt->unsolved_parents) {
-			//No pending parents to solve
-			continue;
-		}
-
-		trace_non_terminal("solve parents", nt->name, nt->length);
+		trace_non_terminal("solve references", nt->name, nt->length);
 		Reference *ref;
 		ref = nt->parent_refs;
 		while(ref) {
-			if(ref->status == REF_SOLVED) {
-				//Ref already solved
-				goto next_ref;
-			}
-
-			Action *cont = radix_tree_get_int(&ref->action->state->actions, nt->symbol);
-			if(ref->non_terminal->unsolved_parents && ref->non_terminal->end->state == cont->state) {
-				some_unsolved = 1;
-				trace_non_terminal(
-					"skip ref",
-					ref->non_terminal->name,
-					ref->non_terminal->length
-				);
-				goto next_ref;
-			}
-
-			//Solve reference
-			trace_non_terminal(
-				"solve ref",
-				ref->non_terminal->name,
-				ref->non_terminal->length
-			);
-			_reduce_followset(nt->end, cont, nt->symbol);
-			ref->status = REF_SOLVED;
-			nt->unsolved_parents--;
-
-		next_ref:
+			some_unsolved |= _solve_return_reference(nt, ref);
+			some_unsolved |= _solve_invoke_reference(nt, ref);
 			ref = ref->next;
 		}
 	}
@@ -496,8 +497,7 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 		fsm_cursor_set_start(cur, nt->name, nt->length, nt->symbol);
 	}
 
-	_solve_child_references(cur);
-	_solve_parent_references(cur);
+	_solve_references(cur);
 }
 
 void fsm_cursor_add_shift(FsmCursor *cur, int symbol)
