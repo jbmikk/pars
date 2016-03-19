@@ -442,7 +442,7 @@ int _solve_invoke_reference(NonTerminal *nt, Reference *ref) {
 	Action *cont = radix_tree_get_int(&ref->action->state->actions, nt->symbol);
 	if(nt->unsolved_invokes) {
 		trace_non_terminal(
-			"skip child ref",
+			"skip invoke ref",
 			ref->non_terminal->name,
 			ref->non_terminal->length
 		);
@@ -451,7 +451,7 @@ int _solve_invoke_reference(NonTerminal *nt, Reference *ref) {
 
 	//Solve reference
 	trace_non_terminal(
-		"solve child ref",
+		"solve invoke ref",
 		ref->non_terminal->name,
 		ref->non_terminal->length
 	);
