@@ -61,7 +61,7 @@ void ebnf_start_parsing__identifier(Fixture *fix, gconstpointer data){
 	g_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
-	g_assert(action->type != ACTION_TYPE_ERROR);
+	g_assert(session.current->type != ACTION_TYPE_ERROR);
 	session_dispose(&session);
 
 	fsm_cursor_dispose(&cur);
@@ -91,7 +91,7 @@ void ebnf_start_parsing__terminal(Fixture *fix, gconstpointer data){
 	g_assert(action->type == ACTION_TYPE_REDUCE);
 	g_assert(action->reduction == E_EXPRESSION);
 	MATCH(session, L_TERMINATOR_SYMBOL);
-	g_assert(action->type != ACTION_TYPE_ERROR);
+	g_assert(session.current->type != ACTION_TYPE_ERROR);
 	session_dispose(&session);
 
 	fsm_cursor_dispose(&cur);
@@ -120,7 +120,7 @@ void ebnf_start_parsing__concatenate(Fixture *fix, gconstpointer data){
 	g_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_DEFINITION_SEPARATOR_SYMBOL);
-	g_assert(action->type != ACTION_TYPE_ERROR);
+	g_assert(session.current->type != ACTION_TYPE_ERROR);
 	session_dispose(&session);
 
 	fsm_cursor_dispose(&cur);
@@ -145,7 +145,7 @@ void ebnf_start_parsing__separator(Fixture *fix, gconstpointer data){
 	g_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
-	g_assert(action->type != ACTION_TYPE_ERROR);
+	g_assert(session.current->type != ACTION_TYPE_ERROR);
 	session_dispose(&session);
 
 	fsm_cursor_dispose(&cur);
@@ -173,7 +173,7 @@ void ebnf_start_parsing__declaration(Fixture *fix, gconstpointer data){
 	g_assert(action->reduction == E_NON_TERMINAL_DECLARATION);
 
 	MATCH(session, L_EOF);
-	g_assert(action->type != ACTION_TYPE_ERROR);
+	g_assert(session.current->type != ACTION_TYPE_ERROR);
 	session_dispose(&session);
 
 	fsm_cursor_dispose(&cur);
@@ -198,7 +198,7 @@ void ebnf_start_parsing__group(Fixture *fix, gconstpointer data){
 	g_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
-	g_assert(action->type != ACTION_TYPE_ERROR);
+	g_assert(session.current->type != ACTION_TYPE_ERROR);
 	session_dispose(&session);
 
 	fsm_cursor_dispose(&cur);
