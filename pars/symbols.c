@@ -22,7 +22,7 @@ int buffer_to_symbol(unsigned char *buffer, unsigned int size)
 	int symbol = 0;
 	int i;
 
-	for (i = 0; i < size; i++) {
+	for (i = size-1; i >= 0; i--) {
 		symbol <<= 8;
 		symbol = symbol | buffer[i];
 	}
