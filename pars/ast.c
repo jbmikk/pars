@@ -2,6 +2,7 @@
 
 #include "cmemory.h"
 #include "symbols.h"
+#include "radixtree_ext.h"
 
 #include <stdio.h>
 
