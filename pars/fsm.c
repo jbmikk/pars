@@ -88,6 +88,8 @@ void fsm_init(Fsm *fsm)
 	fsm->symbol_base = -1;
 	fsm->start = NULL;
 	_action_init(&fsm->error, ACTION_TYPE_ERROR, NONE, NULL);
+	fsm->error.state = c_new(State, 1);
+	_state_init(fsm->error.state);
 }
 
 void _fsm_get_actions(Node *actions, Node *states, Action *action)
@@ -173,6 +175,10 @@ void fsm_dispose(Fsm *fsm)
 	radix_tree_iterator_dispose(&it);
 
 	radix_tree_dispose(&all_states);
+
+	//Delete error state
+	radix_tree_dispose(&fsm->error.state->actions);
+	c_delete(fsm->error.state);
 }
 
 NonTerminal *fsm_get_non_terminal(Fsm *fsm, unsigned char *name, int length)
