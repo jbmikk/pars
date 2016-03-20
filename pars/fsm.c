@@ -11,14 +11,17 @@
 #include <stdint.h>
 
 #ifdef FSM_TRACE
-#define trace(M, T1, T2, S, A) \
+#define trace(M, T1, T2, S, A, R) \
 	printf( \
-		"%-5s: [%-9p --(%-9p)--> %-9p] %-13s (%3i = '%c')\n", \
+		"%-5s: [%-9p --(%-9p)--> %-9p] %-13s %c %3i (%3i=%2c)\n", \
 		M, \
 		T1? ((Action*)T1)->state: NULL, \
 		T2, \
 		T2? ((Action*)T2)->state: NULL, \
-		A, S, (char)S \
+		A, \
+		(R != 0)? '>': ' ', \
+		R, \
+		S, (char)S \
 	)
 #define trace_state(M, S, A) \
 	printf( \
@@ -27,7 +30,7 @@
 	)
 #define trace_non_terminal(M, S, L) printf("trace: %-5s: %.*s\n", M, L, S);
 #else
-#define trace(M, T1, T2, S, A)
+#define trace(M, T1, T2, S, A, R)
 #define trace_state(M, S, A)
 #define trace_non_terminal(M, S, L)
 #endif
@@ -292,7 +295,7 @@ void fsm_cursor_join_continuation(FsmCursor *cursor)
 
 	cursor->current->state = state;
 
-	trace("add", NULL, cursor->current, 0, "join");
+	trace("add", NULL, cursor->current, 0, "join", 0);
 }
 
 void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length)
@@ -361,15 +364,15 @@ Action *_add_action(Action *from, int symbol, int type, int reduction)
 	radix_tree_set_int(&from->state->actions, symbol, action);
 
 	if(type == ACTION_TYPE_CONTEXT_SHIFT) {
-		trace("add", from, action, symbol, "context-shift");
+		trace("add", from, action, symbol, "context-shift", 0);
 	} else if(type == ACTION_TYPE_SHIFT) {
-		trace("add", from, action, symbol, "shift");
+		trace("add", from, action, symbol, "shift", 0);
 	} else if(type == ACTION_TYPE_REDUCE) {
-		trace("add", from, action, symbol, "reduce");
+		trace("add", from, action, symbol, "reduce", 0);
 	} else if(type == ACTION_TYPE_ACCEPT) {
-		trace("add", from, action, symbol, "accept");
+		trace("add", from, action, symbol, "accept", 0);
 	} else {
-		trace("add", from, action, symbol, "action");
+		trace("add", from, action, symbol, "action", 0);
 	}
 	return action;
 }
@@ -381,7 +384,7 @@ void _add_followset(Action *from, State* state)
 	radix_tree_iterator_init(&it, &(state->actions));
 	while(ac = (Action *)radix_tree_iterator_next(&it)) {
 		_add_action_buffer(from, it.key, it.size, 0, 0, ac);
-		trace("add", from, ac, buffer_to_symbol(it.key, it.size), "follow");
+		trace("add", from, ac, buffer_to_symbol(it.key, it.size), "follow", 0);
 	}
 	radix_tree_iterator_dispose(&it);
 }
@@ -393,7 +396,7 @@ void _reduce_followset(Action *from, Action *to, int symbol)
 	radix_tree_iterator_init(&it, &(to->state->actions));
 	while(ac = (Action *)radix_tree_iterator_next(&it)) {
 		_add_action_buffer(from, it.key, it.size, ACTION_TYPE_REDUCE, symbol, NULL);
-		trace("add", from, ac, buffer_to_symbol(it.key, it.size), "reduce-follow");
+		trace("add", from, ac, buffer_to_symbol(it.key, it.size), "reduce-follow", 0);
 	}
 	radix_tree_iterator_dispose(&it);
 }
@@ -554,7 +557,7 @@ Action *session_test(Session *session, int symbol, unsigned int index, unsigned 
 	action = radix_tree_get_int(&session->current->state->actions, symbol);
 	if(action == NULL) {
 		if(session->current->type != ACTION_TYPE_ACCEPT) {
-			trace("test", session->current, action, symbol, "error");
+			trace("test", session->current, action, symbol, "error", 0);
 			session->current = &session->fsm->error;
 		}
 		return session->current;
@@ -562,16 +565,16 @@ Action *session_test(Session *session, int symbol, unsigned int index, unsigned 
 
 	switch(action->type) {
 	case ACTION_TYPE_CONTEXT_SHIFT:
-		trace("test", session->current, action, symbol, "context shift");
+		trace("test", session->current, action, symbol, "context shift", 0);
 		break;
 	case ACTION_TYPE_ACCEPT:
-		trace("test", session->current, action, symbol, "accept");
+		trace("test", session->current, action, symbol, "accept", 0);
 		break;
 	case ACTION_TYPE_SHIFT:
-		trace("test", session->current, action, symbol, "shift");
+		trace("test", session->current, action, symbol, "shift", 0);
 		break;
 	case ACTION_TYPE_REDUCE:
-		trace("test", session->current, action, symbol, "reduce");
+		trace("test", session->current, action, symbol, "reduce", action->reduction);
 		break;
 	default:
 		break;
@@ -589,7 +592,7 @@ rematch:
 	action = radix_tree_get_int(&session->current->state->actions, symbol);
 	if(action == NULL) {
 		if(session->current->type != ACTION_TYPE_ACCEPT) {
-			trace("match", session->current, action, symbol, "error");
+			trace("match", session->current, action, symbol, "error", 0);
 			session->current = &session->fsm->error;
 		}
 		return;
@@ -597,7 +600,7 @@ rematch:
 
 	switch(action->type) {
 	case ACTION_TYPE_CONTEXT_SHIFT:
-		trace("match", session->current, action, symbol, "context shift");
+		trace("match", session->current, action, symbol, "context shift", 0);
 		if(session->handler.context_shift) {
 			session->handler.context_shift(session->target, session->index, session->length, symbol);
 		}
@@ -605,15 +608,15 @@ rematch:
 		session->current = action;
 		break;
 	case ACTION_TYPE_ACCEPT:
-		trace("match", session->current, action, symbol, "accept");
+		trace("match", session->current, action, symbol, "accept", 0);
 		session->current = action;
 		break;
 	case ACTION_TYPE_SHIFT:
-		trace("match", session->current, action, symbol, "shift");
+		trace("match", session->current, action, symbol, "shift", 0);
 		session->current = action;
 		break;
 	case ACTION_TYPE_REDUCE:
-		trace("match", session->current, action, symbol, "reduce");
+		trace("match", session->current, action, symbol, "reduce", action->reduction);
 		session_pop(session);
 		session->length = index - session->index;
 		if(session->handler.reduce) {
