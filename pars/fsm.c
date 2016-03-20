@@ -423,7 +423,7 @@ int _solve_return_reference(NonTerminal *nt, Reference *ref) {
 	Action *cont = radix_tree_get_int(&ref->action->state->actions, nt->symbol);
 	if(ref->non_terminal->unsolved_returns && ref->non_terminal->end->state == cont->state) {
 		trace_non_terminal(
-			"skip return ref",
+			"skip return ref to",
 			ref->non_terminal->name,
 			ref->non_terminal->length
 		);
@@ -432,7 +432,7 @@ int _solve_return_reference(NonTerminal *nt, Reference *ref) {
 
 	//Solve reference
 	trace_non_terminal(
-		"solve return ref",
+		"solve return ref to",
 		ref->non_terminal->name,
 		ref->non_terminal->length
 	);
@@ -451,7 +451,7 @@ int _solve_invoke_reference(NonTerminal *nt, Reference *ref) {
 	Action *cont = radix_tree_get_int(&ref->action->state->actions, nt->symbol);
 	if(nt->unsolved_invokes) {
 		trace_non_terminal(
-			"skip invoke ref",
+			"skip invoke ref from",
 			ref->non_terminal->name,
 			ref->non_terminal->length
 		);
@@ -460,7 +460,7 @@ int _solve_invoke_reference(NonTerminal *nt, Reference *ref) {
 
 	//Solve reference
 	trace_non_terminal(
-		"solve invoke ref",
+		"solve invoke ref from",
 		ref->non_terminal->name,
 		ref->non_terminal->length
 	);
