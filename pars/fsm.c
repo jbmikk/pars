@@ -496,12 +496,12 @@ retry:
 			ref = ref->next;
 		}
 	}
+	radix_tree_iterator_dispose(&it);
 	if(some_unsolved) {
 		//Keep trying until no refs pending.
 		//TODO: Detect infinite loops
 		goto retry;
 	}
-	radix_tree_iterator_dispose(&it);
 }
 
 void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
