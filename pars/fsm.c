@@ -299,6 +299,7 @@ void fsm_cursor_join_continuation(FsmCursor *cursor)
 {
 	State *state = (State *)cursor->continuations->data;
 
+	//TODO: sentinel if(cursor->current->state) ?
 	cursor->current->state = state;
 
 	trace("add", NULL, cursor->current, 0, "join", 0);
@@ -347,13 +348,24 @@ Action *_add_action_buffer(Action *from, unsigned char *buffer, unsigned int siz
 		_action_init(action, type, reduction, NULL);
 	}
 
-	//TODO: risk of leak when transitioning using the same symbol
-	// on the same action twice.
 	if(!from->state) {
 		from->state = c_new(State, 1);
 		_state_init(from->state);
 	}
-	radix_tree_set(&from->state->actions, buffer, size, action);
+	Action *prev = (Action *)radix_tree_try_set(&from->state->actions, buffer, size, action);
+	if(prev) {
+		if(
+			prev->type == action->type &&
+			prev->reduction == action->reduction
+		) {
+			trace("dup", from, action, buffer_to_symbol(buffer, size), "skip", reduction);
+		} else {
+			trace("dup", from, action, buffer_to_symbol(buffer, size), "conflict", reduction);
+			//TODO: add sentinel ?
+		}
+		c_delete(action);
+		action = NULL;
+	}
 	return action;
 }
 
@@ -361,12 +373,12 @@ Action *_add_action(Action *from, int symbol, int type, int reduction)
 {
 	Action * action = c_new(Action, 1);
 	_action_init(action, type, reduction, NULL);
-	//TODO: risk of leak when transitioning using the same symbol
-	// on the same action twice.
+
 	if(!from->state) {
 		from->state = c_new(State, 1);
 		_state_init(from->state);
 	}
+	//TODO: detect duplicates
 	radix_tree_set_int(&from->state->actions, symbol, action);
 
 	if(type == ACTION_TYPE_CONTEXT_SHIFT) {
@@ -417,6 +429,7 @@ Action *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, in
 
 	State *state = c_new(State, 1);
 	_state_init(state);
+	//TODO: sentinel if(cur->current->state) ?
 	cur->current->state = state;
 }
 
