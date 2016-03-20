@@ -396,7 +396,7 @@ void _reduce_followset(Action *from, Action *to, int symbol)
 	radix_tree_iterator_init(&it, &(to->state->actions));
 	while(ac = (Action *)radix_tree_iterator_next(&it)) {
 		_add_action_buffer(from, it.key, it.size, ACTION_TYPE_REDUCE, symbol, NULL);
-		trace("add", from, ac, buffer_to_symbol(it.key, it.size), "reduce-follow", 0);
+		trace("add", from, ac, buffer_to_symbol(it.key, it.size), "reduce-follow", symbol);
 	}
 	radix_tree_iterator_dispose(&it);
 }
