@@ -11,6 +11,7 @@ typedef enum {
 void radix_tree_init(Node *tree, char type, unsigned char size, void *child);
 void *radix_tree_get(Node *tree, char *string, unsigned int length);
 void radix_tree_set(Node *tree, char *string, unsigned int length, void *data);
+void *radix_tree_try_set(Node *tree, char *string, unsigned int length, void *data);
 void **radix_tree_get_next(Node *tree, char *string, unsigned int length);
 void radix_tree_remove(Node *tree, char *string, unsigned int length);
 void radix_tree_dispose(Node *tree);
