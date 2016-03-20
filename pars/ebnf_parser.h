@@ -6,6 +6,7 @@
 #include "ast.h"
 #include "parser.h"
 
+//TODO: Remove constants, should read symbol table
 typedef enum {
     E_EXPRESSION = -1,
     E_SINGLE_DEFINITION = -2,
