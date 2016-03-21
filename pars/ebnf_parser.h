@@ -8,11 +8,11 @@
 
 //TODO: Remove constants, should read symbol table
 typedef enum {
-    E_EXPRESSION = -1,
-    E_SINGLE_DEFINITION = -2,
-    E_DEFINITIONS_LIST = -3,
-    E_NON_TERMINAL_DECLARATION = -4,
-    E_SYNTAX = -5
+	E_EXPRESSION = -1,
+	E_SINGLE_DEFINITION = -2,
+	E_DEFINITIONS_LIST = -3,
+	E_NON_TERMINAL_DECLARATION = -4,
+	E_SYNTAX = -5
 } EToken;
 
 void ebnf_init_fsm(Fsm *fsm);
