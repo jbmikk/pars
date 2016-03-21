@@ -227,6 +227,11 @@ State *fsm_get_state(Fsm *fsm, unsigned char *name, int length)
 	return fsm_get_non_terminal(fsm, name, length)->start->state;
 }
 
+int fsm_get_symbol(Fsm *fsm, unsigned char *name, int length)
+{
+	return fsm_get_non_terminal(fsm, name, length)->symbol;
+}
+
 void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
 {
 	cur->fsm = fsm;
