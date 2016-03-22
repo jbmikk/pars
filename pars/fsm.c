@@ -424,13 +424,14 @@ void _reduce_followset(Action *from, Action *to, int symbol)
 	radix_tree_iterator_dispose(&it);
 }
 
-Action *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length, int symbol)
+Action *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length)
 {
-	cur->current = fsm_get_action(cur->fsm, name, length);
+	NonTerminal *nt = fsm_get_non_terminal(cur->fsm, name, length);
+	cur->current = nt->start;
 	cur->fsm->start = cur->current;
 	//TODO: calling fsm_cursor_set_start multiple times may cause
 	// leaks if adding a duplicate accept action to the action.
-	cur->current = _add_action(cur->current, symbol, ACTION_TYPE_ACCEPT, NONE);
+	cur->current = _add_action(cur->current, nt->symbol, ACTION_TYPE_ACCEPT, NONE);
 
 	State *state = c_new(State, 1);
 	_state_init(state);
@@ -528,7 +529,7 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 		//TODO: May cause leaks if L_EOF previously added
 		trace_non_terminal("main", nt->name, nt->length);
 		_add_action(nt->end, eof_symbol, ACTION_TYPE_REDUCE, nt->symbol);
-		fsm_cursor_set_start(cur, nt->name, nt->length, nt->symbol);
+		fsm_cursor_set_start(cur, nt->name, nt->length);
 	}
 
 	_solve_references(cur);

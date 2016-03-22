@@ -111,7 +111,7 @@ void fsm_cursor_add_shift(FsmCursor *cur, int symbol);
 void fsm_cursor_add_context_shift(FsmCursor *cur, int symbol);
 void fsm_cursor_add_followset(FsmCursor *cur, State *state);
 void fsm_cursor_add_reduce(FsmCursor *cur, int symbol, int reduction);
-FsmCursor *fsm_set_start(Fsm *fsm, unsigned char *name, int length, int symbol);
+FsmCursor *fsm_set_start(Fsm *fsm, unsigned char *name, int length);
 Session *session_set_handler(Session *session, FsmHandler handler, void *target);
 void session_match(Session *session, int symbol, unsigned int index, unsigned int length);
 Action *session_test(Session *session, int symbol, unsigned int index, unsigned int length);

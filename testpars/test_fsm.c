@@ -61,7 +61,7 @@ void session_match__shift(Fixture *fix, gconstpointer data){
 	fsm_cursor_add_shift(&cur, 'b');
 	fsm_cursor_add_context_shift(&cur, '.');
 
-	fsm_cursor_set_start(&cur, nzs("name"), 'N');
+	fsm_cursor_set_start(&cur, nzs("name"));
 
 	Session session;
 	session_init(&session, &fix->fsm);
@@ -78,9 +78,9 @@ void session_match__reduce(Fixture *fix, gconstpointer data){
 
 	fsm_cursor_define(&cur, nzs("number"));
 	fsm_cursor_add_context_shift(&cur, '1');
-	fsm_cursor_add_reduce(&cur, '\0', 'N');
+	fsm_cursor_add_reduce(&cur, '\0', fsm_get_symbol(&fix->fsm, nzs("number")));
 
-	fsm_cursor_set_start(&cur, nzs("number"), 'N');
+	fsm_cursor_set_start(&cur, nzs("number"));
 	Session session;
 	session_init(&session, &fix->fsm);
 	MATCH(session, '1');
@@ -102,9 +102,9 @@ void session_match__reduce_shift(Fixture *fix, gconstpointer data){
 	fsm_cursor_add_context_shift(&cur, 'N');
 	fsm_cursor_add_shift(&cur, '+');
 	fsm_cursor_add_shift(&cur, '2');
-	fsm_cursor_add_reduce(&cur, '\0', 'S');
+	fsm_cursor_add_reduce(&cur, '\0', fsm_get_symbol(&fix->fsm, nzs("sum")));
 
-	fsm_cursor_set_start(&cur, nzs("sum"), 'S');
+	fsm_cursor_set_start(&cur, nzs("sum"));
 
 	Session session;
 	session_init(&session, &fix->fsm);
@@ -144,9 +144,9 @@ void session_match__reduce_handler(Fixture *fix, gconstpointer data){
 	fsm_cursor_add_shift(&cur, '+');
 	fsm_cursor_add_followset(&cur, fsm_get_state(&fix->fsm, nzs("word")));
 	fsm_cursor_add_shift(&cur, 'W');
-	fsm_cursor_add_reduce(&cur, '\0', 'S');
+	fsm_cursor_add_reduce(&cur, '\0', fsm_get_symbol(&fix->fsm, nzs("sum")));
 
-	fsm_cursor_set_start(&cur, nzs("sum"), 'S');
+	fsm_cursor_set_start(&cur, nzs("sum"));
 
 	Session session;
 	session_init(&session, &fix->fsm);
@@ -165,7 +165,7 @@ void session_match__reduce_handler(Fixture *fix, gconstpointer data){
 	MATCH_AT(session, 'r', 4);
 	MATCH_AT(session, 'd', 5);
 	MATCH_AT(session, '\0', 6);
-	g_assert_cmpint(token.symbol, ==, 'S');
+	g_assert_cmpint(token.symbol, ==, fsm_get_symbol(&fix->fsm, nzs("sum")));
 	g_assert_cmpint(token.index, ==, 0);
 	g_assert_cmpint(token.length, ==, 6);
 	g_assert(session.current->type == ACTION_TYPE_ACCEPT);

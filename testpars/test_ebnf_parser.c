@@ -43,7 +43,7 @@ void ebnf_start_parsing__identifier(Fixture *fix, gconstpointer data){
 	fsm_cursor_define(&cur, "expression", 10);
 	Action *action;
 
-	fsm_cursor_set_start(&cur, "expression", 10, E_EXPRESSION);
+	fsm_cursor_set_start(&cur, nzs("expression"));
 	Session session;
 	session_init(&session, &fix->fsm);
 	MATCH(session, L_IDENTIFIER);
@@ -74,7 +74,7 @@ void ebnf_start_parsing__terminal(Fixture *fix, gconstpointer data){
 	fsm_cursor_define(&cur, "expression", 10);
 	Action *action;
 
-	fsm_cursor_set_start(&cur, "expression", 10, E_EXPRESSION);
+	fsm_cursor_set_start(&cur, nzs("expression"));
 	Session session;
 	session_init(&session, &fix->fsm);
 	MATCH(session, L_TERMINAL_STRING);
@@ -104,7 +104,7 @@ void ebnf_start_parsing__concatenate(Fixture *fix, gconstpointer data){
 	fsm_cursor_define(&cur, "single_definition", 17);
 	Action *action;
 
-	fsm_cursor_set_start(&cur, "single_definition", 17, E_SINGLE_DEFINITION);
+	fsm_cursor_set_start(&cur, nzs("single_definition"));
 	Session session;
 	session_init(&session, &fix->fsm);
 	MATCH(session, L_IDENTIFIER);
@@ -133,7 +133,7 @@ void ebnf_start_parsing__separator(Fixture *fix, gconstpointer data){
 	fsm_cursor_define(&cur, "definitions_list", 16);
 	Action *action;
 
-	fsm_cursor_set_start(&cur, "definitions_list", 16, E_DEFINITIONS_LIST);
+	fsm_cursor_set_start(&cur, nzs("definitions_list"));
 	Session session;
 	session_init(&session, &fix->fsm);
 	MATCH(session, L_IDENTIFIER);
@@ -158,7 +158,7 @@ void ebnf_start_parsing__declaration(Fixture *fix, gconstpointer data){
 	fsm_cursor_define(&cur, "non_terminal_declaration", 24);
 	Action *action;
 
-	fsm_cursor_set_start(&cur, "non_terminal_declaration", 24, E_NON_TERMINAL_DECLARATION);
+	fsm_cursor_set_start(&cur, nzs("non_terminal_declaration"));
 	Session session;
 	session_init(&session, &fix->fsm);
 	MATCH(session, L_IDENTIFIER);
@@ -186,7 +186,7 @@ void ebnf_start_parsing__group(Fixture *fix, gconstpointer data){
 	fsm_cursor_define(&cur, "expression", 10);
 	Action *action;
 
-	fsm_cursor_set_start(&cur, "expression", 10, E_EXPRESSION);
+	fsm_cursor_set_start(&cur, nzs("expression"));
 	Session session;
 	session_init(&session, &fix->fsm);
 	MATCH(session, L_START_GROUP_SYMBOL);
