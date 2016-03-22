@@ -51,6 +51,7 @@ cd teststlib
 
 run_test $MODE $PATTERN ./test_bsearch
 run_test $MODE $PATTERN ./test_radixtree
+run_test $MODE $PATTERN ./test_arrays
 
 cd ..
 
@@ -59,7 +60,6 @@ echo "TESTPARS:"
 echo "--------"
 cd testpars
 
-run_test $MODE $PATTERN ./test_symbols
 run_test $MODE $PATTERN ./test_lexer
 run_test $MODE $PATTERN ./test_ebnf_parser
 run_test $MODE $PATTERN ./test_fsm

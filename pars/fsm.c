@@ -3,7 +3,7 @@
 #include "cmemory.h"
 #include "stack.h"
 #include "radixtree.h"
-#include "symbols.h"
+#include "arrays.h"
 #include "radixtree_ext.h"
 
 #define NONE 0
@@ -99,8 +99,8 @@ void _fsm_get_actions(Node *actions, Node *states, Action *action)
 {
 	unsigned char buffer[sizeof(intptr_t)];
 	unsigned int size;
-	//TODO: Should have a separate ptr_to_buffer function
-	symbol_to_buffer(buffer, &size, (intptr_t)action);
+	//TODO: Should have a separate ptr_to_array function
+	int_to_array(buffer, &size, (intptr_t)action);
 
 	Action *in_actions = radix_tree_get(actions, buffer, size);
 
@@ -118,7 +118,7 @@ void _fsm_get_actions(Node *actions, Node *states, Action *action)
 			radix_tree_iterator_dispose(&it);
 
 			//Add state to states
-			symbol_to_buffer(buffer, &size, (intptr_t)state);
+			int_to_array(buffer, &size, (intptr_t)state);
 			State *in_states = radix_tree_get(states, buffer, size);
 			if(!in_states) {
 				radix_tree_set(states, buffer, size, state);
@@ -363,9 +363,9 @@ Action *_add_action_buffer(Action *from, unsigned char *buffer, unsigned int siz
 			prev->type == action->type &&
 			prev->reduction == action->reduction
 		) {
-			trace("dup", from, action, buffer_to_symbol(buffer, size), "skip", reduction);
+			trace("dup", from, action, array_to_int(buffer, size), "skip", reduction);
 		} else {
-			trace("dup", from, action, buffer_to_symbol(buffer, size), "conflict", reduction);
+			trace("dup", from, action, array_to_int(buffer, size), "conflict", reduction);
 			//TODO: add sentinel ?
 		}
 		c_delete(action);
@@ -407,7 +407,7 @@ void _add_followset(Action *from, State* state)
 	radix_tree_iterator_init(&it, &(state->actions));
 	while(ac = (Action *)radix_tree_iterator_next(&it)) {
 		_add_action_buffer(from, it.key, it.size, 0, 0, ac);
-		trace("add", from, ac, buffer_to_symbol(it.key, it.size), "follow", 0);
+		trace("add", from, ac, array_to_int(it.key, it.size), "follow", 0);
 	}
 	radix_tree_iterator_dispose(&it);
 }
@@ -419,7 +419,7 @@ void _reduce_followset(Action *from, Action *to, int symbol)
 	radix_tree_iterator_init(&it, &(to->state->actions));
 	while(ac = (Action *)radix_tree_iterator_next(&it)) {
 		_add_action_buffer(from, it.key, it.size, ACTION_TYPE_REDUCE, symbol, NULL);
-		trace("add", from, ac, buffer_to_symbol(it.key, it.size), "reduce-follow", symbol);
+		trace("add", from, ac, array_to_int(it.key, it.size), "reduce-follow", symbol);
 	}
 	radix_tree_iterator_dispose(&it);
 }

@@ -1,12 +1,12 @@
-#include "symbols.h"
+#include "arrays.h"
 
-void symbol_to_buffer(unsigned char *buffer, unsigned int *size, int symbol)
+void int_to_array(unsigned char *array, unsigned int *size, int integer)
 {
-    int remainder = symbol;
+    int remainder = integer;
     int i;
 
     for (i = 0; i < sizeof(int); i++) {
-        buffer[i] = remainder & 0xFF;
+        array[i] = remainder & 0xFF;
         remainder >>= 8;
         if(remainder == 0)
         {
@@ -17,14 +17,14 @@ void symbol_to_buffer(unsigned char *buffer, unsigned int *size, int symbol)
     *size = i;
 }
 
-int buffer_to_symbol(unsigned char *buffer, unsigned int size)
+int array_to_int(unsigned char *array, unsigned int size)
 {
 	int symbol = 0;
 	int i;
 
 	for (i = size-1; i >= 0; i--) {
 		symbol <<= 8;
-		symbol = symbol | buffer[i];
+		symbol = symbol | array[i];
 	}
 	return symbol;
 }
