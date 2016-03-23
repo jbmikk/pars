@@ -2,6 +2,8 @@ include_directories("${PROJECT_SOURCE_DIR}/stlib")
 
 add_library (radixtree_ext radixtree_ext.c)
 
+add_library (symbols symbols.c)
+
 add_library (input input.c)
 
 add_library (lexer lexer.c)
@@ -28,6 +30,7 @@ set_target_properties(parslib PROPERTIES COMPILE_FLAGS -DLIBRARY)
 
 add_executable (pars pars.c)
 
+target_link_libraries(symbols radixtree)
 target_link_libraries(input cmemory)
 target_link_libraries(lexer input)
 target_link_libraries(fsm radixtree radixtree_ext arrays stack)
