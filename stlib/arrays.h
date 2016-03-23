@@ -1,9 +1,7 @@
-#ifndef SYMBOLS_H
-#define SYMBOLS_H
+#ifndef ARRAYS_H
+#define ARRAYS_H
 
-#include "radixtree.h"
+void int_to_array(unsigned char *buffer, unsigned int *size, int symbol);
+int array_to_int(unsigned char *buffer, unsigned int size);
 
-void symbol_to_buffer(unsigned char *buffer, unsigned int *size, int symbol);
-int buffer_to_symbol(unsigned char *buffer, unsigned int size);
-
-#endif //SYMBOLS_H
+#endif //ARRAYS_H
