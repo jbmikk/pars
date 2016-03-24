@@ -1,41 +1,33 @@
 include_directories("${PROJECT_SOURCE_DIR}/stlib")
 
-add_library (radixtree_ext radixtree_ext.c)
-
-add_library (symbols symbols.c)
-
-add_library (input input.c)
-
-add_library (lexer lexer.c)
-
-add_library (parser parser.c)
-
-add_library (ebnf_parser ebnf_parser.c)
-
-add_library (fsm fsm.c)
-
-add_library (ast ast.c)
-
-
-if(ENABLE_FSM_TRACE)
-	set_target_properties(fsm PROPERTIES COMPILE_FLAGS -DFSM_TRACE)
-endif(ENABLE_FSM_TRACE)
-
-if(ENABLE_AST_TRACE)
-	set_target_properties(ast PROPERTIES COMPILE_FLAGS -DAST_TRACE)
-endif(ENABLE_AST_TRACE)
-
-add_library (parslib pars.c)
-set_target_properties(parslib PROPERTIES COMPILE_FLAGS -DLIBRARY)
+add_library (
+        parslib
+        pars.c
+        radixtree_ext.c
+        symbols.c
+        input.c
+        lexer.c
+        parser.c
+        ebnf_parser.c
+        fsm.c
+        ast.c
+)
 
 add_executable (pars pars.c)
 
-target_link_libraries(symbols stlib)
-target_link_libraries(input stlib)
-target_link_libraries(lexer input)
-target_link_libraries(fsm radixtree_ext symbols stlib)
-target_link_libraries(ast radixtree_ext symbols stlib)
-target_link_libraries(ebnf_parser fsm lexer ast)
-target_link_libraries(parslib input parser ebnf_parser stlib)
-target_link_libraries(pars input parser ebnf_parser stlib)
+target_link_libraries(parslib stlib)
+target_link_libraries(pars parslib stlib)
+
+if(ENABLE_FSM_TRACE)
+        set(FSM_TRACE_FLAGS "-DFSM_TRACE")
+endif(ENABLE_FSM_TRACE)
+
+if(ENABLE_AST_TRACE)
+        set(AST_TRACE_FLAGS "-DAST_TRACE")
+endif(ENABLE_AST_TRACE)
+
+set(PARS_COMPILE_FLAGS "-DLIBRARY ${FSM_TRACE_FLAGS} ${AST_TRACE_FLAGS}")
+
+set_target_properties(parslib PROPERTIES COMPILE_FLAGS "${PARS_COMPILE_FLAGS}")
+
 
