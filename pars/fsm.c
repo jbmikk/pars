@@ -87,8 +87,9 @@ void session_dispose(Session *session)
 
 void fsm_init(Fsm *fsm)
 {
-	radix_tree_init(&fsm->rules, 0, 0, NULL);
-	fsm->symbol_base = -1;
+	//TODO: Get symbol table as parameter
+	fsm->table = c_new(SymbolTable, 1);
+	symbol_table_init(fsm->table);
 	fsm->start = NULL;
 	_action_init(&fsm->error, ACTION_TYPE_ERROR, NONE, NULL);
 	fsm->error.state = c_new(State, 1);
@@ -131,6 +132,7 @@ void fsm_dispose(Fsm *fsm)
 {
 	Node all_actions;
 	Node all_states;
+	Symbol *symbol;
 	NonTerminal *nt;
 	Iterator it;
 
@@ -142,11 +144,11 @@ void fsm_dispose(Fsm *fsm)
 		_fsm_get_actions(&all_actions, &all_states, fsm->start);
 	}
 
-	radix_tree_iterator_init(&it, &(fsm->rules));
-	while(nt = (NonTerminal *)radix_tree_iterator_next(&it)) {
+	radix_tree_iterator_init(&it, &fsm->table->symbols);
+	while(symbol = (Symbol *)radix_tree_iterator_next(&it)) {
 		//Get all actions reachable through other rules
+		nt = (NonTerminal *)symbol->data;
 		_fsm_get_actions(&all_actions, &all_states, nt->start);
-		c_delete(nt->name);
 		Reference *ref = nt->parent_refs;
 		while(ref) {
 			Reference *pref = ref;
@@ -156,7 +158,9 @@ void fsm_dispose(Fsm *fsm)
 		c_delete(nt);
 	}
 	radix_tree_iterator_dispose(&it);
-	radix_tree_dispose(&(fsm->rules));
+
+	symbol_table_dispose(fsm->table);
+	c_delete(fsm->table);
 
 	//Delete all actions
 	Action *ac;
@@ -186,34 +190,29 @@ void fsm_dispose(Fsm *fsm)
 
 NonTerminal *fsm_get_non_terminal(Fsm *fsm, unsigned char *name, int length)
 {
-	return radix_tree_get(&fsm->rules, name, length);
+	Symbol *symbol = symbol_table_get(fsm->table, name, length);
+	return symbol? (NonTerminal *)symbol->data: NULL;
 }
 
-NonTerminal *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
+Symbol *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 {
-	NonTerminal *non_terminal = fsm_get_non_terminal(fsm, name, length);
+	Symbol *symbol = symbol_table_add(fsm->table, name, length);
+	NonTerminal *non_terminal;
 	Action *action;
-	if(non_terminal == NULL) {
+	if(!symbol->data) {
 		non_terminal = c_new(NonTerminal, 1);
 		action = c_new(Action, 1);
 		_action_init(action, ACTION_TYPE_SHIFT, NONE, NULL);
 		non_terminal->start = action;
 		non_terminal->end = action;
-		non_terminal->symbol = fsm->symbol_base--;
-		non_terminal->length = length;
-		non_terminal->name = c_new(char, length); 
 		non_terminal->parent_refs = NULL;
 		non_terminal->unsolved_returns = 0;
 		non_terminal->unsolved_invokes = 0;
-		int i = 0;
-		for(i; i < length; i++) {
-			non_terminal->name[i] = name[i];
-		}
-		radix_tree_set(&fsm->rules, name, length, non_terminal);
+		symbol->data = non_terminal;
 		//TODO: Add to non_terminal struct: 
 		// * detect circular references.
 	}
-	return non_terminal;
+	return symbol;
 }
 
 
@@ -229,7 +228,8 @@ State *fsm_get_state(Fsm *fsm, unsigned char *name, int length)
 
 int fsm_get_symbol(Fsm *fsm, unsigned char *name, int length)
 {
-	return fsm_get_non_terminal(fsm, name, length)->symbol;
+	Symbol *symbol = symbol_table_get(fsm->table, name, length);
+	return symbol? symbol->id: 0;
 }
 
 void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
@@ -238,6 +238,7 @@ void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
 	cur->current = NULL;
 	cur->stack = NULL;
 	cur->continuations = NULL;
+	cur->last_symbol = NULL;
 	cur->last_non_terminal = NULL;
 }
 
@@ -317,19 +318,22 @@ void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length)
 
 void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 {
-	NonTerminal *nt = fsm_create_non_terminal(cur->fsm, name, length);
-	cur->last_non_terminal = nt;
-	cur->current = nt->start;
+	Symbol *symbol = fsm_create_non_terminal(cur->fsm, name, length);
+	cur->last_symbol = symbol;
+	cur->last_non_terminal = (NonTerminal *)symbol->data;
+	cur->current = cur->last_non_terminal->start;
 	trace_non_terminal("set", name, length);
 }
 
 void fsm_cursor_add_reference(FsmCursor *cur, unsigned char *name, int length)
 {
-	NonTerminal *nt = fsm_create_non_terminal(cur->fsm, name, length);
+	Symbol *sb = fsm_create_non_terminal(cur->fsm, name, length);
+	NonTerminal *nt = (NonTerminal *)sb->data;
 
 	//Parent reference on child
 	Reference *pref = c_new(Reference, 1);
 	pref->action = cur->current;
+	pref->symbol = cur->last_symbol;
 	pref->non_terminal = cur->last_non_terminal;
 	pref->next = nt->parent_refs;
 	pref->invoke_status = REF_PENDING;
@@ -343,7 +347,7 @@ void fsm_cursor_add_reference(FsmCursor *cur, unsigned char *name, int length)
 		pref->non_terminal->unsolved_invokes++;
 	}
 
-	fsm_cursor_add_shift(cur, nt->symbol);
+	fsm_cursor_add_shift(cur, sb->id);
 }
 
 Action *_add_action_buffer(Action *from, unsigned char *buffer, unsigned int size, int type, int reduction, Action *action)
@@ -426,12 +430,13 @@ void _reduce_followset(Action *from, Action *to, int symbol)
 
 Action *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length)
 {
-	NonTerminal *nt = fsm_get_non_terminal(cur->fsm, name, length);
+	Symbol *sb = symbol_table_get(cur->fsm->table, name, length);
+	NonTerminal *nt = (NonTerminal *)sb->data;
 	cur->current = nt->start;
 	cur->fsm->start = cur->current;
 	//TODO: calling fsm_cursor_set_start multiple times may cause
 	// leaks if adding a duplicate accept action to the action.
-	cur->current = _add_action(cur->current, nt->symbol, ACTION_TYPE_ACCEPT, NONE);
+	cur->current = _add_action(cur->current, sb->id, ACTION_TYPE_ACCEPT, NONE);
 
 	State *state = c_new(State, 1);
 	_state_init(state);
@@ -439,18 +444,20 @@ Action *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length)
 	cur->current->state = state;
 }
 
-int _solve_return_reference(NonTerminal *nt, Reference *ref) {
+int _solve_return_reference(Symbol *sb, Reference *ref) {
+	NonTerminal *nt = (NonTerminal *)sb->data;
+
 	if(ref->return_status == REF_SOLVED) {
 		//Ref already solved
 		return 0;
 	}
 
-	Action *cont = radix_tree_get_int(&ref->action->state->actions, nt->symbol);
+	Action *cont = radix_tree_get_int(&ref->action->state->actions, sb->id);
 	if(ref->non_terminal->unsolved_returns && ref->non_terminal->end->state == cont->state) {
 		trace_non_terminal(
 			"skip return ref to",
-			ref->non_terminal->name,
-			ref->non_terminal->length
+			ref->symbol->name,
+			ref->symbol->length
 		);
 		return 1;
 	}
@@ -458,27 +465,29 @@ int _solve_return_reference(NonTerminal *nt, Reference *ref) {
 	//Solve reference
 	trace_non_terminal(
 		"solve return ref to",
-		ref->non_terminal->name,
-		ref->non_terminal->length
+		ref->symbol->name,
+		ref->symbol->length
 	);
-	_reduce_followset(nt->end, cont, nt->symbol);
+	_reduce_followset(nt->end, cont, sb->id);
 	ref->return_status = REF_SOLVED;
 	nt->unsolved_returns--;
 	return 0;
 }
 
-int _solve_invoke_reference(NonTerminal *nt, Reference *ref) {
+int _solve_invoke_reference(Symbol *sb, Reference *ref) {
+	NonTerminal *nt = (NonTerminal *)sb->data;
+
 	if(ref->invoke_status == REF_SOLVED) {
 		//Ref already solved
 		return 0;
 	}
 
-	Action *cont = radix_tree_get_int(&ref->action->state->actions, nt->symbol);
+	Action *cont = radix_tree_get_int(&ref->action->state->actions, sb->id);
 	if(nt->unsolved_invokes) {
 		trace_non_terminal(
 			"skip invoke ref from",
-			ref->non_terminal->name,
-			ref->non_terminal->length
+			ref->symbol->name,
+			ref->symbol->length
 		);
 		return 1;
 	}
@@ -486,8 +495,8 @@ int _solve_invoke_reference(NonTerminal *nt, Reference *ref) {
 	//Solve reference
 	trace_non_terminal(
 		"solve invoke ref from",
-		ref->non_terminal->name,
-		ref->non_terminal->length
+		ref->symbol->name,
+		ref->symbol->length
 	);
 	_add_followset(ref->action, nt->start->state);
 	ref->invoke_status = REF_SOLVED;
@@ -498,20 +507,23 @@ int _solve_invoke_reference(NonTerminal *nt, Reference *ref) {
 }
 
 void _solve_references(FsmCursor *cur) {
-	Node * rules = &cur->fsm->rules;
+	Node *symbols = &cur->fsm->table->symbols;
 	Iterator it;
+	Symbol *sb;
 	NonTerminal *nt;
 	int some_unsolved;
 retry:
 	some_unsolved = 0;
-	radix_tree_iterator_init(&it, rules);
-	while(nt = (NonTerminal *)radix_tree_iterator_next(&it)) {
-		trace_non_terminal("solve references", nt->name, nt->length);
+	radix_tree_iterator_init(&it, symbols);
+	while(sb = (Symbol *)radix_tree_iterator_next(&it)) {
+		trace_non_terminal("solve references", sb->name, sb->length);
+
+		nt = (NonTerminal *)sb->data;
 		Reference *ref;
 		ref = nt->parent_refs;
 		while(ref) {
-			some_unsolved |= _solve_return_reference(nt, ref);
-			some_unsolved |= _solve_invoke_reference(nt, ref);
+			some_unsolved |= _solve_return_reference(sb, ref);
+			some_unsolved |= _solve_invoke_reference(sb, ref);
 			ref = ref->next;
 		}
 	}
@@ -524,12 +536,13 @@ retry:
 }
 
 void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
+	Symbol *sb = cur->last_symbol;
 	NonTerminal *nt = cur->last_non_terminal;
 	if(nt) {
 		//TODO: May cause leaks if L_EOF previously added
-		trace_non_terminal("main", nt->name, nt->length);
-		_add_action(nt->end, eof_symbol, ACTION_TYPE_REDUCE, nt->symbol);
-		fsm_cursor_set_start(cur, nt->name, nt->length);
+		trace_non_terminal("main", sb->name, sb->length);
+		_add_action(nt->end, eof_symbol, ACTION_TYPE_REDUCE, sb->id);
+		fsm_cursor_set_start(cur, sb->name, sb->length);
 	}
 
 	_solve_references(cur);

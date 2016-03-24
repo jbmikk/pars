@@ -16,6 +16,7 @@ Symbol *symbol_table_add(SymbolTable *table, char *name, unsigned int length)
 		symbol->id = table->id_base--;
 		symbol->length = length;
 		symbol->name = c_new(char, length); 
+		symbol->data = NULL;
 		int i = 0;
 		for(i; i < length; i++) {
 			symbol->name[i] = name[i];

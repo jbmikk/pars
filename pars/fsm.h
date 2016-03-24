@@ -2,6 +2,7 @@
 #define FSM_H
 
 #include "structs.h"
+#include "symbols.h"
 
 #define ACTION_TYPE_START 0
 #define ACTION_TYPE_SHIFT 1
@@ -26,9 +27,6 @@ typedef struct _Action {
 typedef struct _NonTerminal {
 	Action *start;
 	Action *end;
-	int symbol;
-	char *name;
-	int length;
 	char unsolved_returns;
 	char unsolved_invokes;
 	struct _Reference *parent_refs;
@@ -36,6 +34,7 @@ typedef struct _NonTerminal {
 
 typedef struct _Reference {
 	Action *action;
+	Symbol *symbol;
 	NonTerminal *non_terminal;
 	char return_status;
 	char invoke_status;
@@ -45,8 +44,7 @@ typedef struct _Reference {
 typedef struct _Fsm {
 	Action *start;
 	Action error;
-	Node rules;
-	int symbol_base;
+	SymbolTable *table;
 } Fsm;
 
 typedef struct _FsmCursor {
@@ -54,6 +52,7 @@ typedef struct _FsmCursor {
 	Action *current;
 	SNode *stack;
 	SNode *continuations;
+	Symbol *last_symbol;
 	NonTerminal *last_non_terminal;
 } FsmCursor;
 
