@@ -19,13 +19,14 @@ void ast_node_init(AstNode *node, AstNode *parent, unsigned int index)
 	//TODO: Should initialize other fields even if not always used?
 }
 
-void ast_init(Ast *ast, Input *input)
+void ast_init(Ast *ast, Input *input, SymbolTable *table)
 {
 	ast_node_init(&ast->root, NULL, 0);
 	ast->root.symbol = 0;
 	ast->current = &ast->root;
 	ast->previous = NULL;
 	ast->input = input;
+	ast->table = table;
 }
 
 void _ast_dispose_node(AstNode *node)
@@ -51,6 +52,7 @@ void ast_dispose(Ast *ast)
 		//TODO: write test for open ast tree
 		_ast_dispose_node(ast->previous);
 	}
+	ast->table = NULL;
 }
 
 void ast_bind_to_parent(AstNode *node)
@@ -241,6 +243,10 @@ void ast_print_node(Ast *ast, AstNode *node, int level) {
 
 		} while(next = ast_get_next_sibling(next));
 	}
+}
+
+int ast_get_symbol(AstCursor *cur, char *name, unsigned int length) {
+	return symbol_table_get(cur->ast->table, name, length)->id;
 }
 
 void ast_print(Ast* ast) {

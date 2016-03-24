@@ -9,7 +9,7 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 	Fsm *fsm = &parser->fsm;
 
 	lexer_init(lexer, input, parser->lexer_handler);
-	ast_init(ast, input);
+	ast_init(ast, input, &parser->table);
 
 	Session session;
 	session_init(&session, fsm);

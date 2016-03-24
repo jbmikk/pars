@@ -9,17 +9,20 @@
 unsigned char *buffer = "this is a test";
 
 typedef struct {
+	SymbolTable table;
 	Input input;
 	Ast ast;
 } Fixture;
 
 void setup(Fixture *fix, gconstpointer data){
 	input_init_buffer(&fix->input, buffer, strlen(buffer));
-	ast_init(&fix->ast, &fix->input);
+	symbol_table_init(&fix->table);
+	ast_init(&fix->ast, &fix->input, &fix->table);
 }
 
 void teardown(Fixture *fix, gconstpointer data){
 	ast_dispose(&fix->ast);
+	symbol_table_dispose(&fix->table);
 	input_dispose(&fix->input);
 }
 

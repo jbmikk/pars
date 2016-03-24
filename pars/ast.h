@@ -4,6 +4,7 @@
 #include "radixtree.h"
 #include "stack.h"
 #include "input.h"
+#include "symbols.h"
 
 typedef struct _AstNode {
 	unsigned int index;
@@ -17,6 +18,7 @@ typedef struct _Ast {
 	AstNode root;
 	AstNode *current;
 	AstNode *previous;
+	SymbolTable *table;
 	Input *input;
 } Ast;
 
@@ -26,12 +28,13 @@ typedef struct _AstCursor {
 	SNode *stack;
 } AstCursor;
 
-void ast_init(Ast *ast, Input *input);
+void ast_init(Ast *ast, Input *input, SymbolTable *table);
 void ast_dispose(Ast *ast);
 void ast_open(void *ast_p, unsigned int index, unsigned int length, int symbol);
 void ast_close(void *ast_p, unsigned int index, unsigned int length, int symbol);
 void ast_done(Ast *ast);
 void ast_print(Ast *ast);
+int ast_get_symbol(AstCursor *cur, char *name, unsigned int length);
 void ast_cursor_init(AstCursor *cursor, Ast *ast);
 AstNode *ast_cursor_depth_next(AstCursor *cursor);
 AstNode *ast_cursor_depth_next_symbol(AstCursor *cursor, int symbol);
