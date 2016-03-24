@@ -224,20 +224,15 @@ void ast_print_node(Ast *ast, AstNode *node, int level) {
 		do {
 			unsigned char *src = ast->input->buffer + next->index;
 			int length = next->length;
-			unsigned char name[length+1];
-			int i = 0;
-			for(i; i < length; i++) {
-				name[i] = src[i];
-			}
-			name[length] = '\0';
 
 			unsigned char levelstr[level+1];
+			int i;
 			for(i = 0; i < level; i++) {
 				levelstr[i] = '-';
 			}
 			levelstr[level] = '\0';
 
-			printf("%s> [%i] %s\n", levelstr, next->symbol, name);
+			printf("%s> [%i] %.*s\n", levelstr, next->symbol, length, src);
 
 			ast_print_node(ast, next, level+1);
 
