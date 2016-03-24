@@ -28,14 +28,14 @@ int pars_load_grammar(char *pathname, Fsm *fsm, SymbolTable *table)
 	error = parser_execute(&parser, &ast, &input);
 	check(!error, "Could not build ebnf ast.");
 
-	ebnf_dispose_parser(&parser);
-
 	//TODO: make optional under a -v flag
 	ast_print(&ast);
 
 	ebnf_ast_to_fsm(fsm, &ast);
 
 	ast_dispose(&ast);
+	//TODO?: can't dispose parser before ast, shared symbol table
+	ebnf_dispose_parser(&parser);
 	input_dispose(&input);
 
 	return 0;
