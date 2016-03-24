@@ -1,4 +1,5 @@
 #include "ebnf_parser.h"
+#include "symbols.h"
 
 #include "cmemory.h"
 #include "dbg.h"
@@ -17,14 +18,6 @@ void ebnf_init_fsm(Fsm *fsm)
 	FsmCursor cur;
 
 	fsm_cursor_init(&cur, fsm);
-
-	//Force definition order to match symbol constants
-	//TODO: Remove with E_* constants
-	fsm_cursor_define(&cur, nzs("expression"));
-	fsm_cursor_define(&cur, nzs("single_definition"));
-	fsm_cursor_define(&cur, nzs("definitions_list"));
-	fsm_cursor_define(&cur, nzs("non_terminal_declaration"));
-	fsm_cursor_define(&cur, nzs("syntax"));
 
 	//Expression
 	fsm_cursor_define(&cur, nzs("expression"));
@@ -125,6 +118,7 @@ void ebnf_build_expression(FsmCursor *f_cur, AstCursor *a_cur)
 	unsigned char *string;
 	int length, i;
 
+	int E_DEFINITIONS_LIST = ast_get_symbol(a_cur, nzs("definitions_list"));
 	switch(node->symbol) {
 	case L_IDENTIFIER:
 		ast_cursor_get_string(a_cur, &string, &length);
@@ -146,6 +140,7 @@ void ebnf_build_expression(FsmCursor *f_cur, AstCursor *a_cur)
 
 void ebnf_build_single_definition(FsmCursor *f_cur, AstCursor *a_cur)
 {
+	int E_EXPRESSION = ast_get_symbol(a_cur, nzs("expression"));
 	ast_cursor_depth_next_symbol(a_cur, E_EXPRESSION);
 	do {
 		ast_cursor_push(a_cur);
@@ -156,6 +151,7 @@ void ebnf_build_single_definition(FsmCursor *f_cur, AstCursor *a_cur)
 
 void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur)
 {
+	int E_SINGLE_DEFINITION = ast_get_symbol(a_cur, nzs("single_definition"));
 	ast_cursor_depth_next_symbol(a_cur, E_SINGLE_DEFINITION);
 	fsm_cursor_push(f_cur);
 	fsm_cursor_push_new_continuation(f_cur);
@@ -178,6 +174,7 @@ void ebnf_build_non_terminal_declaration(FsmCursor *f_cur, AstCursor *a_cur)
 	ast_cursor_get_string(a_cur, &string, &length);
 	fsm_cursor_define(f_cur, string, length);
 
+	int E_DEFINITIONS_LIST = ast_get_symbol(a_cur, nzs("definitions_list"));
 	ast_cursor_next_sibling_symbol(a_cur, E_DEFINITIONS_LIST);
 	ebnf_build_definitions_list(f_cur, a_cur);
 }	
@@ -190,6 +187,7 @@ void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
 	ast_cursor_init(&a_cur, ast);
 	fsm_cursor_init(&f_cur, fsm);
 
+	int E_NON_TERMINAL_DECLARATION = ast_get_symbol(&a_cur, nzs("non_terminal_declaration"));
 	while(ast_cursor_depth_next_symbol(&a_cur, E_NON_TERMINAL_DECLARATION)) {
 		ast_cursor_push(&a_cur);
 		ebnf_build_non_terminal_declaration(&f_cur, &a_cur);

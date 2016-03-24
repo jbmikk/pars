@@ -13,7 +13,7 @@ typedef struct {
 	Fsm fsm;
 } Fixture;
 
-EToken *current;
+int *current;
 unsigned int token_index;
 unsigned int diff;
 unsigned int count;
@@ -46,6 +46,7 @@ void ebnf_start_parsing__identifier(Fixture *fix, gconstpointer data){
 	fsm_cursor_define(&cur, "expression", 10);
 	Action *action;
 
+	int E_EXPRESSION = fsm_get_symbol(&fix->fsm, nzs("expression"));
 	fsm_cursor_set_start(&cur, nzs("expression"));
 	Session session;
 	session_init(&session, &fix->fsm);
@@ -77,6 +78,7 @@ void ebnf_start_parsing__terminal(Fixture *fix, gconstpointer data){
 	fsm_cursor_define(&cur, "expression", 10);
 	Action *action;
 
+	int E_EXPRESSION = fsm_get_symbol(&fix->fsm, nzs("expression"));
 	fsm_cursor_set_start(&cur, nzs("expression"));
 	Session session;
 	session_init(&session, &fix->fsm);
@@ -107,6 +109,7 @@ void ebnf_start_parsing__concatenate(Fixture *fix, gconstpointer data){
 	fsm_cursor_define(&cur, "single_definition", 17);
 	Action *action;
 
+	int E_EXPRESSION = fsm_get_symbol(&fix->fsm, nzs("expression"));
 	fsm_cursor_set_start(&cur, nzs("single_definition"));
 	Session session;
 	session_init(&session, &fix->fsm);
@@ -136,6 +139,7 @@ void ebnf_start_parsing__separator(Fixture *fix, gconstpointer data){
 	fsm_cursor_define(&cur, "definitions_list", 16);
 	Action *action;
 
+	int E_EXPRESSION = fsm_get_symbol(&fix->fsm, nzs("expression"));
 	fsm_cursor_set_start(&cur, nzs("definitions_list"));
 	Session session;
 	session_init(&session, &fix->fsm);
@@ -161,6 +165,7 @@ void ebnf_start_parsing__declaration(Fixture *fix, gconstpointer data){
 	fsm_cursor_define(&cur, "non_terminal_declaration", 24);
 	Action *action;
 
+	int E_NON_TERMINAL_DECLARATION = fsm_get_symbol(&fix->fsm, nzs("non_terminal_declaration"));
 	fsm_cursor_set_start(&cur, nzs("non_terminal_declaration"));
 	Session session;
 	session_init(&session, &fix->fsm);
@@ -186,6 +191,7 @@ void ebnf_start_parsing__group(Fixture *fix, gconstpointer data){
 	FsmCursor cur;
 	fsm_cursor_init(&cur, &fix->fsm);
 
+	int E_EXPRESSION = fsm_get_symbol(&fix->fsm, nzs("expression"));
 	fsm_cursor_define(&cur, "expression", 10);
 	Action *action;
 
@@ -210,6 +216,7 @@ void ebnf_start_parsing__group(Fixture *fix, gconstpointer data){
 void ebnf_start_parsing__syntax(Fixture *fix, gconstpointer data){
 	Action *action;
 
+	int E_NON_TERMINAL_DECLARATION = fsm_get_symbol(&fix->fsm, nzs("non_terminal_declaration"));
 	Session session;
 	session_init(&session, &fix->fsm);
 	MATCH(session, L_IDENTIFIER);
