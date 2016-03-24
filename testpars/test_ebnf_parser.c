@@ -9,6 +9,7 @@
 #define TEST(S, I) session_test(&(S), I, 0, 0);
 
 typedef struct {
+	SymbolTable table;
 	Fsm fsm;
 } Fixture;
 
@@ -28,12 +29,14 @@ void setup(Fixture *fix, gconstpointer data){
 	token_index = 0;
 	diff = 0;
 	count = 0;
-	fsm_init(&fix->fsm);
+	symbol_table_init(&fix->table);
+	fsm_init(&fix->fsm, &fix->table);
 	ebnf_init_fsm(&fix->fsm);
 }
 
 void teardown(Fixture *fix, gconstpointer data){
 	fsm_dispose(&fix->fsm);
+	symbol_table_dispose(&fix->table);
 }
 
 void ebnf_start_parsing__identifier(Fixture *fix, gconstpointer data){

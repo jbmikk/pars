@@ -9,6 +9,7 @@
 #define MATCH_AT(S, Y, I) session_match(&(S), Y, I, 0);
 
 typedef struct {
+	SymbolTable table;
 	Fsm fsm;
 } Fixture;
 
@@ -21,11 +22,13 @@ typedef struct {
 Token token;
 
 void setup(Fixture *fix, gconstpointer data){
-	fsm_init(&fix->fsm);
+	symbol_table_init(&fix->table);
+	fsm_init(&fix->fsm, &fix->table);
 }
 
 void teardown(Fixture *fix, gconstpointer data){
 	fsm_dispose(&fix->fsm);
+	symbol_table_dispose(&fix->table);
 }
 
 void fsm_cursor_define__single_get(Fixture *fix, gconstpointer data){

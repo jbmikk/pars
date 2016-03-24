@@ -100,7 +100,8 @@ int ebnf_init_parser(Parser *parser)
 	parser->handler.reduce = ast_close;
 	parser->lexer_handler = ebnf_lexer;
 
-	fsm_init(&parser->fsm);
+	symbol_table_init(&parser->table);
+	fsm_init(&parser->fsm, &parser->table);
 	ebnf_init_fsm(&parser->fsm);
 
 	return 0;
@@ -113,6 +114,7 @@ error:
 int ebnf_dispose_parser(Parser *parser)
 {
 	fsm_dispose(&parser->fsm);
+	symbol_table_dispose(&parser->table);
 }
 
 void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur);

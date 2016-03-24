@@ -14,8 +14,9 @@ void pars_teardown(Fixture *fix, gconstpointer data){
 }
 
 void test_load_grammar(Fixture *fix, gconstpointer data){
+	SymbolTable table;
 	Fsm fsm;
-	int error = pars_load_grammar("not-a-valid-file-name", &fsm);
+	int error = pars_load_grammar("not-a-valid-file-name", &fsm, &table);
 	g_assert_cmpint(error, <=, 0);
 }
 

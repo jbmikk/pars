@@ -9,14 +9,15 @@
 #include <stddef.h>
 #include <stdio.h>
 
-int pars_load_grammar(char *pathname, Fsm *fsm)
+int pars_load_grammar(char *pathname, Fsm *fsm, SymbolTable *table)
 {
 	Input input;
 	Parser parser;
 	Ast ast;
 	int error;
 
-	fsm_init(fsm);
+	symbol_table_init(table);
+	fsm_init(fsm, table);
 
 	error = ebnf_init_parser(&parser);
 	check(!error, "Could not build ebnf parser.");
@@ -46,6 +47,7 @@ error:
 	ebnf_dispose_parser(&parser);
 	input_dispose(&input);
 	fsm_dispose(fsm);
+	symbol_table_dispose(table);
 
 	return -1;
 }
@@ -82,12 +84,13 @@ error:
 
 #ifndef LIBRARY
 int main(int argc, char** argv){
+	SymbolTable table;
 	Fsm fsm;
 	Ast ast;
 	int error;
 	if(argc > 1) {
 		log_info("Loading grammar.");
-		error = pars_load_grammar(argv[1], &fsm);
+		error = pars_load_grammar(argv[1], &fsm, &table);
 		check(!error, "Could not load grammar.");
 
 		if(argc > 2) {
@@ -97,6 +100,7 @@ int main(int argc, char** argv){
 		}
 
 		fsm_dispose(&fsm);
+		symbol_table_dispose(&table);
 	} else {
 		log_info("Usage:");
 		log_info("pars <grammar-file>");

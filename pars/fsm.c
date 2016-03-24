@@ -85,11 +85,10 @@ void session_dispose(Session *session)
 	}
 }
 
-void fsm_init(Fsm *fsm)
+void fsm_init(Fsm *fsm, SymbolTable *table)
 {
 	//TODO: Get symbol table as parameter
-	fsm->table = c_new(SymbolTable, 1);
-	symbol_table_init(fsm->table);
+	fsm->table = table;
 	fsm->start = NULL;
 	_action_init(&fsm->error, ACTION_TYPE_ERROR, NONE, NULL);
 	fsm->error.state = c_new(State, 1);
@@ -159,9 +158,6 @@ void fsm_dispose(Fsm *fsm)
 	}
 	radix_tree_iterator_dispose(&it);
 
-	symbol_table_dispose(fsm->table);
-	c_delete(fsm->table);
-
 	//Delete all actions
 	Action *ac;
 	radix_tree_iterator_init(&it, &all_actions);
@@ -186,6 +182,8 @@ void fsm_dispose(Fsm *fsm)
 	//Delete error state
 	radix_tree_dispose(&fsm->error.state->actions);
 	c_delete(fsm->error.state);
+
+	fsm->table = NULL;
 }
 
 NonTerminal *fsm_get_non_terminal(Fsm *fsm, unsigned char *name, int length)
