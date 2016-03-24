@@ -30,12 +30,12 @@ set_target_properties(parslib PROPERTIES COMPILE_FLAGS -DLIBRARY)
 
 add_executable (pars pars.c)
 
-target_link_libraries(symbols radixtree)
-target_link_libraries(input cmemory)
+target_link_libraries(symbols stlib)
+target_link_libraries(input stlib)
 target_link_libraries(lexer input)
-target_link_libraries(fsm radixtree radixtree_ext arrays stack symbols)
-target_link_libraries(ast radixtree radixtree_ext arrays stack symbols)
+target_link_libraries(fsm radixtree_ext symbols stlib)
+target_link_libraries(ast radixtree_ext symbols stlib)
 target_link_libraries(ebnf_parser fsm lexer ast)
-target_link_libraries(parslib cmemory input parser ebnf_parser)
-target_link_libraries(pars cmemory input parser ebnf_parser)
+target_link_libraries(parslib input parser ebnf_parser stlib)
+target_link_libraries(pars input parser ebnf_parser stlib)
 
