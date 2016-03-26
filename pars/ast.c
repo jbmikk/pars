@@ -220,24 +220,45 @@ void ast_cursor_dispose(AstCursor *cursor)
 void ast_print_node(Ast *ast, AstNode *node, int level) {
 	
 	AstNode *next = (AstNode *)radix_tree_get_next(&node->children, NULL, 0);
-	if(next) {
-		do {
-			unsigned char *src = ast->input->buffer + next->index;
-			int length = next->length;
+	Symbol *sy;
 
-			unsigned char levelstr[level+1];
-			int i;
-			for(i = 0; i < level; i++) {
-				levelstr[i] = '-';
-			}
-			levelstr[level] = '\0';
-
-			printf("%s> [%i] %.*s\n", levelstr, next->symbol, length, src);
-
-			ast_print_node(ast, next, level+1);
-
-		} while(next = ast_get_next_sibling(next));
+	if(!next) {
+		return;
 	}
+
+	do {
+		unsigned char *src = ast->input->buffer + next->index;
+		int length = next->length;
+
+		unsigned char levelstr[level+1];
+		int i;
+		for(i = 0; i < level; i++) {
+			levelstr[i] = '-';
+		}
+		levelstr[level] = '\0';
+
+		sy = symbol_table_get_by_id(ast->table, next->symbol);
+		if(sy) {
+			printf(
+				"%s> [%.*s] %.*s\n",
+				levelstr,
+				sy->length,
+				sy->name,
+				length,
+				src
+			);
+		} else {
+			printf(
+				"%s> T %.*s\n",
+				levelstr,
+				length,
+				src
+			);
+		}
+
+		ast_print_node(ast, next, level+1);
+
+	} while(next = ast_get_next_sibling(next));
 }
 
 int ast_get_symbol(AstCursor *cur, char *name, unsigned int length) {
