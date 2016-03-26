@@ -16,12 +16,13 @@ Symbol *symbol_table_add(SymbolTable *table, char *name, unsigned int length)
 		symbol = c_new(Symbol, 1);
 		symbol->id = table->id_base--;
 		symbol->length = length;
-		symbol->name = c_new(char, length); 
+		symbol->name = c_new(char, length+1); 
 		symbol->data = NULL;
 		int i = 0;
 		for(i; i < length; i++) {
 			symbol->name[i] = name[i];
 		}
+		symbol->name[i] = '\0';
 		radix_tree_set(&table->symbols, name, length, symbol);
 		radix_tree_set_int(&table->symbols_by_id, symbol->id, symbol);
 	}

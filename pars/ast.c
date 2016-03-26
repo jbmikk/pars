@@ -240,9 +240,8 @@ void ast_print_node(Ast *ast, AstNode *node, int level) {
 		sy = symbol_table_get_by_id(ast->table, next->symbol);
 		if(sy) {
 			printf(
-				"%s> [%.*s] %.*s\n",
+				"%s> [%s] %.*s\n",
 				levelstr,
-				sy->length,
 				sy->name,
 				length,
 				src
