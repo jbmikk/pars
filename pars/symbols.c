@@ -34,7 +34,7 @@ Symbol *symbol_table_get(SymbolTable *table, char *name, unsigned int length)
 	return radix_tree_get(&table->symbols, name, length);
 }
 
-Symbol *symbol_table_get_by_id(SymbolTable *table, unsigned int id)
+Symbol *symbol_table_get_by_id(SymbolTable *table, int id)
 {
 	return radix_tree_get_int(&table->symbols_by_id, id);
 }

@@ -19,7 +19,7 @@ typedef struct _SymbolTable {
 void symbol_table_init(SymbolTable *table);
 Symbol *symbol_table_add(SymbolTable *table, char *name, unsigned int length);
 Symbol *symbol_table_get(SymbolTable *table, char *name, unsigned int length);
-Symbol *symbol_table_get_by_id(SymbolTable *table, unsigned int id);
+Symbol *symbol_table_get_by_id(SymbolTable *table, int id);
 void symbol_table_dispose(SymbolTable *table);
 
 #endif //SYMBOLS_H
