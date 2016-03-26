@@ -2,6 +2,7 @@
 #define SYMBOLS_H
 
 #include "radixtree.h"
+#include "radixtree_ext.h"
 
 typedef struct _Symbol {
 	int id;
