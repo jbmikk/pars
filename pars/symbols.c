@@ -46,7 +46,6 @@ void symbol_table_dispose(SymbolTable *table)
 
 	radix_tree_iterator_init(&it, &table->symbols);
 	while(symbol = (Symbol *)radix_tree_iterator_next(&it)) {
-		//Get all actions reachable through other rules
 		c_delete(symbol->name);
 		c_delete(symbol);
 	}
