@@ -162,6 +162,7 @@ void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur)
 		fsm_cursor_reset(f_cur);
 		ast_cursor_pop(a_cur);
 	} while(ast_cursor_next_sibling_symbol(a_cur, E_SINGLE_DEFINITION));
+	fsm_cursor_pop_continuation(f_cur);
 	fsm_cursor_pop(f_cur);
 }
 
