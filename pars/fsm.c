@@ -155,6 +155,8 @@ void fsm_dispose(Fsm *fsm)
 			c_delete(pref);
 		}
 		c_delete(nt);
+		//TODO: Symbol table may live longer than fsm, makes sense?
+		symbol->data = NULL;
 	}
 	radix_tree_iterator_dispose(&it);
 
