@@ -58,6 +58,8 @@ int pars_parse_source(char *pathname, Fsm *fsm, Ast *ast)
 	parser.handler.context_shift = ast_open;
 	parser.handler.reduce = ast_close;
 	parser.lexer_handler = identity_lexer;
+	//TODO: Please kill me
+	parser.table = *fsm->table;
 
 	input_init(&input, pathname);
 	check(input.is_open, "Could not find or open source file: %s", pathname);
