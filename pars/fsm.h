@@ -99,6 +99,7 @@ void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length);
 void fsm_cursor_add_reference(FsmCursor *cur, unsigned char *name, int length);
 void fsm_cursor_push(FsmCursor *cur);
 void fsm_cursor_pop(FsmCursor *cur);
+void fsm_cursor_pop_discard(FsmCursor *cur);
 void fsm_cursor_reset(FsmCursor *cur);
 void fsm_cursor_push_continuation(FsmCursor *cur);
 void fsm_cursor_push_new_continuation(FsmCursor *cur);
