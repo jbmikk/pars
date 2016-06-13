@@ -6,6 +6,15 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 option(ENABLE_FSM_TRACE "Enable fsm traces" OFF)
 option(ENABLE_AST_TRACE "Enable ast traces" OFF)
 
+
+# Depend on dbg
+# -------------
+
+add_custom_target(
+        dependencies ALL sh install.sh
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+)
+
 include_directories("${PROJECT_SOURCE_DIR}/vendor/dbg")
 
 add_subdirectory(stlib)
