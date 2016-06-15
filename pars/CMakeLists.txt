@@ -1,4 +1,3 @@
-include_directories("${PROJECT_SOURCE_DIR}/stlib")
 
 add_library (
         parslib
@@ -15,8 +14,8 @@ add_library (
 
 add_executable (pars pars.c)
 
-target_link_libraries(parslib stlib)
-target_link_libraries(pars parslib stlib)
+target_link_libraries(parslib dstlib)
+target_link_libraries(pars parslib dstlib)
 
 if(ENABLE_FSM_TRACE)
         set(FSM_TRACE_FLAGS "-DFSM_TRACE")

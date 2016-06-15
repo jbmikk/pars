@@ -1,3 +1,4 @@
+mkdir -p build
 cd build
 
 echo "BUILD PROJECT"

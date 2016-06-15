@@ -45,17 +45,6 @@ sh build.sh $TRACE
 cd build
 
 echo ""
-echo "TESTSTLIB:"
-echo "---------"
-cd teststlib
-
-run_test $MODE $PATTERN ./test_bsearch
-run_test $MODE $PATTERN ./test_radixtree
-run_test $MODE $PATTERN ./test_arrays
-
-cd ..
-
-echo ""
 echo "TESTPARS:"
 echo "--------"
 cd testpars
