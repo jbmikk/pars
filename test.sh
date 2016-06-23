@@ -47,7 +47,7 @@ cd build
 echo ""
 echo "TESTPARS:"
 echo "--------"
-cd testpars
+cd tests
 
 run_test $MODE $PATTERN ./test_lexer
 run_test $MODE $PATTERN ./test_ebnf_parser
@@ -60,10 +60,10 @@ cd ..
 echo ""
 echo "PARSE GRAMMARS:"
 echo "--------------"
-cd pars
-run_test $MODE $PATTERN "./pars ../testpars/grammars/empty_file.txt"
-run_test $MODE $PATTERN "./pars ../testpars/grammars/ab-grammar.txt ../testpars/grammars/ab-source.txt"
-run_test $MODE $PATTERN "./pars ../testpars/grammars/digit-grammar.txt ../testpars/grammars/digit-source.txt"
+cd src
+run_test $MODE $PATTERN "./pars ../tests/grammars/empty_file.txt"
+run_test $MODE $PATTERN "./pars ../tests/grammars/ab-grammar.txt ../tests/grammars/ab-source.txt"
+run_test $MODE $PATTERN "./pars ../tests/grammars/digit-grammar.txt ../tests/grammars/digit-source.txt"
 cd ..
 
 cd ..

@@ -45,6 +45,6 @@ set_property(
 # Add subdirectories
 # ------------------
 
-add_subdirectory(pars)
-add_subdirectory(testpars)
+add_subdirectory(src)
+add_subdirectory(tests)
 

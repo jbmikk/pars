@@ -1,4 +1,4 @@
-include_directories("${PROJECT_SOURCE_DIR}/pars")
+include_directories("${PROJECT_SOURCE_DIR}/src")
 
 find_package(GLIB REQUIRED)
 
