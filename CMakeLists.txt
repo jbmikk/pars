@@ -23,7 +23,7 @@ include_directories("${PROJECT_SOURCE_DIR}/vendor/dbg")
 # Depend on dstlib 
 # ----------------
 
-include_directories("${CMAKE_BINARY_DIR}/dstlib_external-prefix/src/dstlib_external/dstlib")
+include_directories("${CMAKE_BINARY_DIR}/dstlib_external-prefix/src/dstlib_external/src")
 
 set_property(DIRECTORY PROPERTY EP_STEP_TARGETS build)
 externalproject_add(
@@ -38,7 +38,7 @@ add_library(dstlib STATIC IMPORTED GLOBAL)
 
 set_property(
         TARGET dstlib
-        PROPERTY IMPORTED_LOCATION "${CMAKE_BINARY_DIR}/dstlib_external-prefix/src/dstlib_external-build/dstlib/libdstlib.a"
+        PROPERTY IMPORTED_LOCATION "${CMAKE_BINARY_DIR}/dstlib_external-prefix/src/dstlib_external-build/src/libdstlib.a"
 )
 
 
