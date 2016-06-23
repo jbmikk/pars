@@ -1,21 +1,18 @@
 #include <stddef.h>
-#include <glib.h>
 
 #include "pars.h"
 #include "symbols.h"
 #include "fsm.h"
+#include "test.h"
 
-typedef struct {
-	int placeholder;
-} Fixture;
 
-void pars_setup(Fixture *fix, gconstpointer data){
+void t_setup(){
 }
 
-void pars_teardown(Fixture *fix, gconstpointer data){
+void t_teardown(){
 }
 
-void test_load_grammar(Fixture *fix, gconstpointer data){
+void test_load_grammar(){
 	SymbolTable table;
 	Fsm fsm;
 
@@ -27,11 +24,11 @@ void test_load_grammar(Fixture *fix, gconstpointer data){
 	fsm_dispose(&fsm);
 	symbol_table_dispose(&table);
 
-	g_assert_cmpint(error, <=, 0);
+	t_assert(error <= 0);
 }
 
 int main(int argc, char** argv){
-	g_test_init(&argc, &argv, NULL);
-	g_test_add("/Pars/pars_load_grammar", Fixture, NULL, pars_setup, test_load_grammar, pars_teardown);
-	return g_test_run();
+	t_init();
+	t_test(test_load_grammar);
+	return t_done();
 }

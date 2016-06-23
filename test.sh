@@ -49,6 +49,7 @@ echo "TESTPARS:"
 echo "--------"
 cd tests
 
+run_test $MODE $PATTERN ./test_input
 run_test $MODE $PATTERN ./test_lexer
 run_test $MODE $PATTERN ./test_ebnf_parser
 run_test $MODE $PATTERN ./test_fsm
