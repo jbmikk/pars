@@ -3,8 +3,6 @@ project (pars)
 
 include(ExternalProject)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-
 option(ENABLE_FSM_TRACE "Enable fsm traces" OFF)
 option(ENABLE_AST_TRACE "Enable ast traces" OFF)
 
