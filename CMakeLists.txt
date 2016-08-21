@@ -21,11 +21,11 @@ include_directories("${PROJECT_SOURCE_DIR}/vendor/dbg")
 # Depend on dstlib 
 # ----------------
 
-include_directories("${CMAKE_BINARY_DIR}/dstlib_external-prefix/src/dstlib_external/src")
+include_directories("${CMAKE_BINARY_DIR}/xdstlib-prefix/src/xdstlib/src")
 
-set_property(DIRECTORY PROPERTY EP_STEP_TARGETS build)
+#set_property(DIRECTORY PROPERTY EP_STEP_TARGETS build update)
 externalproject_add(
-        dstlib_external
+        xdstlib
         GIT_REPOSITORY git@github.com:jbmikk/dstlib.git
         DOWNLOAD_NAME dstlib
         DOWNLOAD_DIR dstlib
@@ -33,13 +33,18 @@ externalproject_add(
         UPDATE_DISCONNECTED 1
 )
 
-#externalproject_add_steptargets()
+externalproject_add_steptargets(xdstlib update)
+
+add_custom_target(
+        update 
+        DEPENDS xdstlib-update
+)
 
 add_library(dstlib STATIC IMPORTED GLOBAL) 
 
 set_property(
         TARGET dstlib
-        PROPERTY IMPORTED_LOCATION "${CMAKE_BINARY_DIR}/dstlib_external-prefix/src/dstlib_external-build/src/libdstlib.a"
+        PROPERTY IMPORTED_LOCATION "${CMAKE_BINARY_DIR}/xdstlib-prefix/src/xdstlib-build/src/libdstlib.a"
 )
 
 
