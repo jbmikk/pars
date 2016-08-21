@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.0)
+cmake_minimum_required (VERSION 3.2.0)
 project (pars)
 
 include(ExternalProject)
@@ -32,7 +32,10 @@ externalproject_add(
         DOWNLOAD_NAME dstlib
         DOWNLOAD_DIR dstlib
         INSTALL_COMMAND ""
+        UPDATE_DISCONNECTED 1
 )
+
+#externalproject_add_steptargets()
 
 add_library(dstlib STATIC IMPORTED GLOBAL) 
 
