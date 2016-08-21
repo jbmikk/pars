@@ -83,6 +83,7 @@ typedef struct _Session {
 
 
 void session_init(Session *session, Fsm *fsm);
+void session_dispose(Session *session);
 void session_push(Session *session);
 void session_pop(Session *session);
 
@@ -101,12 +102,14 @@ void fsm_cursor_push(FsmCursor *cur);
 void fsm_cursor_pop(FsmCursor *cur);
 void fsm_cursor_pop_discard(FsmCursor *cur);
 void fsm_cursor_reset(FsmCursor *cur);
+void fsm_cursor_set_end(FsmCursor *cursor);
 void fsm_cursor_push_continuation(FsmCursor *cur);
 void fsm_cursor_push_new_continuation(FsmCursor *cur);
 State *fsm_cursor_pop_continuation(FsmCursor *cur);
 void fsm_cursor_join_continuation(FsmCursor *cur);
 void fsm_cursor_dispose(FsmCursor *cur);
 
+void fsm_cursor_done(FsmCursor *cur, int eof_symbol);
 void fsm_cursor_add_shift(FsmCursor *cur, int symbol);
 void fsm_cursor_add_context_shift(FsmCursor *cur, int symbol);
 void fsm_cursor_add_followset(FsmCursor *cur, State *state);
