@@ -23,7 +23,6 @@ include_directories("${PROJECT_SOURCE_DIR}/vendor/dbg")
 
 include_directories("${CMAKE_BINARY_DIR}/xdstlib-prefix/src/xdstlib/src")
 
-#set_property(DIRECTORY PROPERTY EP_STEP_TARGETS build update)
 externalproject_add(
         xdstlib
         GIT_REPOSITORY git@github.com:jbmikk/dstlib.git
@@ -40,11 +39,13 @@ add_custom_target(
         DEPENDS xdstlib-update
 )
 
+set(DSTLIB_DIR "${CMAKE_BINARY_DIR}/xdstlib-prefix/src/xdstlib-build")
+
 add_library(dstlib STATIC IMPORTED GLOBAL) 
 
 set_property(
         TARGET dstlib
-        PROPERTY IMPORTED_LOCATION "${CMAKE_BINARY_DIR}/xdstlib-prefix/src/xdstlib-build/src/libdstlib.a"
+        PROPERTY IMPORTED_LOCATION "${DSTLIB_DIR}/libdstlib.a"
 )
 
 
