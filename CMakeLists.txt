@@ -18,8 +18,8 @@ add_custom_target(
 include_directories("${PROJECT_SOURCE_DIR}/vendor/dbg")
 
 
-# Depend on dstlib 
-# ----------------
+# Include external dstlib 
+# -----------------------
 
 include_directories("${CMAKE_BINARY_DIR}/xdstlib-prefix/src/xdstlib/src")
 
@@ -32,12 +32,9 @@ externalproject_add(
         UPDATE_DISCONNECTED 1
 )
 
-externalproject_add_steptargets(xdstlib update)
 
-add_custom_target(
-        update 
-        DEPENDS xdstlib-update
-)
+# Add dstlib static library
+# -------------------------
 
 set(DSTLIB_DIR "${CMAKE_BINARY_DIR}/xdstlib-prefix/src/xdstlib-build")
 
@@ -46,6 +43,17 @@ add_library(dstlib STATIC IMPORTED GLOBAL)
 set_property(
         TARGET dstlib
         PROPERTY IMPORTED_LOCATION "${DSTLIB_DIR}/libdstlib.a"
+)
+
+
+# Add dstlib update target
+# ------------------------
+
+externalproject_add_steptargets(xdstlib update)
+
+add_custom_target(
+        update 
+        DEPENDS xdstlib-update
 )
 
 
