@@ -47,7 +47,6 @@ cd build
 echo ""
 echo "TESTPARS:"
 echo "--------"
-cd tests
 
 run_test $MODE $PATTERN ./test_input
 run_test $MODE $PATTERN ./test_lexer
@@ -56,7 +55,6 @@ run_test $MODE $PATTERN ./test_fsm
 run_test $MODE $PATTERN ./test_ast
 run_test $MODE $PATTERN ./testpars
 
-cd ..
 
 echo ""
 echo "PARSE GRAMMARS:"
