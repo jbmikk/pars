@@ -74,23 +74,13 @@ set(PARS_COMPILE_FLAGS "-DLIBRARY ${FSM_TRACE_FLAGS} ${AST_TRACE_FLAGS}")
 # Pars
 # ----
 
-add_library (
-        parslib
-        src/pars.c
-        src/radixtree_ext.c
-        src/symbols.c
-        src/input.c
-        src/lexer.c
-        src/parser.c
-        src/ebnf_parser.c
-        src/fsm.c
-        src/ast.c
-)
+file(GLOB SOURCES src/*.c)
 
-add_executable (pars src/pars.c)
+add_library(parslib ${SOURCES})
+add_executable (pars  ${SOURCES})
 
 target_link_libraries(parslib dstlib)
-target_link_libraries(pars parslib dstlib)
+target_link_libraries(pars dstlib)
 
 # Force download before compiling otherwise can't find headers (why?)
 # This was not necessary when including subdirectories.
