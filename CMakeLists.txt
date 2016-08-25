@@ -92,6 +92,11 @@ add_executable (pars src/pars.c)
 target_link_libraries(parslib dstlib)
 target_link_libraries(pars parslib dstlib)
 
+# Force download before compiling otherwise can't find headers (why?)
+# This was not necessary when including subdirectories.
+add_dependencies(parslib xdstlib)
+add_dependencies(pars xdstlib)
+
 set_target_properties(parslib PROPERTIES COMPILE_FLAGS "${PARS_COMPILE_FLAGS}")
 
 
