@@ -57,9 +57,68 @@ add_custom_target(
 )
 
 
-# Add subdirectories
-# ------------------
+# Flags
+# -----
 
-add_subdirectory(src)
-add_subdirectory(tests)
+if(ENABLE_FSM_TRACE)
+        set(FSM_TRACE_FLAGS "-DFSM_TRACE")
+endif(ENABLE_FSM_TRACE)
+
+if(ENABLE_AST_TRACE)
+        set(AST_TRACE_FLAGS "-DAST_TRACE")
+endif(ENABLE_AST_TRACE)
+
+set(PARS_COMPILE_FLAGS "-DLIBRARY ${FSM_TRACE_FLAGS} ${AST_TRACE_FLAGS}")
+
+
+# Pars
+# ----
+
+add_library (
+        parslib
+        src/pars.c
+        src/radixtree_ext.c
+        src/symbols.c
+        src/input.c
+        src/lexer.c
+        src/parser.c
+        src/ebnf_parser.c
+        src/fsm.c
+        src/ast.c
+)
+
+add_executable (pars src/pars.c)
+
+target_link_libraries(parslib dstlib)
+target_link_libraries(pars parslib dstlib)
+
+set_target_properties(parslib PROPERTIES COMPILE_FLAGS "${PARS_COMPILE_FLAGS}")
+
+
+# Tests
+# -----
+
+include_directories("${PROJECT_SOURCE_DIR}/src")
+
+add_executable(testpars tests/testpars.c)
+add_executable(test_input tests/test_input.c)
+add_executable(test_lexer tests/test_lexer.c)
+add_executable(test_ebnf_parser tests/test_ebnf_parser.c)
+add_executable(test_fsm tests/test_fsm.c)
+add_executable(test_ast tests/test_ast.c)
+
+target_link_libraries(testpars parslib)
+target_link_libraries(test_input parslib)
+target_link_libraries(test_lexer parslib)
+target_link_libraries(test_ebnf_parser parslib)
+target_link_libraries(test_fsm parslib)
+target_link_libraries(test_ast parslib)
+
+message(STATUS "Copy Grammars")
+file(COPY tests/grammars DESTINATION .)
+file(GLOB files "tests/grammars/*")
+foreach(filename ${files})
+	file(COPY ${filename} DESTINATION "./tests/grammars")
+endforeach()
+file(COPY test.sh DESTINATION .)
 
