@@ -59,11 +59,10 @@ run_test $MODE $PATTERN ./testpars
 echo ""
 echo "PARSE GRAMMARS:"
 echo "--------------"
-cd src
-run_test $MODE $PATTERN "./pars ../tests/grammars/empty_file.txt"
-run_test $MODE $PATTERN "./pars ../tests/grammars/ab-grammar.txt ../tests/grammars/ab-source.txt"
-run_test $MODE $PATTERN "./pars ../tests/grammars/digit-grammar.txt ../tests/grammars/digit-source.txt"
-cd ..
+
+run_test $MODE $PATTERN "./pars ./tests/grammars/empty_file.txt"
+run_test $MODE $PATTERN "./pars ./tests/grammars/ab-grammar.txt ./tests/grammars/ab-source.txt"
+run_test $MODE $PATTERN "./pars ./tests/grammars/digit-grammar.txt ./tests/grammars/digit-source.txt"
 
 cd ..
 
