@@ -68,7 +68,7 @@ if(ENABLE_AST_TRACE)
         set(AST_TRACE_FLAGS "-DAST_TRACE")
 endif(ENABLE_AST_TRACE)
 
-set(PARS_COMPILE_FLAGS "-DLIBRARY ${FSM_TRACE_FLAGS} ${AST_TRACE_FLAGS}")
+set(PARS_FLAGS "${FSM_TRACE_FLAGS} ${AST_TRACE_FLAGS}")
 
 
 # Pars
@@ -87,7 +87,8 @@ target_link_libraries(pars dstlib)
 add_dependencies(parslib xdstlib)
 add_dependencies(pars xdstlib)
 
-set_target_properties(parslib PROPERTIES COMPILE_FLAGS "${PARS_COMPILE_FLAGS}")
+set_target_properties(parslib PROPERTIES COMPILE_FLAGS "-DLIBRARY ${PARS_FLAGS}")
+set_target_properties(pars PROPERTIES COMPILE_FLAGS "${PARS_FLAGS}")
 
 
 # Tests
