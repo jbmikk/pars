@@ -147,6 +147,13 @@ void fsm_dispose(Fsm *fsm)
 	while(symbol = (Symbol *)radix_tree_iterator_next(&it)) {
 		//Get all actions reachable through other rules
 		nt = (NonTerminal *)symbol->data;
+
+		if(!nt) {
+			//Some symbols may not have non terminals
+			//TODO: Should we have a separate non terminals array?
+			continue;
+		}
+
 		_fsm_get_actions(&all_actions, &all_states, nt->start);
 		Reference *ref = nt->parent_refs;
 		while(ref) {
@@ -530,12 +537,14 @@ retry:
 		trace_non_terminal("solve references", sb->name, sb->length);
 
 		nt = (NonTerminal *)sb->data;
-		Reference *ref;
-		ref = nt->parent_refs;
-		while(ref) {
-			some_unsolved |= _solve_return_reference(sb, ref);
-			some_unsolved |= _solve_invoke_reference(sb, ref);
-			ref = ref->next;
+		if(nt) {
+			Reference *ref;
+			ref = nt->parent_refs;
+			while(ref) {
+				some_unsolved |= _solve_return_reference(sb, ref);
+				some_unsolved |= _solve_invoke_reference(sb, ref);
+				ref = ref->next;
+			}
 		}
 	}
 	radix_tree_iterator_dispose(&it);
