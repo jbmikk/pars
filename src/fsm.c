@@ -289,6 +289,7 @@ void fsm_cursor_push_continuation(FsmCursor *cursor)
 	}
 
 	cursor->continuations = stack_push(cursor->continuations, state);
+	trace_state("push", state, "continuation");
 }
 
 void fsm_cursor_push_new_continuation(FsmCursor *cursor)
