@@ -104,12 +104,22 @@ rematch:
 	session->index = index;
 	session->length = length;
 	action = radix_tree_get_int(&session->current->state->actions, symbol);
+
 	if(action == NULL) {
-		if(session->current->type != ACTION_TYPE_ACCEPT) {
-			trace("match", session->current, action, symbol, "error", 0);
-			session->current = &session->fsm->error;
+		// Attempt empty transition
+		Symbol *empty = symbol_table_get(session->fsm->table, "__empty", 7);
+		action = radix_tree_get_int(&session->current->state->actions, empty->id);
+
+		if(action == NULL) {
+			// Check if accepting state
+			if(session->current->type != ACTION_TYPE_ACCEPT) {
+				trace("match", session->current, action, symbol, "error", 0);
+				session->current = &session->fsm->error;
+			}
+			return;
+		} else {
+			trace("match", session->current, action, symbol, "fback", 0);
 		}
-		return;
 	}
 
 	switch(action->type) {
@@ -137,6 +147,11 @@ rematch:
 			session->handler.reduce(session->target, session->index, session->length, action->reduction);
 		}
 		session_match(session, action->reduction, session->index, session->length);
+		goto rematch; // same as session_match(session, symbol);
+		break;
+	case ACTION_TYPE_EMPTY:
+		trace("match", session->current, action, symbol, "empty", 0);
+		session->current = action;
 		goto rematch; // same as session_match(session, symbol);
 		break;
 	default:

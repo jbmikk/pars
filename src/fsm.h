@@ -10,6 +10,7 @@
 #define ACTION_TYPE_CONTEXT_SHIFT 3
 #define ACTION_TYPE_ACCEPT 4
 #define ACTION_TYPE_ERROR 5
+#define ACTION_TYPE_EMPTY 6
 
 typedef struct _State {
 	Node actions;

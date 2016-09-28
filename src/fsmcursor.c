@@ -111,7 +111,18 @@ void fsm_cursor_join_continuation(FsmCursor *cursor)
 {
 	State *state = (State *)cursor->continuations->data;
 
-	//TODO: sentinel if(cursor->current->state) ?
+	if (cursor->current->state) {
+		// The action is already pointing to a state.
+		// We can't point it to another one without losing the current
+		// state.
+		// The solution is to have the continuation's first set merged
+		// into the current state. The continuation is likely not
+		// built yet, so we have to either delay the merging until the
+		// continuation is ready or add merge them now through an empty
+		// transition.
+		// For now we add the empty transition.
+		fsm_cursor_add_empty(cursor);
+	}
 	cursor->current->state = state;
 
 	trace("add", NULL, cursor->current, 0, "join", 0);
@@ -265,6 +276,10 @@ void _reduce_follow_set(Action *from, Action *to, int symbol)
 {
 	Action *ac;
 	Iterator it;
+
+	// Empty transitions should not be cloned.
+	// They should be followed recursively to get the whole follow set,
+	// otherwise me might loose reductions.
 	radix_tree_iterator_init(&it, &(to->state->actions));
 	while(ac = (Action *)radix_tree_iterator_next(&it)) {
 		_add_action_buffer(from, it.key, it.size, ACTION_TYPE_REDUCE, symbol, NULL);
@@ -406,6 +421,15 @@ void fsm_cursor_add_shift(FsmCursor *cur, int symbol)
 	Action *action = _add_action(cur->current, symbol, type, NONE);
 	cur->last_non_terminal->end = action;
 	cur->current = action;
+}
+
+void fsm_cursor_add_empty(FsmCursor *cursor)
+{
+	Fsm *fsm = cursor->fsm;
+	Symbol *symbol = symbol_table_get(fsm->table, "__empty", 7);
+	Action *action = _add_action(cursor->current, symbol->id, ACTION_TYPE_EMPTY, NONE);
+	cursor->last_non_terminal->end = action;
+	cursor->current = action;
 }
 
 /**
