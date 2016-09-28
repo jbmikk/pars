@@ -33,6 +33,11 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_add_reference(&cur,  nzs("definitions_list"));
 
 	fsm_cursor_add_shift(&cur, L_END_GROUP_SYMBOL);
+	fsm_cursor_or(&cur);
+
+	fsm_cursor_add_shift(&cur, L_START_REPETITION_SYMBOL);
+	fsm_cursor_add_reference(&cur,  nzs("definitions_list"));
+	fsm_cursor_add_shift(&cur, L_END_REPETITION_SYMBOL);
 	fsm_cursor_group_end(&cur);
 
 	//Single Definition
@@ -122,6 +127,12 @@ void ebnf_build_expression(FsmCursor *f_cur, AstCursor *a_cur)
 	case '(':
 		ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);
 		fsm_cursor_push_new_continuation(f_cur);
+		ebnf_build_definitions_list(f_cur, a_cur);
+		fsm_cursor_pop_continuation(f_cur);
+		break;
+	case '{':
+		ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);
+		fsm_cursor_push_continuation(f_cur);
 		ebnf_build_definitions_list(f_cur, a_cur);
 		fsm_cursor_pop_continuation(f_cur);
 		break;
