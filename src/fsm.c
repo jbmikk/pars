@@ -330,20 +330,25 @@ void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 	trace_non_terminal("set", name, length);
 }
 
+/**
+ * Creates a reference to a NonTerminal and shifts the associated symbol.
+ */
 void fsm_cursor_add_reference(FsmCursor *cur, unsigned char *name, int length)
 {
+	//Get or create symbol and associated non terminal
 	Symbol *sb = fsm_create_non_terminal(cur->fsm, name, length);
 	NonTerminal *nt = (NonTerminal *)sb->data;
 
-	//Parent reference on child
+	//Create reference from last non terminal to the named non terminal
 	Reference *pref = c_new(Reference, 1);
 	pref->action = cur->current;
 	pref->symbol = cur->last_symbol;
 	pref->non_terminal = cur->last_non_terminal;
-	pref->next = nt->parent_refs;
 	pref->invoke_status = REF_PENDING;
 	pref->return_status = REF_PENDING;
 
+	//Push the reference on the non terminal
+	pref->next = nt->parent_refs;
 	nt->parent_refs = pref;
 	nt->unsolved_returns++;
 
