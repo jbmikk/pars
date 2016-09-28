@@ -19,10 +19,12 @@ run_test()
 	if [ $MATCHES -eq 0 ]; then
 
 		if [ "$1" = "leaks" ]; then
+			echo $3
 			valgrind $VALOPTIONS $3
 		fi
 
 		if [ "$1" = "run" -o "$1" = "trace" ]; then
+			echo $3
 			$3
 		fi
 
