@@ -422,19 +422,19 @@ Action *_add_action(Action *from, int symbol, int type, int reduction)
 	return action;
 }
 
-void _add_followset(Action *from, State* state)
+void _add_first_set(Action *from, State* state)
 {
 	Action *ac;
 	Iterator it;
 	radix_tree_iterator_init(&it, &(state->actions));
 	while(ac = (Action *)radix_tree_iterator_next(&it)) {
 		_add_action_buffer(from, it.key, it.size, 0, 0, ac);
-		trace("add", from, ac, array_to_int(it.key, it.size), "follow", 0);
+		trace("add", from, ac, array_to_int(it.key, it.size), "first", 0);
 	}
 	radix_tree_iterator_dispose(&it);
 }
 
-void _reduce_followset(Action *from, Action *to, int symbol)
+void _reduce_follow_set(Action *from, Action *to, int symbol)
 {
 	Action *ac;
 	Iterator it;
@@ -486,7 +486,7 @@ int _solve_return_reference(Symbol *sb, Reference *ref) {
 		ref->symbol->name,
 		ref->symbol->length
 	);
-	_reduce_followset(nt->end, cont, sb->id);
+	_reduce_follow_set(nt->end, cont, sb->id);
 	ref->return_status = REF_SOLVED;
 	nt->unsolved_returns--;
 	return 0;
@@ -516,7 +516,7 @@ int _solve_invoke_reference(Symbol *sb, Reference *ref) {
 		ref->symbol->name,
 		ref->symbol->length
 	);
-	_add_followset(ref->action, nt->start->state);
+	_add_first_set(ref->action, nt->start->state);
 	ref->invoke_status = REF_SOLVED;
 	if(ref->action == ref->non_terminal->start) {
 		ref->non_terminal->unsolved_invokes--;
@@ -591,9 +591,9 @@ void fsm_cursor_add_context_shift(FsmCursor *cur, int symbol)
 	cur->current = action;
 }
 
-void fsm_cursor_add_followset(FsmCursor *cur, State *state)
+void fsm_cursor_add_first_set(FsmCursor *cur, State *state)
 {
-	_add_followset(cur->current, state);
+	_add_first_set(cur->current, state);
 }
 
 void fsm_cursor_add_reduce(FsmCursor *cur, int symbol, int reduction)
