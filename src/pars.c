@@ -97,6 +97,9 @@ int main(int argc, char** argv){
 		if(argc > 2) {
 			log_info("Parsing source.");
 			error = pars_parse_source(argv[2], &fsm, &ast);
+
+			//TODO: Dispose crashes when error during parse!
+			//Possible segmentation fault later if skipped too!
 			ast_dispose(&ast);
 		}
 
