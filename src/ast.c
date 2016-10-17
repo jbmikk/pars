@@ -228,6 +228,7 @@ void ast_print_node(Ast *ast, AstNode *node, int level) {
 
 	do {
 		unsigned char *src = ast->input->buffer + next->index;
+		int index = next->index;
 		int length = next->length;
 
 		unsigned char levelstr[level+1];
@@ -240,7 +241,9 @@ void ast_print_node(Ast *ast, AstNode *node, int level) {
 		sy = symbol_table_get_by_id(ast->table, next->symbol);
 		if(sy) {
 			printf(
-				"%s> [%s] %.*s\n",
+				"(%-3i, %-3i)%s> [%s] %.*s\n",
+				index,
+				length,
 				levelstr,
 				sy->name,
 				length,
@@ -248,7 +251,9 @@ void ast_print_node(Ast *ast, AstNode *node, int level) {
 			);
 		} else {
 			printf(
-				"%s> T %.*s\n",
+				"(%-3i, %-3i)%s> T %.*s\n",
+				index,
+				length,
 				levelstr,
 				length,
 				src
