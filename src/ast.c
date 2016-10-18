@@ -1,7 +1,6 @@
 #include "ast.h"
 
 #include "cmemory.h"
-#include "radixtree_ext.h"
 
 #include <stdio.h>
 

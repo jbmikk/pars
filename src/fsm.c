@@ -4,7 +4,6 @@
 #include "stack.h"
 #include "radixtree.h"
 #include "arrays.h"
-#include "radixtree_ext.h"
 
 #define NONE 0
 #include <stdio.h>
