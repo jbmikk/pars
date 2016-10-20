@@ -46,6 +46,7 @@ void ebnf_lexer(Lexer *lexer)
 	unsigned char c;
 
 #define CURRENT (lexer->input->buffer[lexer->input->buffer_index])
+#define LOOKAHEAD(V) (lexer->input->buffer[lexer->input->buffer_index+(V)])
 #define NEXT (++lexer->input->buffer_index)
 #define END(V) (lexer->input->buffer_index >= lexer->input->buffer_size-V)
 
@@ -106,12 +107,27 @@ next_token:
 			}
 		}
 		token = L_TERMINAL_STRING;
+	} else if (c == '(' && !END(1) && LOOKAHEAD(1) == '*') {
+		while(1) {
+			unsigned char prev;
+			prev = c;
+			NEXT;
+			if(END(0))
+				break;
+			c = CURRENT;
+			if(c == ')' && prev == '*') {
+				printf("ENDOFCOMMENNT\n");
+				NEXT;
+				break;
+			}
+		}
+		token = L_COMMENT;
 	} else {
 		token = c;
 		NEXT;
 	}
 
-	if(token == L_WHITE_SPACE)
+	if(token == L_WHITE_SPACE || token == L_COMMENT)
 		goto next_token;
 
 eof:
