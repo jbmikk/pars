@@ -116,7 +116,6 @@ next_token:
 				break;
 			c = CURRENT;
 			if(c == ')' && prev == '*') {
-				printf("ENDOFCOMMENNT\n");
 				NEXT;
 				break;
 			}
