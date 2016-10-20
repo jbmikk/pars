@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "fsm.h"
+#include "fsmcursor.h"
 #include "test.h"
 
 #define MATCH(S, Y) session_match(&(S), Y, 0, 0);

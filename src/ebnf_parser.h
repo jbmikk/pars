@@ -3,6 +3,7 @@
 
 #include "lexer.h"
 #include "fsm.h"
+#include "fsmcursor.h"
 #include "ast.h"
 #include "parser.h"
 
