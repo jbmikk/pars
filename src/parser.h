@@ -5,6 +5,7 @@
 #include "symbols.h"
 #include "fsm.h"
 #include "ast.h"
+#include "session.h"
 
 typedef struct _Parser {
 	Lexer lexer;

@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "fsm.h"
+#include "session.h"
 #include "fsmcursor.h"
 #include "test.h"
 
