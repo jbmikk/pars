@@ -174,6 +174,10 @@ void ebnf_build_non_terminal_declaration(FsmCursor *f_cur, AstCursor *a_cur)
 	unsigned char *string;
 	int length;
 
+	//TODO: maybe we should use more precise cursor functions.
+	// If the ast is badly formed we could end up reading a different node
+	// than expected. This situations should be handled gracefully
+	// Maybe an error could be thrown or a sentinel could be placed.
 	ast_cursor_depth_next_symbol(a_cur, L_IDENTIFIER);
 	ast_cursor_get_string(a_cur, &string, &length);
 	fsm_cursor_define(f_cur, string, length);
