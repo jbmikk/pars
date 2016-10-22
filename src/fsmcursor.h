@@ -35,15 +35,6 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol);
 
 // Internal functions?
 
-void fsm_cursor_push(FsmCursor *cur);
-void fsm_cursor_pop(FsmCursor *cur);
-void fsm_cursor_pop_discard(FsmCursor *cur);
-void fsm_cursor_reset(FsmCursor *cur);
-void fsm_cursor_push_continuation(FsmCursor *cur);
-void fsm_cursor_push_new_continuation(FsmCursor *cur);
-State *fsm_cursor_pop_continuation(FsmCursor *cur);
-void fsm_cursor_join_continuation(FsmCursor *cur);
-
 void fsm_cursor_add_context_shift(FsmCursor *cur, int symbol);
 void fsm_cursor_add_first_set(FsmCursor *cur, State *state);
 void fsm_cursor_add_reduce(FsmCursor *cur, int symbol, int reduction);

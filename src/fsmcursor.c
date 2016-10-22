@@ -50,28 +50,22 @@ void fsm_cursor_dispose(FsmCursor *cur)
 	cur->fsm = NULL;
 }
 
-void fsm_cursor_push(FsmCursor *cursor) 
+static void _reset(FsmCursor *cursor) 
+{
+	cursor->current = (Action *)cursor->stack->data;
+}
+
+static void _stack_push(FsmCursor *cursor) 
 {
 	cursor->stack = stack_push(cursor->stack, cursor->current);
 }
 
-void fsm_cursor_pop(FsmCursor *cursor) 
-{
-	cursor->current = (Action *)cursor->stack->data;
-	cursor->stack = stack_pop(cursor->stack);
-}
-
-void fsm_cursor_pop_discard(FsmCursor *cursor) 
+static void _stack_pop(FsmCursor *cursor) 
 {
 	cursor->stack = stack_pop(cursor->stack);
 }
 
-void fsm_cursor_reset(FsmCursor *cursor) 
-{
-	cursor->current = (Action *)cursor->stack->data;
-}
-
-void fsm_cursor_push_continuation(FsmCursor *cursor)
+static void _push_continuation(FsmCursor *cursor)
 {
 	State *state;
 	if(cursor->current->state) {
@@ -86,7 +80,7 @@ void fsm_cursor_push_continuation(FsmCursor *cursor)
 	trace_state("push", state, "continuation");
 }
 
-void fsm_cursor_push_new_continuation(FsmCursor *cursor)
+static void _push_new_continuation(FsmCursor *cursor)
 {
 	State *state = c_new(State, 1);
 	_state_init(state);
@@ -94,14 +88,14 @@ void fsm_cursor_push_new_continuation(FsmCursor *cursor)
 	trace_state("add", state, "continuation");
 }
 
-State *fsm_cursor_pop_continuation(FsmCursor *cursor)
+static State * _pop_continuation(FsmCursor *cursor)
 {
 	State *state = (State *)cursor->continuations->data;
 	cursor->continuations = stack_pop(cursor->continuations);
 	return state;
 }
 
-void fsm_cursor_join_continuation(FsmCursor *cursor)
+static void _join_continuation(FsmCursor *cursor)
 {
 	State *state = (State *)cursor->continuations->data;
 
@@ -124,34 +118,35 @@ void fsm_cursor_join_continuation(FsmCursor *cursor)
 
 void fsm_cursor_group_start(FsmCursor *cur)
 {
-	fsm_cursor_push(cur);
-	fsm_cursor_push_new_continuation(cur);
+	_stack_push(cur);
+	_push_new_continuation(cur);
 }
 
 void fsm_cursor_group_end(FsmCursor *cur)
 {
-	fsm_cursor_join_continuation(cur);
-	fsm_cursor_pop_continuation(cur);
-	fsm_cursor_pop_discard(cur);
+	_join_continuation(cur);
+	_pop_continuation(cur);
+	_stack_pop(cur);
 }
 
 void fsm_cursor_loop_group_start(FsmCursor *cur)
 {
-	fsm_cursor_push_continuation(cur);
-	fsm_cursor_push(cur);
+	_push_continuation(cur);
+	_stack_push(cur);
 }
 
-void fsm_cursor_loop_group_end(FsmCursor *cur)
+void fsm_cursor_loop_group_end(FsmCursor *cursor)
 {
-	fsm_cursor_join_continuation(cur);
-	fsm_cursor_pop_continuation(cur);
-	fsm_cursor_pop(cur);
+	_join_continuation(cursor);
+	_pop_continuation(cursor);
+	_reset(cursor);
+	_stack_pop(cursor);
 }
 
 void fsm_cursor_or(FsmCursor *cur)
 {
-	fsm_cursor_join_continuation(cur);
-	fsm_cursor_reset(cur);
+	_join_continuation(cur);
+	_reset(cur);
 }
 
 void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
