@@ -71,12 +71,6 @@ void fsm_cursor_reset(FsmCursor *cursor)
 	cursor->current = (Action *)cursor->stack->data;
 }
 
-void fsm_cursor_set_end(FsmCursor *cursor) 
-{
-	//trace("end", cursor->current, 0, 0, "set");
-	cursor->last_non_terminal->end = cursor->current;
-}
-
 void fsm_cursor_push_continuation(FsmCursor *cursor)
 {
 	State *state;
@@ -176,10 +170,11 @@ void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 	//TODO: implicit fsm_cursor_group_start(cur); ??
 }
 
-void fsm_cursor_end(FsmCursor *cur)
+void fsm_cursor_end(FsmCursor *cursor)
 {
 	//TODO: implicit fsm_cursor_group_end(cur); ??
-	fsm_cursor_set_end(cur);
+	//trace("end", cursor->current, 0, 0, "set");
+	cursor->last_non_terminal->end = cursor->current;
 }
 
 
