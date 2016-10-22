@@ -122,11 +122,6 @@ void fsm_cursor_join_continuation(FsmCursor *cursor)
 	trace("add", NULL, cursor->current, 0, "join", 0);
 }
 
-void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length)
-{
-	cur->current = fsm_get_action(cur->fsm, name, length);
-}
-
 void fsm_cursor_group_start(FsmCursor *cur)
 {
 	fsm_cursor_push(cur);

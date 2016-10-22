@@ -17,7 +17,6 @@ typedef struct _FsmCursor {
 
 void fsm_cursor_init(FsmCursor *cur, Fsm *fsm);
 Action *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length);
-void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length);
 
 void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length);
 void fsm_cursor_group_start(FsmCursor *cur);
