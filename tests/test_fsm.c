@@ -63,8 +63,8 @@ void session_match__shift(){
 	fsm_cursor_init(&cur, &fix.fsm);
 
 	fsm_cursor_define(&cur, nzs("name"));
-	fsm_cursor_add_shift(&cur, 'a');
-	fsm_cursor_add_shift(&cur, 'b');
+	fsm_cursor_terminal(&cur, 'a');
+	fsm_cursor_terminal(&cur, 'b');
 	fsm_cursor_add_context_shift(&cur, '.');
 
 	fsm_cursor_set_start(&cur, nzs("name"));
@@ -106,8 +106,8 @@ void session_match__reduce_shift(){
 	fsm_cursor_define(&cur, "sum", 3);
 	fsm_cursor_add_first_set(&cur, fsm_get_state(&fix.fsm, nzs("number")));
 	fsm_cursor_add_context_shift(&cur, 'N');
-	fsm_cursor_add_shift(&cur, '+');
-	fsm_cursor_add_shift(&cur, '2');
+	fsm_cursor_terminal(&cur, '+');
+	fsm_cursor_terminal(&cur, '2');
 	fsm_cursor_add_reduce(&cur, '\0', fsm_get_symbol(&fix.fsm, nzs("sum")));
 
 	fsm_cursor_set_start(&cur, nzs("sum"));
@@ -139,17 +139,17 @@ void session_match__reduce_handler(){
 
 	fsm_cursor_define(&cur, nzs("word"));
 	fsm_cursor_add_context_shift(&cur, 'w');
-	fsm_cursor_add_shift(&cur, 'o');
-	fsm_cursor_add_shift(&cur, 'r');
-	fsm_cursor_add_shift(&cur, 'd');
+	fsm_cursor_terminal(&cur, 'o');
+	fsm_cursor_terminal(&cur, 'r');
+	fsm_cursor_terminal(&cur, 'd');
 	fsm_cursor_add_reduce(&cur, '\0', 'W');
 
 	fsm_cursor_define(&cur, nzs("sum"));
 	fsm_cursor_add_first_set(&cur, fsm_get_state(&fix.fsm, nzs("number")));
 	fsm_cursor_add_context_shift(&cur, 'N');
-	fsm_cursor_add_shift(&cur, '+');
+	fsm_cursor_terminal(&cur, '+');
 	fsm_cursor_add_first_set(&cur, fsm_get_state(&fix.fsm, nzs("word")));
-	fsm_cursor_add_shift(&cur, 'W');
+	fsm_cursor_terminal(&cur, 'W');
 	fsm_cursor_add_reduce(&cur, '\0', fsm_get_symbol(&fix.fsm, nzs("sum")));
 
 	fsm_cursor_set_start(&cur, nzs("sum"));

@@ -181,7 +181,7 @@ void fsm_cursor_end(FsmCursor *cursor)
 /**
  * Creates a reference to a NonTerminal and shifts the associated symbol.
  */
-void fsm_cursor_add_reference(FsmCursor *cur, unsigned char *name, int length)
+void fsm_cursor_nonterminal(FsmCursor *cur, unsigned char *name, int length)
 {
 	//Get or create symbol and associated non terminal
 	Symbol *sb = fsm_create_non_terminal(cur->fsm, name, length);
@@ -205,7 +205,7 @@ void fsm_cursor_add_reference(FsmCursor *cur, unsigned char *name, int length)
 		pref->non_terminal->unsolved_invokes++;
 	}
 
-	fsm_cursor_add_shift(cur, sb->id);
+	fsm_cursor_terminal(cur, sb->id);
 }
 
 Action *_add_action_buffer(Action *from, unsigned char *buffer, unsigned int size, int type, int reduction, Action *action)
@@ -412,7 +412,7 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 	_solve_references(cur);
 }
 
-void fsm_cursor_add_shift(FsmCursor *cur, int symbol)
+void fsm_cursor_terminal(FsmCursor *cur, int symbol)
 {
 	int type;
 	if(cur->last_non_terminal->start == cur->current) {
