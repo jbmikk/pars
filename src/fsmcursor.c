@@ -122,6 +122,31 @@ void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length)
 	cur->current = fsm_get_action(cur->fsm, name, length);
 }
 
+void fsm_cursor_group_start(FsmCursor *cur)
+{
+	fsm_cursor_push(cur);
+	fsm_cursor_push_new_continuation(cur);
+}
+
+void fsm_cursor_loop_group_start(FsmCursor *cur)
+{
+	fsm_cursor_push_continuation(cur);
+	fsm_cursor_push(cur);
+}
+
+void fsm_cursor_group_end(FsmCursor *cur)
+{
+	fsm_cursor_join_continuation(cur);
+	fsm_cursor_pop_continuation(cur);
+	fsm_cursor_pop(cur);
+}
+
+void fsm_cursor_or(FsmCursor *cur)
+{
+	fsm_cursor_join_continuation(cur);
+	fsm_cursor_reset(cur);
+}
+
 void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 {
 	Symbol *symbol = fsm_create_non_terminal(cur->fsm, name, length);
@@ -129,7 +154,16 @@ void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 	cur->last_non_terminal = (NonTerminal *)symbol->data;
 	cur->current = cur->last_non_terminal->start;
 	trace_non_terminal("set", name, length);
+
+	//TODO: implicit fsm_cursor_group_start(cur); ??
 }
+
+void fsm_cursor_end(FsmCursor *cur)
+{
+	//TODO: implicit fsm_cursor_group_end(cur); ??
+	fsm_cursor_set_end(cur);
+}
+
 
 /**
  * Creates a reference to a NonTerminal and shifts the associated symbol.

@@ -18,7 +18,14 @@ typedef struct _FsmCursor {
 void fsm_cursor_init(FsmCursor *cur, Fsm *fsm);
 Action *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length);
 void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length);
+
 void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length);
+void fsm_cursor_group_start(FsmCursor *cur);
+void fsm_cursor_loop_group_start(FsmCursor *cur);
+void fsm_cursor_group_end(FsmCursor *cur);
+void fsm_cursor_or(FsmCursor *cur);
+void fsm_cursor_end(FsmCursor *cur);
+
 void fsm_cursor_add_reference(FsmCursor *cur, unsigned char *name, int length);
 void fsm_cursor_push(FsmCursor *cur);
 void fsm_cursor_pop(FsmCursor *cur);

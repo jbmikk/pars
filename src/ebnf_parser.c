@@ -21,47 +21,37 @@ void ebnf_init_fsm(Fsm *fsm)
 
 	//Expression
 	fsm_cursor_define(&cur, nzs("expression"));
-	fsm_cursor_push(&cur);
-	fsm_cursor_push_new_continuation(&cur);
+	fsm_cursor_group_start(&cur);
 
 	fsm_cursor_add_shift(&cur, L_IDENTIFIER);
-	fsm_cursor_join_continuation(&cur);
-	fsm_cursor_reset(&cur);
+	fsm_cursor_or(&cur);
 
 	fsm_cursor_add_shift(&cur, L_TERMINAL_STRING);
-	fsm_cursor_join_continuation(&cur);
-	fsm_cursor_reset(&cur);
+	fsm_cursor_or(&cur);
 
 	fsm_cursor_add_shift(&cur, L_START_GROUP_SYMBOL);
 	fsm_cursor_add_reference(&cur,  nzs("definitions_list"));
+
 	fsm_cursor_add_shift(&cur, L_END_GROUP_SYMBOL);
-	fsm_cursor_join_continuation(&cur);
-	fsm_cursor_pop_continuation(&cur);
-	fsm_cursor_pop(&cur);
+	fsm_cursor_group_end(&cur);
 
 	//Single Definition
 	fsm_cursor_define(&cur, nzs("single_definition"));
 	fsm_cursor_add_reference(&cur,  nzs("expression"));
-	fsm_cursor_push_continuation(&cur);
-	fsm_cursor_push(&cur);
+	fsm_cursor_loop_group_start(&cur);
 	fsm_cursor_add_shift(&cur, L_CONCATENATE_SYMBOL);
 	fsm_cursor_add_reference(&cur,  nzs("expression"));
-	fsm_cursor_join_continuation(&cur);
-	fsm_cursor_pop_continuation(&cur);
-	fsm_cursor_pop(&cur);
-	fsm_cursor_set_end(&cur);
+	fsm_cursor_group_end(&cur);
+	fsm_cursor_end(&cur);
 
 	//Definitions List
 	fsm_cursor_define(&cur, nzs("definitions_list"));
 	fsm_cursor_add_reference(&cur,  nzs("single_definition"));
-	fsm_cursor_push_continuation(&cur);
-	fsm_cursor_push(&cur);
+	fsm_cursor_loop_group_start(&cur);
 	fsm_cursor_add_shift(&cur, L_DEFINITION_SEPARATOR_SYMBOL);
 	fsm_cursor_add_reference(&cur,  nzs("single_definition"));
-	fsm_cursor_join_continuation(&cur);
-	fsm_cursor_pop_continuation(&cur);
-	fsm_cursor_pop(&cur);
-	fsm_cursor_set_end(&cur);
+	fsm_cursor_group_end(&cur);
+	fsm_cursor_end(&cur);
 
 	//Non Terminal Declaration
 	fsm_cursor_define(&cur, nzs("non_terminal_declaration"));
@@ -69,18 +59,16 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_add_shift(&cur, L_DEFINING_SYMBOL);
 	fsm_cursor_add_reference(&cur,  nzs("definitions_list"));
 	fsm_cursor_add_shift(&cur, L_TERMINATOR_SYMBOL);
+	fsm_cursor_end(&cur);
 
 	//Syntax
 	//TODO: Remove double call to support zero elements
 	fsm_cursor_define(&cur, nzs("syntax"));
 	fsm_cursor_add_reference(&cur,  nzs("non_terminal_declaration"));
-	fsm_cursor_push_continuation(&cur);
-	fsm_cursor_push(&cur);
+	fsm_cursor_loop_group_start(&cur);
 	fsm_cursor_add_reference(&cur,  nzs("non_terminal_declaration"));
-	fsm_cursor_join_continuation(&cur);
-	fsm_cursor_pop_continuation(&cur);
-	fsm_cursor_pop(&cur);
-	fsm_cursor_set_end(&cur);
+	fsm_cursor_group_end(&cur);
+	fsm_cursor_end(&cur);
 
 	fsm_cursor_done(&cur, L_EOF);
 
