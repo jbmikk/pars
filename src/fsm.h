@@ -56,7 +56,18 @@ Action *fsm_get_action(Fsm *fsm, unsigned char *name, int length);
 State *fsm_get_state(Fsm *fsm, unsigned char *name, int length);
 int fsm_get_symbol(Fsm *fsm, unsigned char *name, int length);
 
-void _state_init(State *state);
-void _action_init(Action *action, char type, int reduction, State *state);
+
+//# State functions
+
+void state_init(State *state);
+
+
+//# Action functions
+
+void action_init(Action *action, char type, int reduction, State *state);
+Action *action_add_buffer(Action *from, unsigned char *buffer, unsigned int size, int type, int reduction, Action *action);
+Action *action_add(Action *from, int symbol, int type, int reduction);
+void action_add_first_set(Action *from, State* state);
+void action_add_reduce_follow_set(Action *from, Action *to, int symbol);
 
 #endif //FSM_H

@@ -9,18 +9,6 @@
 
 #define NONE 0
 
-void _state_init(State *state)
-{
-	radix_tree_init(&state->actions, 0, 0, NULL);
-}
-
-void _action_init(Action *action, char type, int reduction, State *state)
-{
-	action->type = type;
-	action->reduction = reduction;
-	action->state = state;
-}
-
 void fsm_init(Fsm *fsm, SymbolTable *table)
 {
 	//TODO: Get symbol table as parameter
@@ -29,9 +17,9 @@ void fsm_init(Fsm *fsm, SymbolTable *table)
 
 	symbol_table_add(fsm->table, "__empty", 7);
 
-	_action_init(&fsm->error, ACTION_TYPE_ERROR, NONE, NULL);
+	action_init(&fsm->error, ACTION_TYPE_ERROR, NONE, NULL);
 	fsm->error.state = c_new(State, 1);
-	_state_init(fsm->error.state);
+	state_init(fsm->error.state);
 }
 
 void _fsm_get_actions(Node *actions, Node *states, Action *action)
@@ -148,7 +136,7 @@ Symbol *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 	if(!symbol->data) {
 		non_terminal = c_new(NonTerminal, 1);
 		action = c_new(Action, 1);
-		_action_init(action, ACTION_TYPE_SHIFT, NONE, NULL);
+		action_init(action, ACTION_TYPE_SHIFT, NONE, NULL);
 		non_terminal->start = action;
 		non_terminal->end = action;
 		non_terminal->parent_refs = NULL;
@@ -177,4 +165,3 @@ int fsm_get_symbol(Fsm *fsm, unsigned char *name, int length)
 	Symbol *symbol = symbol_table_get(fsm->table, name, length);
 	return symbol? symbol->id: 0;
 }
-
