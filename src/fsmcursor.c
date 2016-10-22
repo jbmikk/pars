@@ -139,13 +139,20 @@ void fsm_cursor_group_start(FsmCursor *cur)
 	fsm_cursor_push_new_continuation(cur);
 }
 
+void fsm_cursor_group_end(FsmCursor *cur)
+{
+	fsm_cursor_join_continuation(cur);
+	fsm_cursor_pop_continuation(cur);
+	fsm_cursor_pop_discard(cur);
+}
+
 void fsm_cursor_loop_group_start(FsmCursor *cur)
 {
 	fsm_cursor_push_continuation(cur);
 	fsm_cursor_push(cur);
 }
 
-void fsm_cursor_group_end(FsmCursor *cur)
+void fsm_cursor_loop_group_end(FsmCursor *cur)
 {
 	fsm_cursor_join_continuation(cur);
 	fsm_cursor_pop_continuation(cur);

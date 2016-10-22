@@ -39,6 +39,7 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_add_reference(&cur,  nzs("definitions_list"));
 	fsm_cursor_add_shift(&cur, L_END_REPETITION_SYMBOL);
 	fsm_cursor_group_end(&cur);
+	fsm_cursor_end(&cur);
 
 	//Single Definition
 	fsm_cursor_define(&cur, nzs("single_definition"));
@@ -46,7 +47,7 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_loop_group_start(&cur);
 	fsm_cursor_add_shift(&cur, L_CONCATENATE_SYMBOL);
 	fsm_cursor_add_reference(&cur,  nzs("expression"));
-	fsm_cursor_group_end(&cur);
+	fsm_cursor_loop_group_end(&cur);
 	fsm_cursor_end(&cur);
 
 	//Definitions List
@@ -55,7 +56,7 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_loop_group_start(&cur);
 	fsm_cursor_add_shift(&cur, L_DEFINITION_SEPARATOR_SYMBOL);
 	fsm_cursor_add_reference(&cur,  nzs("single_definition"));
-	fsm_cursor_group_end(&cur);
+	fsm_cursor_loop_group_end(&cur);
 	fsm_cursor_end(&cur);
 
 	//Non Terminal Declaration
@@ -72,7 +73,7 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_add_reference(&cur,  nzs("non_terminal_declaration"));
 	fsm_cursor_loop_group_start(&cur);
 	fsm_cursor_add_reference(&cur,  nzs("non_terminal_declaration"));
-	fsm_cursor_group_end(&cur);
+	fsm_cursor_loop_group_end(&cur);
 	fsm_cursor_end(&cur);
 
 	fsm_cursor_done(&cur, L_EOF);
