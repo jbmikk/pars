@@ -127,15 +127,15 @@ void ebnf_build_expression(FsmCursor *f_cur, AstCursor *a_cur)
 		break;
 	case '(':
 		ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);
-		fsm_cursor_push_new_continuation(f_cur);
+		fsm_cursor_group_start(f_cur);
 		ebnf_build_definitions_list(f_cur, a_cur);
-		fsm_cursor_pop_continuation(f_cur);
+		fsm_cursor_group_end(f_cur);
 		break;
 	case '{':
 		ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);
-		fsm_cursor_push_continuation(f_cur);
+		fsm_cursor_loop_group_start(f_cur);
 		ebnf_build_definitions_list(f_cur, a_cur);
-		fsm_cursor_pop_continuation(f_cur);
+		fsm_cursor_loop_group_end(f_cur);
 		break;
 	default:
 		//TODO:sentinel??
@@ -156,17 +156,19 @@ void ebnf_build_single_definition(FsmCursor *f_cur, AstCursor *a_cur)
 
 void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur)
 {
+	int first = 1;
 	int E_SINGLE_DEFINITION = ast_get_symbol(a_cur, nzs("single_definition"));
 	ast_cursor_depth_next_symbol(a_cur, E_SINGLE_DEFINITION);
-	fsm_cursor_push(f_cur);
 	do {
 		ast_cursor_push(a_cur);
+		if(first) {
+			first = 0;
+		} else {
+			fsm_cursor_or(f_cur);
+		}
 		ebnf_build_single_definition(f_cur, a_cur);
-		fsm_cursor_join_continuation(f_cur);
-		fsm_cursor_reset(f_cur);
 		ast_cursor_pop(a_cur);
 	} while(ast_cursor_next_sibling_symbol(a_cur, E_SINGLE_DEFINITION));
-	fsm_cursor_pop_discard(f_cur);
 }
 
 void ebnf_build_non_terminal_declaration(FsmCursor *f_cur, AstCursor *a_cur)
@@ -184,9 +186,9 @@ void ebnf_build_non_terminal_declaration(FsmCursor *f_cur, AstCursor *a_cur)
 
 	int E_DEFINITIONS_LIST = ast_get_symbol(a_cur, nzs("definitions_list"));
 	ast_cursor_next_sibling_symbol(a_cur, E_DEFINITIONS_LIST);
-	fsm_cursor_push_new_continuation(f_cur);
+	fsm_cursor_group_start(f_cur);
 	ebnf_build_definitions_list(f_cur, a_cur);
-	fsm_cursor_pop_continuation(f_cur);
+	fsm_cursor_group_end(f_cur);
 }	
 
 void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
