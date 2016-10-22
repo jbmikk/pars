@@ -21,8 +21,9 @@ void fsm_cursor_move(FsmCursor *cur, unsigned char *name, int length);
 
 void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length);
 void fsm_cursor_group_start(FsmCursor *cur);
-void fsm_cursor_loop_group_start(FsmCursor *cur);
 void fsm_cursor_group_end(FsmCursor *cur);
+void fsm_cursor_loop_group_start(FsmCursor *cur);
+void fsm_cursor_loop_group_end(FsmCursor *cur);
 void fsm_cursor_or(FsmCursor *cur);
 void fsm_cursor_end(FsmCursor *cur);
 
