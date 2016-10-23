@@ -1,0 +1,5 @@
+(*
+ * Brackets grammar
+ * Used to test brackets and or usage.
+ *)
+test = "a", ( "1" | "2" ), "b";
