@@ -35,8 +35,6 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol);
 
 // Internal functions?
 
-void fsm_cursor_add_empty(FsmCursor *cur);
-
 Action *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length);
 
 #endif //FSMCURSOR_H

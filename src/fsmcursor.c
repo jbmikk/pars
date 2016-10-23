@@ -82,6 +82,14 @@ static State * _pop_continuation(FsmCursor *cursor)
 	return state;
 }
 
+static void _add_empty(FsmCursor *cursor)
+{
+	Fsm *fsm = cursor->fsm;
+	Symbol *symbol = symbol_table_get(fsm->table, "__empty", 7);
+	Action *action = action_add(cursor->current, symbol->id, ACTION_TYPE_EMPTY, NONE);
+	cursor->current = action;
+}
+
 static void _join_continuation(FsmCursor *cursor)
 {
 	State *state = (State *)cursor->continuations->data;
@@ -96,7 +104,7 @@ static void _join_continuation(FsmCursor *cursor)
 		// continuation is ready or add merge them now through an empty
 		// transition.
 		// For now we add the empty transition.
-		fsm_cursor_add_empty(cursor);
+		_add_empty(cursor);
 	}
 	cursor->current->state = state;
 
@@ -318,12 +326,4 @@ void fsm_cursor_terminal(FsmCursor *cur, int symbol)
 	}
 	Action *action = action_add(cur->current, symbol, type, NONE);
 	cur->current = action;
-}
-
-void fsm_cursor_add_empty(FsmCursor *cursor)
-{
-	Fsm *fsm = cursor->fsm;
-	Symbol *symbol = symbol_table_get(fsm->table, "__empty", 7);
-	Action *action = action_add(cursor->current, symbol->id, ACTION_TYPE_EMPTY, NONE);
-	cursor->current = action;
 }
