@@ -189,6 +189,7 @@ void ebnf_build_non_terminal_declaration(FsmCursor *f_cur, AstCursor *a_cur)
 	fsm_cursor_group_start(f_cur);
 	ebnf_build_definitions_list(f_cur, a_cur);
 	fsm_cursor_group_end(f_cur);
+	fsm_cursor_end(f_cur);
 }	
 
 void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)

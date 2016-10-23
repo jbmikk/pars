@@ -317,7 +317,6 @@ void fsm_cursor_terminal(FsmCursor *cur, int symbol)
 		type = ACTION_TYPE_SHIFT;
 	}
 	Action *action = action_add(cur->current, symbol, type, NONE);
-	cur->last_non_terminal->end = action;
 	cur->current = action;
 }
 
@@ -326,6 +325,5 @@ void fsm_cursor_add_empty(FsmCursor *cursor)
 	Fsm *fsm = cursor->fsm;
 	Symbol *symbol = symbol_table_get(fsm->table, "__empty", 7);
 	Action *action = action_add(cursor->current, symbol->id, ACTION_TYPE_EMPTY, NONE);
-	cursor->last_non_terminal->end = action;
 	cursor->current = action;
 }
