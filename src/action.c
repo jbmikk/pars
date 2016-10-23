@@ -2,6 +2,7 @@
 
 #include "cmemory.h"
 #include "radixtree.h"
+#include "arrays.h"
 #include <stdio.h>
 
 //# State functions

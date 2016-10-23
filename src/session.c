@@ -1,6 +1,7 @@
 #include "session.h"
 
 #include "cmemory.h"
+#include <stdio.h>
 
 #ifdef FSM_TRACE
 #define trace(M, T1, T2, S, A, R) \
