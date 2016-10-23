@@ -65,16 +65,16 @@ void session_match__shift(){
 	fsm_cursor_define(&cur, nzs("name"));
 	fsm_cursor_terminal(&cur, 'a');
 	fsm_cursor_terminal(&cur, 'b');
-	fsm_cursor_add_context_shift(&cur, '.');
+	fsm_cursor_end(&cur);
 
-	fsm_cursor_set_start(&cur, nzs("name"));
+	fsm_cursor_done(&cur, '\0');
 
 	Session session;
 	session_init(&session, &fix.fsm);
 	MATCH(session, 'a');
-	MATCH(session, 'b');
-	MATCH(session, '.');
 	t_assert(session.current->type == ACTION_TYPE_CONTEXT_SHIFT);
+	MATCH(session, 'b');
+	t_assert(session.current->type == ACTION_TYPE_SHIFT);
 	session_dispose(&session);
 }
 
@@ -83,10 +83,11 @@ void session_match__reduce(){
 	fsm_cursor_init(&cur, &fix.fsm);
 
 	fsm_cursor_define(&cur, nzs("number"));
-	fsm_cursor_add_context_shift(&cur, '1');
-	fsm_cursor_add_reduce(&cur, '\0', fsm_get_symbol(&fix.fsm, nzs("number")));
+	fsm_cursor_terminal(&cur, '1');
+	fsm_cursor_end(&cur);
 
-	fsm_cursor_set_start(&cur, nzs("number"));
+	fsm_cursor_done(&cur, '\0');
+
 	Session session;
 	session_init(&session, &fix.fsm);
 	MATCH(session, '1');
@@ -100,17 +101,16 @@ void session_match__reduce_shift(){
 	fsm_cursor_init(&cur, &fix.fsm);
 
 	fsm_cursor_define(&cur, nzs("number"));
-	fsm_cursor_add_context_shift(&cur, '1');
-	fsm_cursor_add_reduce(&cur, '+', 'N');
+	fsm_cursor_terminal(&cur, '1');
+	fsm_cursor_end(&cur);
 
 	fsm_cursor_define(&cur, "sum", 3);
-	fsm_cursor_add_first_set(&cur, fsm_get_state(&fix.fsm, nzs("number")));
-	fsm_cursor_add_context_shift(&cur, 'N');
+	fsm_cursor_nonterminal(&cur,  nzs("number"));
 	fsm_cursor_terminal(&cur, '+');
 	fsm_cursor_terminal(&cur, '2');
-	fsm_cursor_add_reduce(&cur, '\0', fsm_get_symbol(&fix.fsm, nzs("sum")));
+	fsm_cursor_end(&cur);
 
-	fsm_cursor_set_start(&cur, nzs("sum"));
+	fsm_cursor_done(&cur, '\0');
 
 	Session session;
 	session_init(&session, &fix.fsm);
@@ -134,25 +134,23 @@ void session_match__reduce_handler(){
 	fsm_cursor_init(&cur, &fix.fsm);
 
 	fsm_cursor_define(&cur, nzs("number"));
-	fsm_cursor_add_context_shift(&cur, '1');
-	fsm_cursor_add_reduce(&cur, '+', 'N');
+	fsm_cursor_terminal(&cur, '1');
+	fsm_cursor_end(&cur);
 
 	fsm_cursor_define(&cur, nzs("word"));
-	fsm_cursor_add_context_shift(&cur, 'w');
+	fsm_cursor_terminal(&cur, 'w');
 	fsm_cursor_terminal(&cur, 'o');
 	fsm_cursor_terminal(&cur, 'r');
 	fsm_cursor_terminal(&cur, 'd');
-	fsm_cursor_add_reduce(&cur, '\0', 'W');
+	fsm_cursor_end(&cur);
 
 	fsm_cursor_define(&cur, nzs("sum"));
-	fsm_cursor_add_first_set(&cur, fsm_get_state(&fix.fsm, nzs("number")));
-	fsm_cursor_add_context_shift(&cur, 'N');
+	fsm_cursor_nonterminal(&cur,  nzs("number"));
 	fsm_cursor_terminal(&cur, '+');
-	fsm_cursor_add_first_set(&cur, fsm_get_state(&fix.fsm, nzs("word")));
-	fsm_cursor_terminal(&cur, 'W');
-	fsm_cursor_add_reduce(&cur, '\0', fsm_get_symbol(&fix.fsm, nzs("sum")));
+	fsm_cursor_nonterminal(&cur,  nzs("word"));
+	fsm_cursor_end(&cur);
 
-	fsm_cursor_set_start(&cur, nzs("sum"));
+	fsm_cursor_done(&cur, '\0');
 
 	Session session;
 	session_init(&session, &fix.fsm);
@@ -162,7 +160,7 @@ void session_match__reduce_handler(){
 	session_set_handler(&session, handler, NULL);
 	MATCH_AT(session, '1', 0);
 	MATCH_AT(session, '+', 1);
-	t_assert(token.symbol == 'N');
+	t_assert(token.symbol == fsm_get_symbol(&fix.fsm, nzs("number")));
 	t_assert(token.index == 0);
 	t_assert(token.length == 1);
 	t_assert(session.index == 1);

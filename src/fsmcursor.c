@@ -329,24 +329,3 @@ void fsm_cursor_add_empty(FsmCursor *cursor)
 	cursor->last_non_terminal->end = action;
 	cursor->current = action;
 }
-
-/**
- * TODO: Deprecated by dynamic action shift
- */
-void fsm_cursor_add_context_shift(FsmCursor *cur, int symbol)
-{
-	Action *action = action_add(cur->current, symbol, ACTION_TYPE_CONTEXT_SHIFT, NONE);
-	cur->last_non_terminal->end = action;
-	cur->current = action;
-}
-
-void fsm_cursor_add_first_set(FsmCursor *cur, State *state)
-{
-	action_add_first_set(cur->current, state);
-}
-
-void fsm_cursor_add_reduce(FsmCursor *cur, int symbol, int reduction)
-{
-	action_add(cur->current, symbol, ACTION_TYPE_REDUCE, reduction);
-}
-
