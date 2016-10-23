@@ -9,10 +9,12 @@ typedef struct {
 	Input input_identifier;
 	Input input_terminal_string;
 	Input input_rule_one;
+	Input input_white;
 	Lexer lexer_integer;
 	Lexer lexer_identifier;
 	Lexer lexer_terminal_string;
 	Lexer lexer_rule_one;
+	Lexer lexer_white;
 } Fixture;
 
 Fixture fix;
@@ -21,16 +23,19 @@ Fixture fix;
 #define I_IDENTIFIER "anIdentifier"
 #define I_TERMINAL_STRING "\"terminalString\""
 #define I_RULE_ONE "one = \"1\",(\"a\"|\"b\")"
+#define I_WHITE "\n\r\t\f identifier"
 
 void t_setup(){
 	input_init_buffer(&fix.input_integer, I_INTEGER, strlen(I_INTEGER));
 	input_init_buffer(&fix.input_identifier, I_IDENTIFIER, strlen(I_IDENTIFIER));
 	input_init_buffer(&fix.input_terminal_string, I_TERMINAL_STRING, strlen(I_TERMINAL_STRING));
 	input_init_buffer(&fix.input_rule_one, I_RULE_ONE, strlen(I_RULE_ONE));
+	input_init_buffer(&fix.input_white, I_WHITE, strlen(I_WHITE));
 	lexer_init(&fix.lexer_integer, &fix.input_integer, ebnf_lexer);
 	lexer_init(&fix.lexer_identifier, &fix.input_identifier, ebnf_lexer);
 	lexer_init(&fix.lexer_terminal_string, &fix.input_terminal_string, ebnf_lexer);
 	lexer_init(&fix.lexer_rule_one, &fix.input_rule_one, ebnf_lexer);
+	lexer_init(&fix.lexer_white, &fix.input_white, ebnf_lexer);
 }
 
 void t_teardown(){
@@ -38,6 +43,7 @@ void t_teardown(){
 	input_dispose(&fix.input_identifier);
 	input_dispose(&fix.input_terminal_string);
 	input_dispose(&fix.input_rule_one);
+	input_dispose(&fix.input_white);
 }
 
 void lexer_input_next__integer_token(){
@@ -115,6 +121,14 @@ void lexer_input_next__whole_rule(){
 	t_assert(fix.lexer_rule_one.length == 0);
 }
 
+void lexer_input_next__white_token(){
+	lexer_next(&fix.lexer_white);
+	t_assert(fix.lexer_white.symbol == L_IDENTIFIER);
+	t_assert(fix.lexer_white.index == 5);
+	t_assert(fix.lexer_white.length == strlen("identifier"));
+}
+
+
 int main(int argc, char** argv){
 	t_init();
 	t_test(lexer_input_next__integer_token);
@@ -122,5 +136,6 @@ int main(int argc, char** argv){
 	t_test(lexer_input_next__terminal_string_token);
 	t_test(lexer_input_next__skip_white_space);
 	t_test(lexer_input_next__whole_rule);
+	t_test(lexer_input_next__white_token);
 	return t_done();
 }

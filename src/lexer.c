@@ -51,7 +51,7 @@ void ebnf_lexer(Lexer *lexer)
 #define END(V) (lexer->input->buffer_index >= lexer->input->buffer_size-V)
 
 #define BETWEEN(V, A, B) (V >= A && V <= B)
-#define IS_SPACE(V) (V == ' ' || V == '\t' || V == '\n')
+#define IS_SPACE(V) (V == ' ' || V == '\t' || V == '\n' || V == '\r' || V =='\f')
 
 next_token:
 	lexer->index = lexer->input->buffer_index;
