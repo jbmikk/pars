@@ -18,7 +18,7 @@ run_test()
 	# if they match then run command
 	if [ $MATCHES -eq 0 ]; then
 
-		if [ "$1" = "leaks" ]; then
+		if [ "$1" = "leaks" -o "$1" = "leaktrace" ]; then
 			echo $3
 			valgrind $VALOPTIONS $3
 		fi
@@ -34,7 +34,7 @@ run_test()
 MODE=${1:-run}
 echo "MODE: $MODE"
 
-if [ "$MODE" = "trace" ]; then
+if [ "$MODE" = "trace" -o "$1" = "leaktrace" ]; then
 	TRACE="ON"
 else
 	TRACE="OFF"
