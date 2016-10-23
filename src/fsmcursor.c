@@ -194,15 +194,20 @@ void fsm_cursor_nonterminal(FsmCursor *cur, unsigned char *name, int length)
 	fsm_cursor_terminal(cur, sb->id);
 }
 
-Action *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length)
+static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 {
 	Symbol *sb = symbol_table_get(cur->fsm->table, name, length);
 	NonTerminal *nt = (NonTerminal *)sb->data;
 	cur->current = nt->start;
 	cur->fsm->start = cur->current;
-	//TODO: calling fsm_cursor_set_start multiple times may cause
+	//TODO: calling _set_start multiple times may cause
 	// leaks if adding a duplicate accept action to the action.
-	cur->current = action_add(cur->current, sb->id, ACTION_TYPE_ACCEPT, NONE);
+	int accept = radix_tree_contains_int(&cur->current->state->actions, ACTION_TYPE_ACCEPT);
+	if(!accept) {
+		cur->current = action_add(cur->current, sb->id, ACTION_TYPE_ACCEPT, NONE);
+	} else {
+		//TODO: issue warning or sentinel??
+	}
 
 	State *state = c_new(State, 1);
 	state_init(state);
@@ -310,7 +315,7 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 		//TODO: May cause leaks if L_EOF previously added
 		trace_non_terminal("main", sb->name, sb->length);
 		action_add(nt->end, eof_symbol, ACTION_TYPE_REDUCE, sb->id);
-		fsm_cursor_set_start(cur, sb->name, sb->length);
+		_set_start(cur, sb->name, sb->length);
 	}
 
 	_solve_references(cur);

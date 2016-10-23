@@ -43,13 +43,15 @@ void t_teardown(){
 
 void ebnf_start_parsing__identifier(){
 	FsmCursor cur;
+
+	//Fake main nonterminal
 	fsm_cursor_init(&cur, &fix.fsm);
-
 	fsm_cursor_define(&cur, "expression", 10);
-	Action *action;
+	fsm_cursor_done(&cur, '\0');
 
+	Action *action;
 	int E_EXPRESSION = fsm_get_symbol(&fix.fsm, nzs("expression"));
-	fsm_cursor_set_start(&cur, nzs("expression"));
+
 	Session session;
 	session_init(&session, &fix.fsm);
 	MATCH(session, L_IDENTIFIER);
@@ -75,13 +77,15 @@ void ebnf_start_parsing__identifier(){
 
 void ebnf_start_parsing__terminal(){
 	FsmCursor cur;
+
+	//Fake main nonterminal
 	fsm_cursor_init(&cur, &fix.fsm);
+	fsm_cursor_define(&cur, nzs("expression"));
+	fsm_cursor_done(&cur, '\0');
 
-	fsm_cursor_define(&cur, "expression", 10);
 	Action *action;
-
 	int E_EXPRESSION = fsm_get_symbol(&fix.fsm, nzs("expression"));
-	fsm_cursor_set_start(&cur, nzs("expression"));
+
 	Session session;
 	session_init(&session, &fix.fsm);
 	MATCH(session, L_TERMINAL_STRING);
@@ -97,22 +101,25 @@ void ebnf_start_parsing__terminal(){
 	action = TEST(session, L_TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_TYPE_REDUCE);
 	t_assert(action->reduction == E_EXPRESSION);
-	MATCH(session, L_TERMINATOR_SYMBOL);
-	t_assert(session.current->type != ACTION_TYPE_ERROR);
-	session_dispose(&session);
 
+	MATCH(session, L_TERMINATOR_SYMBOL);
+	t_assert(session.current->type == ACTION_TYPE_ACCEPT);
+
+	session_dispose(&session);
 	fsm_cursor_dispose(&cur);
 }
 
 void ebnf_start_parsing__concatenate(){
 	FsmCursor cur;
+
+	//Fake main nonterminal
 	fsm_cursor_init(&cur, &fix.fsm);
+	fsm_cursor_define(&cur, nzs("single_definition"));
+	fsm_cursor_done(&cur, '\0');
 
-	fsm_cursor_define(&cur, "single_definition", 17);
 	Action *action;
-
 	int E_EXPRESSION = fsm_get_symbol(&fix.fsm, nzs("expression"));
-	fsm_cursor_set_start(&cur, nzs("single_definition"));
+
 	Session session;
 	session_init(&session, &fix.fsm);
 	MATCH(session, L_IDENTIFIER);
@@ -128,21 +135,23 @@ void ebnf_start_parsing__concatenate(){
 	t_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_DEFINITION_SEPARATOR_SYMBOL);
-	t_assert(session.current->type != ACTION_TYPE_ERROR);
-	session_dispose(&session);
+	t_assert(session.current->type == ACTION_TYPE_ACCEPT);
 
+	session_dispose(&session);
 	fsm_cursor_dispose(&cur);
 }
 
 void ebnf_start_parsing__separator(){
 	FsmCursor cur;
+
+	//Fake main nonterminal
 	fsm_cursor_init(&cur, &fix.fsm);
+	fsm_cursor_define(&cur, nzs("definitions_list"));
+	fsm_cursor_done(&cur, '\0');
 
-	fsm_cursor_define(&cur, "definitions_list", 16);
 	Action *action;
-
 	int E_EXPRESSION = fsm_get_symbol(&fix.fsm, nzs("expression"));
-	fsm_cursor_set_start(&cur, nzs("definitions_list"));
+
 	Session session;
 	session_init(&session, &fix.fsm);
 	MATCH(session, L_IDENTIFIER);
@@ -154,21 +163,23 @@ void ebnf_start_parsing__separator(){
 	t_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
-	t_assert(session.current->type != ACTION_TYPE_ERROR);
-	session_dispose(&session);
+	t_assert(session.current->type == ACTION_TYPE_ACCEPT);
 
+	session_dispose(&session);
 	fsm_cursor_dispose(&cur);
 }
 
 void ebnf_start_parsing__declaration(){
 	FsmCursor cur;
+
+	//Fake main nonterminal
 	fsm_cursor_init(&cur, &fix.fsm);
+	fsm_cursor_define(&cur, nzs("non_terminal_declaration"));
+	fsm_cursor_done(&cur, '\0');
 
-	fsm_cursor_define(&cur, "non_terminal_declaration", 24);
 	Action *action;
-
 	int E_NON_TERMINAL_DECLARATION = fsm_get_symbol(&fix.fsm, nzs("non_terminal_declaration"));
-	fsm_cursor_set_start(&cur, nzs("non_terminal_declaration"));
+
 	Session session;
 	session_init(&session, &fix.fsm);
 	MATCH(session, L_IDENTIFIER);
@@ -183,21 +194,23 @@ void ebnf_start_parsing__declaration(){
 	t_assert(action->reduction == E_NON_TERMINAL_DECLARATION);
 
 	MATCH(session, L_EOF);
-	t_assert(session.current->type != ACTION_TYPE_ERROR);
-	session_dispose(&session);
+	t_assert(session.current->type == ACTION_TYPE_ACCEPT);
 
+	session_dispose(&session);
 	fsm_cursor_dispose(&cur);
 }
 
 void ebnf_start_parsing__group(){
 	FsmCursor cur;
+
+	//Fake main nonterminal
 	fsm_cursor_init(&cur, &fix.fsm);
+	fsm_cursor_define(&cur, nzs("expression"));
+	fsm_cursor_done(&cur, '\0');
 
-	int E_EXPRESSION = fsm_get_symbol(&fix.fsm, nzs("expression"));
-	fsm_cursor_define(&cur, "expression", 10);
 	Action *action;
+	int E_EXPRESSION = fsm_get_symbol(&fix.fsm, nzs("expression"));
 
-	fsm_cursor_set_start(&cur, nzs("expression"));
 	Session session;
 	session_init(&session, &fix.fsm);
 	MATCH(session, L_START_GROUP_SYMBOL);
@@ -209,9 +222,9 @@ void ebnf_start_parsing__group(){
 	t_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
-	t_assert(session.current->type != ACTION_TYPE_ERROR);
-	session_dispose(&session);
+	t_assert(session.current->type == ACTION_TYPE_ACCEPT);
 
+	session_dispose(&session);
 	fsm_cursor_dispose(&cur);
 }
 

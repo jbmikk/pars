@@ -32,9 +32,4 @@ void fsm_cursor_terminal(FsmCursor *cur, int symbol);
 void fsm_cursor_nonterminal(FsmCursor *cur, unsigned char *name, int length);
 void fsm_cursor_done(FsmCursor *cur, int eof_symbol);
 
-
-// Internal functions?
-
-Action *fsm_cursor_set_start(FsmCursor *cur, unsigned char *name, int length);
-
 #endif //FSMCURSOR_H
