@@ -14,6 +14,5 @@ You need to install the following dependencies:
 
 * cmake: sudo apt-get install cmake
 * g++: sudo apt-get install g++
-* run install.sh to install other dependencies from github
 
 Then run build.sh or test.sh
