@@ -39,6 +39,7 @@ void fsm_cursor_define__single_get(){
 	fsm_cursor_init(&cur, &fix.fsm);
 	fsm_cursor_define(&cur, nzs("name"));
 	t_assert(cur.current != NULL);
+	fsm_cursor_dispose(&cur);
 }
 
 void fsm_cursor_define__two_gets(){
@@ -51,6 +52,7 @@ void fsm_cursor_define__two_gets(){
 	Action *action2 = cur.current;
 	fsm_cursor_define(&cur, nzs("rule1"));
 	Action *action3 = cur.current;
+	fsm_cursor_dispose(&cur);
 
 	t_assert(action1 != NULL);
 	t_assert(action2 != NULL);
@@ -68,6 +70,8 @@ void session_match__shift(){
 	fsm_cursor_end(&cur);
 
 	fsm_cursor_done(&cur, '\0');
+
+	fsm_cursor_dispose(&cur);
 
 	Session session;
 	session_init(&session, &fix.fsm);
@@ -87,6 +91,8 @@ void session_match__reduce(){
 	fsm_cursor_end(&cur);
 
 	fsm_cursor_done(&cur, '\0');
+
+	fsm_cursor_dispose(&cur);
 
 	Session session;
 	session_init(&session, &fix.fsm);
@@ -111,6 +117,8 @@ void session_match__reduce_shift(){
 	fsm_cursor_end(&cur);
 
 	fsm_cursor_done(&cur, '\0');
+
+	fsm_cursor_dispose(&cur);
 
 	Session session;
 	session_init(&session, &fix.fsm);
@@ -151,6 +159,8 @@ void session_match__reduce_handler(){
 	fsm_cursor_end(&cur);
 
 	fsm_cursor_done(&cur, '\0');
+
+	fsm_cursor_dispose(&cur);
 
 	Session session;
 	session_init(&session, &fix.fsm);
