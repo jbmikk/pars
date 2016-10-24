@@ -312,9 +312,9 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 	Symbol *sb = cur->last_symbol;
 	NonTerminal *nt = cur->last_non_terminal;
 	if(nt) {
-		//TODO: May cause leaks if L_EOF previously added
 		trace_non_terminal("main", sb->name, sb->length);
-		if(!radix_tree_contains_int(&nt->end->state->actions, eof_symbol)) {
+		//TODO: Factor out action function to test this
+		if(!nt->end->state || !radix_tree_contains_int(&nt->end->state->actions, eof_symbol)) {
 			action_add(nt->end, eof_symbol, ACTION_TYPE_REDUCE, sb->id);
 		} else {
 			//TODO: issue warning or sentinel??
