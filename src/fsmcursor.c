@@ -200,19 +200,18 @@ static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 	NonTerminal *nt = (NonTerminal *)sb->data;
 	cur->current = nt->start;
 	cur->fsm->start = cur->current;
-	//TODO: calling _set_start multiple times may cause
-	// leaks if adding a duplicate accept action to the action.
-	int accept = radix_tree_contains_int(&cur->current->state->actions, sb->id);
-	if(!accept) {
+
+	//TODO: Should check whether current->state is not null?
+	//TODO: Is there a test that checks whether this even works?
+	if(!radix_tree_contains_int(&cur->current->state->actions, sb->id)) {
 		cur->current = action_add(cur->current, sb->id, ACTION_TYPE_ACCEPT, NONE);
+
+		State *state = c_new(State, 1);
+		state_init(state);
+		cur->current->state = state;
 	} else {
 		//TODO: issue warning or sentinel??
 	}
-
-	State *state = c_new(State, 1);
-	state_init(state);
-	//TODO: sentinel if(cur->current->state) ?
-	cur->current->state = state;
 }
 
 int _solve_return_reference(Symbol *sb, Reference *ref) {
