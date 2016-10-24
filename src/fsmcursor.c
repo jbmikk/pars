@@ -202,7 +202,7 @@ static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 	cur->fsm->start = cur->current;
 	//TODO: calling _set_start multiple times may cause
 	// leaks if adding a duplicate accept action to the action.
-	int accept = radix_tree_contains_int(&cur->current->state->actions, ACTION_TYPE_ACCEPT);
+	int accept = radix_tree_contains_int(&cur->current->state->actions, sb->id);
 	if(!accept) {
 		cur->current = action_add(cur->current, sb->id, ACTION_TYPE_ACCEPT, NONE);
 	} else {
