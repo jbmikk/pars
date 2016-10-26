@@ -40,6 +40,43 @@ eof:
 	lexer->length = lexer->input->buffer_index - lexer->index;
 }
 
+void utf8_lexer(Lexer *lexer)
+{
+	LToken token;
+	unsigned char c;
+
+#define CURRENT (lexer->input->buffer[lexer->input->buffer_index])
+#define NEXT (++lexer->input->buffer_index)
+#define END(V) (lexer->input->buffer_index >= lexer->input->buffer_size-V)
+
+next_token:
+	lexer->index = lexer->input->buffer_index;
+
+	if (END(0)) {
+		token = L_EOF;
+		lexer->input->eof = 1;
+		goto eof;
+	}
+
+	c = CURRENT;
+	if ((c & 0xE0) == 0xC0) {
+		unsigned char prev = c;
+		NEXT;
+		c = CURRENT;
+		if (!END(0)) {
+			token = ((prev & 0x1F) << 6) | (c & 0x3F);
+			NEXT;
+		} else {
+			//TODO: for now we ignore incomplete sequences
+			goto eof;
+		}
+	}
+eof:
+	lexer->symbol = token;
+	lexer->length = lexer->input->buffer_index - lexer->index;
+}
+
+
 void ebnf_lexer(Lexer *lexer)
 {
 	LToken token;
