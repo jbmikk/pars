@@ -70,6 +70,19 @@ next_token:
 			//TODO: for now we ignore incomplete sequences
 			goto eof;
 		}
+	} else if ((c & 0xF0) == 0xE0) {
+		unsigned char first = c;
+		if (!END(2)) {
+			NEXT;
+			unsigned char second = CURRENT;
+			NEXT;
+			unsigned char third = CURRENT;
+			token = ((first & 0x0F) << 12) | ((second & 0x3F) << 6) | (third & 0x3F);
+			NEXT;
+		} else {
+			//TODO: for now we ignore incomplete sequences
+			goto eof;
+		}
 	}
 eof:
 	lexer->symbol = token;

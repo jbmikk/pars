@@ -21,6 +21,8 @@ typedef struct {
 	//Utf8 lexer tests
 	Input input_utf8_two_byte;
 	Lexer lexer_utf8_two_byte;
+	Input input_utf8_three_byte;
+	Lexer lexer_utf8_three_byte;
 } Fixture;
 
 Fixture fix;
@@ -31,6 +33,7 @@ Fixture fix;
 #define I_RULE_ONE "one = \"1\",(\"a\"|\"b\")"
 #define I_WHITE "\n\r\t\f identifier"
 #define I_UTF8_TWO_BYTE "\xC3\xB1" //U+00F1 ñ
+#define I_UTF8_THREE_BYTE "\xE0\xBD\xB1" //U+0F71
 
 void t_setup(){
 	input_init_buffer(&fix.input_integer, I_INTEGER, strlen(I_INTEGER));
@@ -44,8 +47,11 @@ void t_setup(){
 	lexer_init(&fix.lexer_rule_one, &fix.input_rule_one, ebnf_lexer);
 	lexer_init(&fix.lexer_white, &fix.input_white, ebnf_lexer);
 
+	//Utf8 tests
 	input_init_buffer(&fix.input_utf8_two_byte, I_UTF8_TWO_BYTE, strlen(I_UTF8_TWO_BYTE));
 	lexer_init(&fix.lexer_utf8_two_byte, &fix.input_utf8_two_byte, utf8_lexer);
+	input_init_buffer(&fix.input_utf8_three_byte, I_UTF8_THREE_BYTE, strlen(I_UTF8_THREE_BYTE));
+	lexer_init(&fix.lexer_utf8_three_byte, &fix.input_utf8_three_byte, utf8_lexer);
 }
 
 void t_teardown(){
@@ -145,6 +151,13 @@ void lexer_input_next__utf8_two_byte(){
 	t_assert(fix.lexer_utf8_two_byte.length == 2);
 }
 
+void lexer_input_next__utf8_three_byte(){
+	lexer_next(&fix.lexer_utf8_three_byte);
+	t_assert(fix.lexer_utf8_three_byte.symbol == 0xF71);
+	t_assert(fix.lexer_utf8_three_byte.index == 0);
+	t_assert(fix.lexer_utf8_three_byte.length == 3);
+}
+
 int main(int argc, char** argv){
 	t_init();
 	t_test(lexer_input_next__integer_token);
@@ -155,5 +168,6 @@ int main(int argc, char** argv){
 	t_test(lexer_input_next__white_token);
 
 	t_test(lexer_input_next__utf8_two_byte);
+	t_test(lexer_input_next__utf8_three_byte);
 	return t_done();
 }
