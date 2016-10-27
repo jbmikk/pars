@@ -12,7 +12,7 @@ state machine constructing functions.
 
 You need to install the following dependencies:
 
-* cmake: sudo apt-get install cmake
-* g++: sudo apt-get install g++
+* cmake
+* g++
 
 Then run build.sh or test.sh
