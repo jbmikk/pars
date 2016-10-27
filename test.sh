@@ -42,9 +42,14 @@ fi
 
 PATTERN=${2:-"no-pattern"}
 
-sh build.sh $TRACE
 
+# Build
+mkdir -p build
 cd build
+
+cmake .. -DTRACE=$TRACE
+make
+
 
 echo ""
 echo "TESTPARS:"

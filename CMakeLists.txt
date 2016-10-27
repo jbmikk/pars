@@ -5,6 +5,13 @@ include(ExternalProject)
 
 option(ENABLE_FSM_TRACE "Enable fsm traces" OFF)
 option(ENABLE_AST_TRACE "Enable ast traces" OFF)
+option(TRACE "Enable all traces" OFF)
+
+if(TRACE)
+        set(ENABLE_FSM_TRACE ON)
+        set(ENABLE_AST_TRACE ON)
+endif(TRACE)
+
 
 
 # Depend on dbg

@@ -15,4 +15,18 @@ You need to install the following dependencies:
 * cmake
 * g++
 
-Then run build.sh or test.sh
+Then build it like any other cmake project:
+
+    mkdir build
+    cd build
+    cmake ..
+    make
+
+You can also build the project with tracing information:
+
+    mkdir build
+    cd build
+    cmake .. -DTRACE=ON
+    make
+
+You can also run test.sh to run all tests.
