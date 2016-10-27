@@ -1,5 +1,5 @@
-#ifndef PARS_H
-#define PARS_H
+#ifndef CLI_H
+#define CLI_H
 
 #include "fsm.h"
 #include "ebnf_parser.h"
@@ -9,6 +9,6 @@
 
 #define BUFFER_SIZE 4096
 
-int pars_load_grammar(char *pathname, Fsm *fsm);
+int cli_load_grammar(char *pathname, Fsm *fsm);
 
-#endif //PARS_H
+#endif //CLI_H

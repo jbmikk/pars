@@ -96,14 +96,14 @@ set_target_properties(pars PROPERTIES COMPILE_FLAGS "${PARS_FLAGS}")
 
 include_directories("${PROJECT_SOURCE_DIR}/src")
 
-add_executable(testpars tests/testpars.c)
+add_executable(test_cli tests/test_cli.c)
 add_executable(test_input tests/test_input.c)
 add_executable(test_lexer tests/test_lexer.c)
 add_executable(test_ebnf_parser tests/test_ebnf_parser.c)
 add_executable(test_fsm tests/test_fsm.c)
 add_executable(test_ast tests/test_ast.c)
 
-target_link_libraries(testpars parslib)
+target_link_libraries(test_cli parslib)
 target_link_libraries(test_input parslib)
 target_link_libraries(test_lexer parslib)
 target_link_libraries(test_ebnf_parser parslib)

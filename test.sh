@@ -55,7 +55,7 @@ run_test $MODE $PATTERN ./test_lexer
 run_test $MODE $PATTERN ./test_ebnf_parser
 run_test $MODE $PATTERN ./test_fsm
 run_test $MODE $PATTERN ./test_ast
-run_test $MODE $PATTERN ./testpars
+run_test $MODE $PATTERN ./test_cli
 
 
 echo ""

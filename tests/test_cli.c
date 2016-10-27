@@ -1,6 +1,6 @@
 #include <stddef.h>
 
-#include "pars.h"
+#include "cli.h"
 #include "symbols.h"
 #include "fsm.h"
 #include "test.h"
@@ -19,7 +19,7 @@ void test_load_grammar(){
 	symbol_table_init(&table);
 	fsm_init(&fsm, &table);
 
-	int error = pars_load_grammar("not-a-valid-file-name", &fsm);
+	int error = cli_load_grammar("not-a-valid-file-name", &fsm);
 
 	fsm_dispose(&fsm);
 	symbol_table_dispose(&table);

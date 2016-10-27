@@ -1,4 +1,5 @@
-#include "pars.h"
+#include "cli.h"
+
 #include "dbg.h"
 #include "cmemory.h"
 #include "input.h"
@@ -9,7 +10,7 @@
 #include <stddef.h>
 #include <stdio.h>
 
-int pars_load_grammar(char *pathname, Fsm *fsm)
+int cli_load_grammar(char *pathname, Fsm *fsm)
 {
 	Input input;
 	Parser parser;
@@ -47,7 +48,7 @@ error:
 	return -1;
 }
 
-int pars_parse_source(char *pathname, Fsm *fsm, Ast *ast)
+int cli_parse_source(char *pathname, Fsm *fsm, Ast *ast)
 {
 	Input input;
 	Parser parser;
@@ -91,12 +92,12 @@ int main(int argc, char** argv){
 		symbol_table_init(&table);
 		fsm_init(&fsm, &table);
 
-		error = pars_load_grammar(argv[1], &fsm);
+		error = cli_load_grammar(argv[1], &fsm);
 		check(!error, "Could not load grammar.");
 
 		if(argc > 2) {
 			log_info("Parsing source.");
-			error = pars_parse_source(argv[2], &fsm, &ast);
+			error = cli_parse_source(argv[2], &fsm, &ast);
 
 			//TODO: Dispose crashes when error during parse!
 			//Possible segmentation fault later if skipped too!
