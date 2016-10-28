@@ -24,62 +24,34 @@ void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
 	cur->fsm = fsm;
 	cur->current = NULL;
 	cur->stack = NULL;
-	cur->continuations = NULL;
 	cur->last_symbol = NULL;
 	cur->last_non_terminal = NULL;
 }
 
 void fsm_cursor_dispose(FsmCursor *cur)
 {
-	stack_dispose(cur->continuations);
+	//TODO: In case of interrupted fsm construction some states in the
+	// stack should be deleted too.
+	//TODO: remaining frames should be deleted, merge stack with frames.
 	stack_dispose(cur->stack);
 	cur->current = NULL;
 	cur->fsm = NULL;
 }
 
-static void _reset(FsmCursor *cursor) 
+static void _push_frame(FsmCursor *cursor, State *state) 
 {
-	cursor->current = (Action *)cursor->stack->data;
+	FsmFrame *frame = c_new(FsmFrame, 1);
+	frame->start = cursor->current;
+	frame->continuation = state;
+	cursor->stack = stack_push(cursor->stack, frame);
 }
 
-static void _stack_push(FsmCursor *cursor) 
+static void _pop_frame(FsmCursor *cursor) 
 {
-	cursor->stack = stack_push(cursor->stack, cursor->current);
-}
 
-static void _stack_pop(FsmCursor *cursor) 
-{
+	FsmFrame *frame = (FsmFrame *)cursor->stack->data;
+	c_delete(frame);
 	cursor->stack = stack_pop(cursor->stack);
-}
-
-static void _push_continuation(FsmCursor *cursor)
-{
-	State *state;
-	if(cursor->current->state) {
-		state = cursor->current->state;
-	} else {
-		state = c_new(State, 1);
-		state_init(state);
-		cursor->current->state = state;
-	}
-
-	cursor->continuations = stack_push(cursor->continuations, state);
-	trace_state("push", state, "continuation");
-}
-
-static void _push_new_continuation(FsmCursor *cursor)
-{
-	State *state = c_new(State, 1);
-	state_init(state);
-	cursor->continuations = stack_push(cursor->continuations, state);
-	trace_state("add", state, "continuation");
-}
-
-static State * _pop_continuation(FsmCursor *cursor)
-{
-	State *state = (State *)cursor->continuations->data;
-	cursor->continuations = stack_pop(cursor->continuations);
-	return state;
 }
 
 static void _add_empty(FsmCursor *cursor)
@@ -90,9 +62,15 @@ static void _add_empty(FsmCursor *cursor)
 	cursor->current = action;
 }
 
+static void _reset(FsmCursor *cursor) 
+{
+	FsmFrame *frame = (FsmFrame*)cursor->stack->data;
+	cursor->current = frame->start;
+}
+
 static void _join_continuation(FsmCursor *cursor)
 {
-	State *state = (State *)cursor->continuations->data;
+	FsmFrame *frame = (FsmFrame*)cursor->stack->data;
 
 	if (cursor->current->state) {
 		// The action is already pointing to a state.
@@ -106,37 +84,45 @@ static void _join_continuation(FsmCursor *cursor)
 		// For now we add the empty transition.
 		_add_empty(cursor);
 	}
-	cursor->current->state = state;
+	cursor->current->state = frame->continuation;
 
 	//TODO: Add trace for other types of operations or move to actions?
 	//trace("add", NULL, cursor->current, 0, "join", 0);
 }
 
-void fsm_cursor_group_start(FsmCursor *cur)
+void fsm_cursor_group_start(FsmCursor *cursor)
 {
-	_stack_push(cur);
-	_push_new_continuation(cur);
+	State *state = c_new(State, 1);
+	state_init(state);
+	trace_state("add", state, "continuation");
+	_push_frame(cursor, state);
 }
 
-void fsm_cursor_group_end(FsmCursor *cur)
+void fsm_cursor_group_end(FsmCursor *cursor)
 {
-	_join_continuation(cur);
-	_pop_continuation(cur);
-	_stack_pop(cur);
+	_join_continuation(cursor);
+	_pop_frame(cursor);
 }
 
-void fsm_cursor_loop_group_start(FsmCursor *cur)
+void fsm_cursor_loop_group_start(FsmCursor *cursor)
 {
-	_push_continuation(cur);
-	_stack_push(cur);
+	State *state;
+	if(cursor->current->state) {
+		state = cursor->current->state;
+	} else {
+		state = c_new(State, 1);
+		state_init(state);
+		cursor->current->state = state;
+	}
+	trace_state("push", state, "continuation");
+	_push_frame(cursor, state);
 }
 
 void fsm_cursor_loop_group_end(FsmCursor *cursor)
 {
 	_join_continuation(cursor);
-	_pop_continuation(cursor);
 	_reset(cursor);
-	_stack_pop(cursor);
+	_pop_frame(cursor);
 }
 
 void fsm_cursor_or(FsmCursor *cur)

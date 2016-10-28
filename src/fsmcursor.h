@@ -6,11 +6,15 @@
 #define REF_PENDING 0
 #define REF_SOLVED 1
 
+typedef struct _FsmFrame {
+	Action *start;
+	State *continuation;
+} FsmFrame;
+
 typedef struct _FsmCursor {
 	Fsm *fsm;
 	Action *current;
 	SNode *stack;
-	SNode *continuations;
 	Symbol *last_symbol;
 	NonTerminal *last_non_terminal;
 } FsmCursor;
