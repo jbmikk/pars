@@ -9,12 +9,13 @@
 typedef struct _FsmFrame {
 	Action *start;
 	State *continuation;
+	struct _FsmFrame *next;
 } FsmFrame;
 
 typedef struct _FsmCursor {
 	Fsm *fsm;
 	Action *current;
-	SNode *stack;
+	FsmFrame *stack;
 	Symbol *last_symbol;
 	NonTerminal *last_non_terminal;
 } FsmCursor;

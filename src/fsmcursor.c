@@ -1,7 +1,6 @@
 #include "fsmcursor.h"
 
 #include "cmemory.h"
-#include "stack.h"
 
 #include <stdio.h>
 
@@ -32,8 +31,13 @@ void fsm_cursor_dispose(FsmCursor *cur)
 {
 	//TODO: In case of interrupted fsm construction some states in the
 	// stack should be deleted too.
-	//TODO: remaining frames should be deleted, merge stack with frames.
-	stack_dispose(cur->stack);
+	//TODO: write test for stack disposal
+	while(cur->stack) {
+		FsmFrame *frame = cur->stack;
+		cur->stack = frame->next;
+		c_delete(frame);
+	}
+	cur->stack = NULL;
 	cur->current = NULL;
 	cur->fsm = NULL;
 }
@@ -43,15 +47,16 @@ static void _push_frame(FsmCursor *cursor, State *state)
 	FsmFrame *frame = c_new(FsmFrame, 1);
 	frame->start = cursor->current;
 	frame->continuation = state;
-	cursor->stack = stack_push(cursor->stack, frame);
+	frame->next = cursor->stack;
+	cursor->stack = frame;
 }
 
 static void _pop_frame(FsmCursor *cursor) 
 {
 
-	FsmFrame *frame = (FsmFrame *)cursor->stack->data;
+	FsmFrame *frame = cursor->stack;
+	cursor->stack = frame->next;
 	c_delete(frame);
-	cursor->stack = stack_pop(cursor->stack);
 }
 
 static void _add_empty(FsmCursor *cursor)
@@ -64,13 +69,13 @@ static void _add_empty(FsmCursor *cursor)
 
 static void _reset(FsmCursor *cursor) 
 {
-	FsmFrame *frame = (FsmFrame*)cursor->stack->data;
+	FsmFrame *frame = cursor->stack;
 	cursor->current = frame->start;
 }
 
 static void _join_continuation(FsmCursor *cursor)
 {
-	FsmFrame *frame = (FsmFrame*)cursor->stack->data;
+	FsmFrame *frame = cursor->stack;
 
 	if (cursor->current->state) {
 		// The action is already pointing to a state.
