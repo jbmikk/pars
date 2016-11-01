@@ -94,12 +94,18 @@ Action *action_add(Action *from, int symbol, int type, int reduction)
 
 void action_add_first_set(Action *from, State* state)
 {
-	Action *ac;
+	Action *action, *clone;
 	Iterator it;
 	radix_tree_iterator_init(&it, &(state->actions));
-	while(ac = (Action *)radix_tree_iterator_next(&it)) {
-		action_add_buffer(from, it.key, it.size, 0, 0, ac);
-		trace("add", from, ac, array_to_int(it.key, it.size), "first", 0);
+	while(action = (Action *)radix_tree_iterator_next(&it)) {
+		//TODO: Make type for clone a parameter, do not override by
+		// default.
+		clone = c_new(Action, 1);
+		clone->reduction = action->reduction;
+		clone->state = action->state;
+		clone->type = action->type;
+		action_add_buffer(from, it.key, it.size, 0, 0, clone);
+		trace("add", from, action, array_to_int(it.key, it.size), "first", 0);
 	}
 	radix_tree_iterator_dispose(&it);
 }
