@@ -189,8 +189,41 @@ static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 {
 	Symbol *sb = symbol_table_get(cur->fsm->table, name, length);
 	NonTerminal *nt = (NonTerminal *)sb->data;
-	cur->current = nt->start;
-	cur->fsm->start = cur->current;
+
+	State *initial_state = c_new(State, 1);
+	state_init(initial_state);
+	Action *initial = c_new(Action, 1);
+	action_init(initial, ACTION_TYPE_SHIFT, NONE, initial_state);
+
+	action_add_first_set(initial, nt->start->state);
+
+	cur->current = initial;
+
+	//If start already defined, delete it. Only one start allowed.
+	if(cur->fsm->start) {
+		//TODO: Should implement partial disposal of fsm.
+		Action *action;
+		Iterator it;
+		radix_tree_iterator_init(&it, &cur->fsm->start->state->actions);
+		while(action = (Action *)radix_tree_iterator_next(&it)) {
+			if(action->type == ACTION_TYPE_ACCEPT) {
+				//Delete the final state only because it does
+				//not belong to any nonterminal.
+				c_delete(action->state);
+			}
+			//Delete all initial state actions.
+			c_delete(action);
+		}
+		radix_tree_iterator_dispose(&it);
+
+		//Delete state
+		radix_tree_dispose(&cur->fsm->start->state->actions);
+		c_delete(cur->fsm->start->state);
+
+		//Delete action
+		c_delete(cur->fsm->start);
+	}
+	cur->fsm->start = initial;
 
 	//TODO: Should check whether current->state is not null?
 	//TODO: Is there a test that checks whether this even works?
@@ -309,20 +342,16 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 		} else {
 			//TODO: issue warning or sentinel??
 		}
+		_solve_references(cur);
 		_set_start(cur, sb->name, sb->length);
+	} else {
+		//TODO: issue warning or sentinel??
 	}
-
-	_solve_references(cur);
 }
 
 void fsm_cursor_terminal(FsmCursor *cur, int symbol)
 {
-	int type;
-	if(cur->last_non_terminal->start == cur->current) {
-		type = ACTION_TYPE_CONTEXT_SHIFT;
-	} else {
-		type = ACTION_TYPE_SHIFT;
-	}
+	int type = ACTION_TYPE_SHIFT;
 	Action *action = action_add(cur->current, symbol, type, NONE);
 	cur->current = action;
 }

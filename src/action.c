@@ -103,7 +103,7 @@ void action_add_first_set(Action *from, State* state)
 		clone = c_new(Action, 1);
 		clone->reduction = action->reduction;
 		clone->state = action->state;
-		clone->type = action->type;
+		clone->type = ACTION_TYPE_CONTEXT_SHIFT;
 		action_add_buffer(from, it.key, it.size, 0, 0, clone);
 		trace("add", from, action, array_to_int(it.key, it.size), "first", 0);
 	}
