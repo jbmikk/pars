@@ -12,6 +12,12 @@ void state_init(State *state)
 	radix_tree_init(&state->actions, 0, 0, NULL);
 }
 
+void state_dispose(State *state)
+{
+	radix_tree_dispose(&state->actions);
+}
+
+
 //# Action functions
 
 #ifdef FSM_TRACE

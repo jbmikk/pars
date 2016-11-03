@@ -60,6 +60,7 @@ int fsm_get_symbol(Fsm *fsm, unsigned char *name, int length);
 //# State functions
 
 void state_init(State *state);
+void state_dispose(State *state);
 
 
 //# Action functions

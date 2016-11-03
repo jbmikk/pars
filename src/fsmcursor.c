@@ -217,7 +217,7 @@ static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 		radix_tree_iterator_dispose(&it);
 
 		//Delete state
-		radix_tree_dispose(&cur->fsm->start->state->actions);
+		state_dispose(cur->fsm->start->state);
 		c_delete(cur->fsm->start->state);
 
 		//Delete action

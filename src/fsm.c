@@ -108,7 +108,7 @@ void fsm_dispose(Fsm *fsm)
 	State *st;
 	radix_tree_iterator_init(&it, &all_states);
 	while(st = (State *)radix_tree_iterator_next(&it)) {
-		radix_tree_dispose(&st->actions);
+		state_dispose(st);
 		c_delete(st);
 	}
 	radix_tree_iterator_dispose(&it);
