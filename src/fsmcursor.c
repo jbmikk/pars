@@ -345,6 +345,7 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 			//TODO: issue warning or sentinel??
 		}
 		_solve_references(cur);
+		trace_non_terminal("set initial state", sb->name, sb->length);
 		_set_start(cur, sb->name, sb->length);
 	} else {
 		//TODO: issue warning or sentinel??
