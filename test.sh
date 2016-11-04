@@ -73,6 +73,7 @@ run_test $MODE $PATTERN "./pars ./tests/grammars/digit-grammar.txt ./tests/gramm
 run_test $MODE $PATTERN "./pars ./tests/grammars/integer-grammar.txt ./tests/grammars/integer-source.txt"
 run_test $MODE $PATTERN "./pars ./tests/grammars/brackets-grammar.txt ./tests/grammars/brackets-source1.txt"
 run_test $MODE $PATTERN "./pars ./tests/grammars/brackets-grammar.txt ./tests/grammars/brackets-source2.txt"
+run_test $MODE $PATTERN "./pars ./tests/grammars/repetition-grammar.txt ./tests/grammars/repetition-source.txt"
 
 cd ..
 
