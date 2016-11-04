@@ -87,6 +87,8 @@ static void _join_continuation(FsmCursor *cursor)
 		// continuation is ready or add merge them now through an empty
 		// transition.
 		// For now we add the empty transition.
+		// This happens in the following cases:
+		// * When the end of a loop group meets the end of the group.
 		_add_empty(cursor);
 	}
 	cursor->current->state = frame->continuation;
