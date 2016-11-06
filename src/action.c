@@ -122,6 +122,12 @@ void state_add_first_set(State *state, State* source)
 	while(action = (Action *)radix_tree_iterator_next(&it)) {
 		//TODO: Make type for clone a parameter, do not override by
 		// default.
+		if (action->type == ACTION_REDUCE) {
+			// This should never happen in practice, but just in
+			// case we have a malformed fsm we check it here.
+			trace("skip", state, action, array_to_int(it.key, it.size), "reduction on first-set", 0);
+			continue;
+		}
 		clone = c_new(Action, 1);
 		clone->reduction = action->reduction;
 		clone->state = action->state;
