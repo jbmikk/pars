@@ -1,0 +1,9 @@
+(*
+ * Ab grammar
+ * Simple grammar used to test rules with terminals and nonterminals.
+ *
+ * Tests that aa's reduction follow set includes bb's first set.
+ *)
+aa = "A";
+bb = "B";
+cc = aa, bb;
