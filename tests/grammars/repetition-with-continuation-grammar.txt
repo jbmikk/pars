@@ -1,0 +1,6 @@
+(*
+ * Repetition grammar
+ * Used to test repetition operator at the beginning of a nonterminal.
+ *)
+letter = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i";
+sequence = { letter }, ".";

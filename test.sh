@@ -75,6 +75,7 @@ run_test $MODE $PATTERN "./pars ./tests/grammars/brackets-grammar.txt ./tests/gr
 run_test $MODE $PATTERN "./pars ./tests/grammars/brackets-grammar.txt ./tests/grammars/brackets-source2.txt"
 run_test $MODE $PATTERN "./pars ./tests/grammars/repetition-grammar.txt ./tests/grammars/repetition-source.txt"
 run_test $MODE $PATTERN "./pars ./tests/grammars/ab2-grammar.txt ./tests/grammars/ab2-source.txt"
+run_test $MODE $PATTERN "./pars ./tests/grammars/repetition-with-continuation-grammar.txt ./tests/grammars/repetition-with-continuation-source.txt"
 
 cd ..
 
