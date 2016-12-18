@@ -106,7 +106,7 @@ void fsm_dispose(Fsm *fsm)
 	radix_tree_dispose(&all_states);
 
 	//Delete error state
-	radix_tree_dispose(&fsm->error.state->actions);
+	state_dispose(fsm->error.state);
 	c_delete(fsm->error.state);
 
 	fsm->table = NULL;
