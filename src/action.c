@@ -14,6 +14,16 @@ void state_init(State *state)
 
 void state_dispose(State *state)
 {
+	Iterator it;
+
+	//Delete all actions
+	Action *ac;
+	radix_tree_iterator_init(&it, &state->actions);
+	while(ac = (Action *)radix_tree_iterator_next(&it)) {
+		c_delete(ac);
+	}
+	radix_tree_iterator_dispose(&it);
+
 	radix_tree_dispose(&state->actions);
 }
 

@@ -23,7 +23,7 @@
 void session_init(Session *session, Fsm *fsm)
 {
 	session->fsm = fsm;
-	session->current = fsm->start;
+	session->current = &fsm->start;
 	session->stack.top = NULL;
 	session->index = 0;
 	session->handler.context_shift = NULL;

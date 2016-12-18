@@ -143,7 +143,7 @@ void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 	Symbol *symbol = fsm_create_non_terminal(cur->fsm, name, length);
 	cur->last_symbol = symbol;
 	cur->last_non_terminal = (NonTerminal *)symbol->data;
-	cur->current = cur->last_non_terminal->start;
+	cur->current = &cur->last_non_terminal->start;
 	trace_non_terminal("set", name, length);
 
 	//TODO: implicit fsm_cursor_group_start(cur); ??
@@ -180,7 +180,7 @@ void fsm_cursor_nonterminal(FsmCursor *cur, unsigned char *name, int length)
 	nt->unsolved_returns++;
 
 	//Only count children at the beginning of a non terminal
-	if(pref->action == pref->non_terminal->start) {
+	if(pref->action == &pref->non_terminal->start) {
 		pref->non_terminal->unsolved_invokes++;
 	}
 
@@ -192,35 +192,20 @@ static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 	Symbol *sb = symbol_table_get(cur->fsm->table, name, length);
 	NonTerminal *nt = (NonTerminal *)sb->data;
 
+	//If start already defined, delete it. Only one start allowed.
+	if(cur->fsm->start.state) {
+		//Delete state
+		state_dispose(cur->fsm->start.state);
+		c_delete(cur->fsm->start.state);
+	}
+
 	State *initial_state = c_new(State, 1);
 	state_init(initial_state);
-	Action *initial = c_new(Action, 1);
-	action_init(initial, ACTION_TYPE_SHIFT, NONE, initial_state);
+	action_init(&cur->fsm->start, ACTION_TYPE_SHIFT, NONE, initial_state);
 
-	action_add_first_set(initial, nt->start->state);
+	action_add_first_set(&cur->fsm->start, nt->start.state);
 
-	cur->current = initial;
-
-	//If start already defined, delete it. Only one start allowed.
-	if(cur->fsm->start) {
-		//TODO: Should implement partial disposal of fsm.
-		Action *action;
-		Iterator it;
-		radix_tree_iterator_init(&it, &cur->fsm->start->state->actions);
-		while(action = (Action *)radix_tree_iterator_next(&it)) {
-			//Delete all initial state actions.
-			c_delete(action);
-		}
-		radix_tree_iterator_dispose(&it);
-
-		//Delete state
-		state_dispose(cur->fsm->start->state);
-		c_delete(cur->fsm->start->state);
-
-		//Delete action
-		c_delete(cur->fsm->start);
-	}
-	cur->fsm->start = initial;
+	cur->current = &cur->fsm->start;
 
 	//TODO: Should check whether current->state is not null?
 	//TODO: Is there a test that checks whether this even works?
@@ -287,9 +272,9 @@ int _solve_invoke_reference(Symbol *sb, Reference *ref) {
 		ref->symbol->name,
 		ref->symbol->length
 	);
-	action_add_first_set(ref->action, nt->start->state);
+	action_add_first_set(ref->action, nt->start.state);
 	ref->invoke_status = REF_SOLVED;
-	if(ref->action == ref->non_terminal->start) {
+	if(ref->action == &ref->non_terminal->start) {
 		ref->non_terminal->unsolved_invokes--;
 	}
 	return 0;

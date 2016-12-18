@@ -13,7 +13,7 @@ void fsm_init(Fsm *fsm, SymbolTable *table)
 {
 	//TODO: Get symbol table as parameter
 	fsm->table = table;
-	fsm->start = NULL;
+	action_init(&fsm->start, ACTION_TYPE_ERROR, NONE, NULL);
 
 	symbol_table_add(fsm->table, "__empty", 7);
 
@@ -26,53 +26,43 @@ void fsm_init(Fsm *fsm, SymbolTable *table)
 	state_init(fsm->accept);
 }
 
-void _fsm_get_actions(Node *actions, Node *states, Action *action)
+void _fsm_get_states(Node *states, Action *action)
 {
 	unsigned char buffer[sizeof(intptr_t)];
 	unsigned int size;
-	//TODO: Should have a separate ptr_to_array function
-	int_to_array(buffer, &size, (intptr_t)action);
+	State *state = action->state;
 
-	Action *in_actions = radix_tree_get(actions, buffer, size);
+	if(state) {
+		//TODO: Should have a separate ptr_to_array function
+		int_to_array(buffer, &size, (intptr_t)state);
 
-	if(!in_actions) {
-		radix_tree_set(actions, buffer, size, action);
+		Action *in_states = radix_tree_get(states, buffer, size);
 
-		State *state = action->state;
-		if(state) {
+		if(!in_states) {
+			radix_tree_set(states, buffer, size, state);
+
 			Action *ac;
 			Iterator it;
 			radix_tree_iterator_init(&it, &(state->actions));
 			while(ac = (Action *)radix_tree_iterator_next(&it)) {
-				_fsm_get_actions(actions, states, ac);
+				_fsm_get_states(states, ac);
 			}
 			radix_tree_iterator_dispose(&it);
-
-			//Add state to states
-			int_to_array(buffer, &size, (intptr_t)state);
-			State *in_states = radix_tree_get(states, buffer, size);
-			if(!in_states) {
-				radix_tree_set(states, buffer, size, state);
-			}
 		}
 	}
 }
 
 void fsm_dispose(Fsm *fsm)
 {
-	Node all_actions;
 	Node all_states;
 	Symbol *symbol;
 	NonTerminal *nt;
 	Iterator it;
 
-	radix_tree_init(&all_actions, 0, 0, NULL);
 	radix_tree_init(&all_states, 0, 0, NULL);
 
 	//Get all actions reachable through the starting action
-	if(fsm->start) {
-		_fsm_get_actions(&all_actions, &all_states, fsm->start);
-	}
+	_fsm_get_states(&all_states, &fsm->start);
 
 	radix_tree_iterator_init(&it, &fsm->table->symbols);
 	while(symbol = (Symbol *)radix_tree_iterator_next(&it)) {
@@ -85,7 +75,7 @@ void fsm_dispose(Fsm *fsm)
 			continue;
 		}
 
-		_fsm_get_actions(&all_actions, &all_states, nt->start);
+		_fsm_get_states(&all_states, &nt->start);
 		Reference *ref = nt->parent_refs;
 		while(ref) {
 			Reference *pref = ref;
@@ -103,16 +93,6 @@ void fsm_dispose(Fsm *fsm)
 	unsigned int size;
 	int_to_array(buffer, &size, (intptr_t)fsm->accept);
 	radix_tree_try_set(&all_states, buffer, size, fsm->accept);
-
-	//Delete all actions
-	Action *ac;
-	radix_tree_iterator_init(&it, &all_actions);
-	while(ac = (Action *)radix_tree_iterator_next(&it)) {
-		c_delete(ac);
-	}
-	radix_tree_iterator_dispose(&it);
-
-	radix_tree_dispose(&all_actions);
 
 	//Delete all states
 	State *st;
@@ -142,13 +122,10 @@ Symbol *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 {
 	Symbol *symbol = symbol_table_add(fsm->table, name, length);
 	NonTerminal *non_terminal;
-	Action *action;
 	if(!symbol->data) {
 		non_terminal = c_new(NonTerminal, 1);
-		action = c_new(Action, 1);
-		action_init(action, ACTION_TYPE_SHIFT, NONE, NULL);
-		non_terminal->start = action;
-		non_terminal->end = action;
+		action_init(&non_terminal->start, ACTION_TYPE_SHIFT, NONE, NULL);
+		non_terminal->end = &non_terminal->start;
 		non_terminal->parent_refs = NULL;
 		non_terminal->unsolved_returns = 0;
 		non_terminal->unsolved_invokes = 0;
@@ -162,12 +139,12 @@ Symbol *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 
 Action *fsm_get_action(Fsm *fsm, unsigned char *name, int length)
 {
-	return fsm_get_non_terminal(fsm, name, length)->start;
+	return &fsm_get_non_terminal(fsm, name, length)->start;
 }
 
 State *fsm_get_state(Fsm *fsm, unsigned char *name, int length)
 {
-	return fsm_get_non_terminal(fsm, name, length)->start->state;
+	return fsm_get_non_terminal(fsm, name, length)->start.state;
 }
 
 int fsm_get_symbol(Fsm *fsm, unsigned char *name, int length)

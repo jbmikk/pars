@@ -23,7 +23,7 @@ typedef struct _Action {
 } Action;
 
 typedef struct _NonTerminal {
-	Action *start;
+	Action start;
 	Action *end;
 	char unsolved_returns;
 	char unsolved_invokes;
@@ -40,7 +40,7 @@ typedef struct _Reference {
 } Reference;
 
 typedef struct _Fsm {
-	Action *start;
+	Action start;
 	Action error;
 	State *accept;
 	SymbolTable *table;
