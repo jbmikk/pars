@@ -26,7 +26,7 @@ void fsm_init(Fsm *fsm, SymbolTable *table)
 	state_init(fsm->accept);
 }
 
-void _fsm_get_states(Node *states, Action *action)
+void fsm_get_states(Node *states, Action *action)
 {
 	unsigned char buffer[sizeof(intptr_t)];
 	unsigned int size;
@@ -45,7 +45,7 @@ void _fsm_get_states(Node *states, Action *action)
 			Iterator it;
 			radix_tree_iterator_init(&it, &(state->actions));
 			while(ac = (Action *)radix_tree_iterator_next(&it)) {
-				_fsm_get_states(states, ac);
+				fsm_get_states(states, ac);
 			}
 			radix_tree_iterator_dispose(&it);
 		}
@@ -55,6 +55,7 @@ void _fsm_get_states(Node *states, Action *action)
 void fsm_dispose(Fsm *fsm)
 {
 	Node all_states;
+
 	Symbol *symbol;
 	Nonterminal *nt;
 	Iterator it;
@@ -62,7 +63,7 @@ void fsm_dispose(Fsm *fsm)
 	radix_tree_init(&all_states, 0, 0, NULL);
 
 	//Get all actions reachable through the starting action
-	_fsm_get_states(&all_states, &fsm->start);
+	fsm_get_states(&all_states, &fsm->start);
 
 	radix_tree_iterator_init(&it, &fsm->table->symbols);
 	while(symbol = (Symbol *)radix_tree_iterator_next(&it)) {
@@ -75,7 +76,7 @@ void fsm_dispose(Fsm *fsm)
 			continue;
 		}
 
-		_fsm_get_states(&all_states, &nt->start);
+		fsm_get_states(&all_states, &nt->start);
 		nonterminal_dispose(nt);
 		c_delete(nt);
 		//TODO: Symbol table may live longer than fsm, makes sense?
@@ -97,7 +98,6 @@ void fsm_dispose(Fsm *fsm)
 		c_delete(st);
 	}
 	radix_tree_iterator_dispose(&it);
-
 	radix_tree_dispose(&all_states);
 
 	//Delete error state

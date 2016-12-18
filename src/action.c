@@ -27,6 +27,20 @@
 void state_init(State *state)
 {
 	radix_tree_init(&state->actions, 0, 0, NULL);
+	radix_tree_init(&state->refs, 0, 0, NULL);
+	state->status = STATE_CLEAR;
+}
+
+void state_add_reference(State *state, Symbol *symbol)
+{
+	Reference *ref = c_new(Reference, 1);
+	ref->state = state;
+	ref->symbol = symbol;
+	ref->status = REF_PENDING;
+
+	//Is ref key ok?
+	radix_tree_set_intptr(&state->refs, (intptr_t)ref, ref);
+	state->status |= STATE_INVOKE_REF;
 }
 
 void state_dispose(State *state)
@@ -42,6 +56,16 @@ void state_dispose(State *state)
 	radix_tree_iterator_dispose(&it);
 
 	radix_tree_dispose(&state->actions);
+
+	//Delete all references
+	Reference *ref;
+	radix_tree_iterator_init(&it, &state->refs);
+	while(ref = (Reference *)radix_tree_iterator_next(&it)) {
+		c_delete(ref);
+	}
+	radix_tree_iterator_dispose(&it);
+
+	radix_tree_dispose(&state->refs);
 }
 
 Action *state_add(State *state, int symbol, int type, int reduction)
@@ -172,40 +196,39 @@ void action_add_reduce_follow_set(Action *from, Action *to, int symbol)
 
 void nonterminal_init(Nonterminal *nonterminal)
 {
-	nonterminal->parent_refs = NULL;
-	nonterminal->unsolved_returns = 0;
-	nonterminal->unsolved_invokes = 0;
+	radix_tree_init(&nonterminal->refs, 0, 0, NULL);
+	nonterminal->status = NONTERMINAL_CLEAR;
+	nonterminal->end = NULL;
 }
 
-void nonterminal_add_reference(Nonterminal *nonterminal, Action *action, Symbol *symbol, Symbol *from_symbol, Nonterminal *from_nonterminal)
+void nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *symbol)
 {
-	//Create reference from last non terminal to the named non terminal
-	Reference *pref = c_new(Reference, 1);
-	pref->action = action;
-	pref->symbol = from_symbol;
-	pref->non_terminal = from_nonterminal;
-	pref->invoke_status = REF_PENDING;
-	pref->return_status = REF_PENDING;
+	Reference *ref = c_new(Reference, 1);
+	ref->state = state;
+	//TODO: Is it used?
+	ref->symbol = symbol;
+	ref->status = REF_PENDING;
+	//TODO: is ref key ok?
+	radix_tree_set_intptr(&nonterminal->refs, (intptr_t)ref, ref);
+	nonterminal->status |= NONTERMINAL_RETURN_REF;
 
-	//Push the reference on the non terminal
-	pref->next = nonterminal->parent_refs;
-	nonterminal->parent_refs = pref;
-	nonterminal->unsolved_returns++;
-
-	//Only count children at the beginning of a non terminal
-	if(pref->action == &pref->non_terminal->start) {
-		pref->non_terminal->unsolved_invokes++;
+	//Set end state status if exists
+	if(nonterminal->end && nonterminal->end->state) {
+		nonterminal->end->state->status |= STATE_RETURN_REF;
 	}
-
 }
 
 void nonterminal_dispose(Nonterminal *nonterminal)
 {
 	//Delete all references
-	Reference *ref = nonterminal->parent_refs;
-	while(ref) {
-		Reference *pref = ref;
-		ref = ref->next;
-		c_delete(pref);
+	Reference *ref;
+	Iterator it;
+
+	radix_tree_iterator_init(&it, &nonterminal->refs);
+	while(ref = (Reference *)radix_tree_iterator_next(&it)) {
+		c_delete(ref);
 	}
+	radix_tree_iterator_dispose(&it);
+
+	radix_tree_dispose(&nonterminal->refs);
 }

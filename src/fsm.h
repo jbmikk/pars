@@ -15,8 +15,17 @@
 #define REF_PENDING 0
 #define REF_SOLVED 1
 
+#define STATE_CLEAR 0
+#define STATE_INVOKE_REF 1
+#define STATE_RETURN_REF 2
+
+#define NONTERMINAL_CLEAR 0
+#define NONTERMINAL_RETURN_REF 1
+
 typedef struct _State {
 	Node actions;
+	Node refs;
+	char status;
 } State;
 
 typedef struct _Action {
@@ -28,18 +37,18 @@ typedef struct _Action {
 typedef struct _Nonterminal {
 	Action start;
 	Action *end;
-	char unsolved_returns;
-	char unsolved_invokes;
-	struct _Reference *parent_refs;
+	Node refs;
+	char status;
 } Nonterminal;
 
+// Invoking refernces are from a concrete state to a symbol (to be resolved to
+// states). Returning references are from a symbol (to be resolved to an end
+// state) to a concrete state.
 typedef struct _Reference {
-	Action *action;
+	State *state;
 	Symbol *symbol;
-	Nonterminal *non_terminal;
-	char return_status;
-	char invoke_status;
-	struct _Reference *next;
+	char type;
+	char status;
 } Reference;
 
 typedef struct _Fsm {
@@ -58,12 +67,13 @@ Symbol *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length);
 
 Action *fsm_get_action(Fsm *fsm, unsigned char *name, int length);
 State *fsm_get_state(Fsm *fsm, unsigned char *name, int length);
+void fsm_get_states(Node *states, Action *action);
 int fsm_get_symbol(Fsm *fsm, unsigned char *name, int length);
-
 
 //# State functions
 
 void state_init(State *state);
+void state_add_reference(State *state, Symbol *symbol);
 void state_dispose(State *state);
 Action *state_add_buffer(State *from, unsigned char *buffer, unsigned int size, int type, int reduction, Action *action);
 Action *state_add(State *from, int symbol, int type, int reduction);
@@ -83,7 +93,7 @@ void action_add_reduce_follow_set(Action *from, Action *to, int symbol);
 //# Nonterminal functions
 
 void nonterminal_init(Nonterminal *nonterminal);
-void nonterminal_add_reference(Nonterminal *nonterminal, Action *action, Symbol *symbol, Symbol *from_symbol, Nonterminal *from_nonterminal);
+void nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *symbol);
 void nonterminal_dispose(Nonterminal *nonterminal);
 
 #endif //FSM_H

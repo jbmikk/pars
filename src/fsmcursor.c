@@ -1,8 +1,10 @@
 #include "fsmcursor.h"
 
 #include "cmemory.h"
+#include "arrays.h"
 
 #include <stdio.h>
+#include <stdint.h>
 
 #define NONE 0
 
@@ -154,6 +156,16 @@ void fsm_cursor_end(FsmCursor *cursor)
 	//TODO: implicit fsm_cursor_group_end(cur); ??
 	//trace("end", cursor->current, 0, 0, "set");
 	cursor->last_non_terminal->end = cursor->current;
+
+	// Add proper status to the end state to solve references later
+	if(cursor->last_non_terminal->status & NONTERMINAL_RETURN_REF) {
+		trace_state(
+			"end state pending follow-set",
+			cursor->last_non_terminal->end,
+			""
+		);
+		cursor->last_non_terminal->end->state->status |= STATE_RETURN_REF;
+	}
 }
 
 
@@ -170,9 +182,13 @@ void fsm_cursor_nonterminal(FsmCursor *cur, unsigned char *name, int length)
 
 	fsm_cursor_terminal(cur, sb->id);
 
+	//Create reference from last non terminal to the named non terminal
+	//State exists because we already added the terminal
+	state_add_reference(from->state, sb);
+
 	//Create reference to return from the non terminal to the caller
 	//TODO: Should be cur->current->state?
-	nonterminal_add_reference(nt, from, sb, cur->last_symbol, cur->last_non_terminal);
+	nonterminal_add_reference(nt, from->state, sb);
 }
 
 static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
@@ -206,97 +222,158 @@ static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 	}
 }
 
-int _solve_return_reference(Symbol *sb, Reference *ref) {
-	Nonterminal *nt = (Nonterminal *)sb->data;
+int _solve_return_references(FsmCursor *cur, Nonterminal *nt) {
+	int unsolved = 0;
+        Iterator it;
+	Reference *ref;
 
-	if(ref->return_status == REF_SOLVED) {
-		//Ref already solved
-		return 0;
+	if(nt->status == NONTERMINAL_CLEAR) {
+		goto end;
 	}
 
-	Action *cont = radix_tree_get_int(&ref->action->state->actions, sb->id);
-	if(ref->non_terminal->unsolved_returns && ref->non_terminal->end->state == cont->state) {
-		trace_non_terminal(
-			"skip return ref to",
-			ref->symbol->name,
-			ref->symbol->length
+	radix_tree_iterator_init(&it, &nt->refs);
+	while(ref = (Reference *)radix_tree_iterator_next(&it)) {
+		Symbol *sb = ref->symbol;
+
+		if(ref->status == REF_SOLVED) {
+			//Ref already solved
+			continue;
+		}
+
+		Action *cont = radix_tree_get_int(&ref->state->actions, sb->id);
+
+		//There could be many references here:
+		// * When the calling NT's end state matches the continuation, there
+		//   could be many references to that terminal, we need the whole 
+		//   follow set.
+		// * When the continuation has its own references to other NT's.
+		//   In this case those invokes have to be solved to get the followset.
+
+		// TODO: All references must be solved! missing continuation return refs
+		if(cont && cont->state->status != STATE_CLEAR) {
+			trace_state(
+				"skip return ref to",
+				cont->state,
+				""
+			);
+			unsolved = 1;
+			continue;
+		}
+
+		//Solve reference
+		trace_state(
+			"append return ref to",
+			cont->state,
+			""
 		);
-		return 1;
+		action_add_reduce_follow_set(nt->end, cont, sb->id);
+		ref->status = REF_SOLVED;
+	}
+	radix_tree_iterator_dispose(&it);
+
+	if(!unsolved) {
+		nt->status = NONTERMINAL_CLEAR;
+		nt->end->state->status &= !STATE_RETURN_REF;
 	}
 
-	//Solve reference
-	trace_non_terminal(
-		"solve return ref to",
-		ref->symbol->name,
-		ref->symbol->length
-	);
-	action_add_reduce_follow_set(nt->end, cont, sb->id);
-	ref->return_status = REF_SOLVED;
-	nt->unsolved_returns--;
-	return 0;
+end:
+	return unsolved;
 }
 
-int _solve_invoke_reference(Symbol *sb, Reference *ref) {
-	Nonterminal *nt = (Nonterminal *)sb->data;
+int _solve_invoke_references(FsmCursor *cur, State *state) {
+	int unsolved = 0;
+        Iterator it;
+	Reference *ref;
 
-	if(ref->invoke_status == REF_SOLVED) {
-		//Ref already solved
-		return 0;
+	if(state->status == STATE_CLEAR) {
+		goto end;
 	}
 
-	Action *cont = radix_tree_get_int(&ref->action->state->actions, sb->id);
-	if(nt->unsolved_invokes) {
+	trace_state("solve refs from state", state, "");
+
+	radix_tree_iterator_init(&it, &state->refs);
+	while(ref = (Reference *)radix_tree_iterator_next(&it)) {
+
+		if(ref->status == REF_SOLVED) {
+			//ref already solved
+			continue;
+		}
+
+		Symbol *sb = ref->symbol;
+		Nonterminal *nt = (Nonterminal *)sb->data;
+
+		if(nt->start.state->status != STATE_CLEAR) {
+			trace_non_terminal(
+				"skip invoke ref to",
+				ref->symbol->name,
+				ref->symbol->length
+			);
+			unsolved = 1;
+			continue;
+		}
+
+		//solve reference
 		trace_non_terminal(
-			"skip invoke ref from",
+			"append invoke ref to",
 			ref->symbol->name,
 			ref->symbol->length
 		);
-		return 1;
+		state_add_first_set(ref->state, nt->start.state);
+		ref->status = REF_SOLVED;
+	}
+	radix_tree_iterator_dispose(&it);
+
+	if(!unsolved) {
+		state->status &= !STATE_INVOKE_REF;
 	}
 
-	//Solve reference
-	trace_non_terminal(
-		"solve invoke ref from",
-		ref->symbol->name,
-		ref->symbol->length
-	);
-	action_add_first_set(ref->action, nt->start.state);
-	ref->invoke_status = REF_SOLVED;
-	if(ref->action == &ref->non_terminal->start) {
-		ref->non_terminal->unsolved_invokes--;
-	}
-	return 0;
+end:
+	return unsolved;
 }
 
 void _solve_references(FsmCursor *cur) {
 	Node *symbols = &cur->fsm->table->symbols;
-	Iterator it;
+        Iterator it;
 	Symbol *sb;
 	Nonterminal *nt;
 	int some_unsolved;
+
+	//TODO: Are all states reachable through start?
+	//TODO: Do all states exist this point and are connected?
+	Node all_states;
+	radix_tree_init(&all_states, 0, 0, NULL);
+	fsm_get_states(&all_states, &cur->fsm->start);
+
 retry:
 	some_unsolved = 0;
 	radix_tree_iterator_init(&it, symbols);
 	while(sb = (Symbol *)radix_tree_iterator_next(&it)) {
-		trace_non_terminal("solve references", sb->name, sb->length);
+		trace_non_terminal("solve return references from: ", sb->name, sb->length);
 
 		nt = (Nonterminal *)sb->data;
 		if(nt) {
-			Reference *ref;
-			ref = nt->parent_refs;
-			while(ref) {
-				some_unsolved |= _solve_return_reference(sb, ref);
-				some_unsolved |= _solve_invoke_reference(sb, ref);
-				ref = ref->next;
-			}
+			some_unsolved |= _solve_return_references(cur, nt);
+
+			//TODO: Should avoid collecting states multiple times
+			fsm_get_states(&all_states, &nt->start);
 		}
 	}
 	radix_tree_iterator_dispose(&it);
+
+	//Solve return
+	State *state;
+	radix_tree_iterator_init(&it, &all_states);
+	while(state = (State *)radix_tree_iterator_next(&it)) {
+		some_unsolved |= _solve_invoke_references(cur, state);
+	}
+	radix_tree_iterator_dispose(&it);
+
 	if(some_unsolved) {
 		//Keep trying until no refs pending.
 		//TODO: Detect infinite loops
 		goto retry;
 	}
+	radix_tree_dispose(&all_states);
 }
 
 void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
