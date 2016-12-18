@@ -42,6 +42,7 @@ typedef struct _Reference {
 typedef struct _Fsm {
 	Action *start;
 	Action error;
+	State *accept;
 	SymbolTable *table;
 } Fsm;
 

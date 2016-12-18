@@ -208,11 +208,6 @@ static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 		Iterator it;
 		radix_tree_iterator_init(&it, &cur->fsm->start->state->actions);
 		while(action = (Action *)radix_tree_iterator_next(&it)) {
-			if(action->type == ACTION_TYPE_ACCEPT) {
-				//Delete the final state only because it does
-				//not belong to any nonterminal.
-				c_delete(action->state);
-			}
 			//Delete all initial state actions.
 			c_delete(action);
 		}
@@ -232,9 +227,7 @@ static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 	if(!radix_tree_contains_int(&cur->current->state->actions, sb->id)) {
 		cur->current = action_add(cur->current, sb->id, ACTION_TYPE_ACCEPT, NONE);
 
-		State *state = c_new(State, 1);
-		state_init(state);
-		cur->current->state = state;
+		cur->current->state = cur->fsm->accept;
 	} else {
 		//TODO: issue warning or sentinel??
 	}
