@@ -57,19 +57,19 @@ void ebnf_start_parsing__identifier(){
 	MATCH(session, L_IDENTIFIER);
 
 	action = TEST(session, L_CONCATENATE_SYMBOL);
-	t_assert(action->type == ACTION_TYPE_REDUCE);
+	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_EXPRESSION);
 
 	action = TEST(session, L_DEFINITION_SEPARATOR_SYMBOL);
-	t_assert(action->type == ACTION_TYPE_REDUCE);
+	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_EXPRESSION);
 
 	action = TEST(session, L_TERMINATOR_SYMBOL);
-	t_assert(action->type == ACTION_TYPE_REDUCE);
+	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
-	t_assert(session.current->type != ACTION_TYPE_ERROR);
+	t_assert(session.current->type != ACTION_ERROR);
 	session_dispose(&session);
 
 	fsm_cursor_dispose(&cur);
@@ -91,19 +91,19 @@ void ebnf_start_parsing__terminal(){
 	MATCH(session, L_TERMINAL_STRING);
 
 	action = TEST(session, L_CONCATENATE_SYMBOL);
-	t_assert(action->type == ACTION_TYPE_REDUCE);
+	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_EXPRESSION);
 
 	action = TEST(session, L_DEFINITION_SEPARATOR_SYMBOL);
-	t_assert(action->type == ACTION_TYPE_REDUCE);
+	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_EXPRESSION);
 
 	action = TEST(session, L_TERMINATOR_SYMBOL);
-	t_assert(action->type == ACTION_TYPE_REDUCE);
+	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
-	t_assert(session.current->type == ACTION_TYPE_ACCEPT);
+	t_assert(session.current->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
 	fsm_cursor_dispose(&cur);
@@ -127,15 +127,15 @@ void ebnf_start_parsing__concatenate(){
 	MATCH(session, L_TERMINAL_STRING);
 
 	action = TEST(session, L_DEFINITION_SEPARATOR_SYMBOL);
-	t_assert(action->type == ACTION_TYPE_REDUCE);
+	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_EXPRESSION);
 
 	action = TEST(session, L_TERMINATOR_SYMBOL);
-	t_assert(action->type == ACTION_TYPE_REDUCE);
+	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_DEFINITION_SEPARATOR_SYMBOL);
-	t_assert(session.current->type == ACTION_TYPE_ACCEPT);
+	t_assert(session.current->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
 	fsm_cursor_dispose(&cur);
@@ -159,11 +159,11 @@ void ebnf_start_parsing__separator(){
 	MATCH(session, L_TERMINAL_STRING);
 
 	action = TEST(session, L_TERMINATOR_SYMBOL);
-	t_assert(action->type == ACTION_TYPE_REDUCE);
+	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
-	t_assert(session.current->type == ACTION_TYPE_ACCEPT);
+	t_assert(session.current->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
 	fsm_cursor_dispose(&cur);
@@ -190,11 +190,11 @@ void ebnf_start_parsing__declaration(){
 	MATCH(session, L_TERMINATOR_SYMBOL);
 
 	action = TEST(session, L_EOF);
-	t_assert(action->type == ACTION_TYPE_REDUCE);
+	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_NON_TERMINAL_DECLARATION);
 
 	MATCH(session, L_EOF);
-	t_assert(session.current->type == ACTION_TYPE_ACCEPT);
+	t_assert(session.current->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
 	fsm_cursor_dispose(&cur);
@@ -218,11 +218,11 @@ void ebnf_start_parsing__group(){
 	MATCH(session, L_END_GROUP_SYMBOL);
 
 	action = TEST(session, L_TERMINATOR_SYMBOL);
-	t_assert(action->type == ACTION_TYPE_REDUCE);
+	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
-	t_assert(session.current->type == ACTION_TYPE_ACCEPT);
+	t_assert(session.current->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
 	fsm_cursor_dispose(&cur);
@@ -244,12 +244,12 @@ void ebnf_start_parsing__syntax(){
 	MATCH(session, L_TERMINATOR_SYMBOL);
 
 	action = TEST(session, L_EOF);
-	t_assert(action->type == ACTION_TYPE_REDUCE);
+	t_assert(action->type == ACTION_REDUCE);
 	//First reduction only, not recursive
 	t_assert(action->reduction == E_NON_TERMINAL_DECLARATION); 
 
 	MATCH(session, L_EOF);
-	t_assert(session.current->type == ACTION_TYPE_ACCEPT);
+	t_assert(session.current->type == ACTION_ACCEPT);
 	session_dispose(&session);
 }
 

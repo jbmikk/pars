@@ -63,7 +63,7 @@ static void _add_empty(FsmCursor *cursor)
 {
 	Fsm *fsm = cursor->fsm;
 	Symbol *symbol = symbol_table_get(fsm->table, "__empty", 7);
-	Action *action = action_add(cursor->current, symbol->id, ACTION_TYPE_EMPTY, NONE);
+	Action *action = action_add(cursor->current, symbol->id, ACTION_EMPTY, NONE);
 	cursor->current = action;
 }
 
@@ -201,7 +201,7 @@ static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 
 	State *initial_state = c_new(State, 1);
 	state_init(initial_state);
-	action_init(&cur->fsm->start, ACTION_TYPE_SHIFT, NONE, initial_state);
+	action_init(&cur->fsm->start, ACTION_SHIFT, NONE, initial_state);
 
 	action_add_first_set(&cur->fsm->start, nt->start.state);
 
@@ -210,7 +210,7 @@ static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 	//TODO: Should check whether current->state is not null?
 	//TODO: Is there a test that checks whether this even works?
 	if(!radix_tree_contains_int(&cur->current->state->actions, sb->id)) {
-		cur->current = action_add(cur->current, sb->id, ACTION_TYPE_ACCEPT, NONE);
+		cur->current = action_add(cur->current, sb->id, ACTION_ACCEPT, NONE);
 
 		cur->current->state = cur->fsm->accept;
 	} else {
@@ -318,7 +318,7 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 		trace_non_terminal("main", sb->name, sb->length);
 		//TODO: Factor out action function to test this
 		if(!nt->end->state || !radix_tree_contains_int(&nt->end->state->actions, eof_symbol)) {
-			action_add(nt->end, eof_symbol, ACTION_TYPE_REDUCE, sb->id);
+			action_add(nt->end, eof_symbol, ACTION_REDUCE, sb->id);
 		} else {
 			//TODO: issue warning or sentinel??
 		}
@@ -332,7 +332,7 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 
 void fsm_cursor_terminal(FsmCursor *cur, int symbol)
 {
-	int type = ACTION_TYPE_SHIFT;
+	int type = ACTION_SHIFT;
 	Action *action = action_add(cur->current, symbol, type, NONE);
 	cur->current = action;
 }

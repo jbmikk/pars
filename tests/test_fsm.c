@@ -76,9 +76,9 @@ void session_match__shift(){
 	Session session;
 	session_init(&session, &fix.fsm);
 	MATCH(session, 'a');
-	t_assert(session.current->type == ACTION_TYPE_CONTEXT_SHIFT);
+	t_assert(session.current->type == ACTION_CONTEXT_SHIFT);
 	MATCH(session, 'b');
-	t_assert(session.current->type == ACTION_TYPE_SHIFT);
+	t_assert(session.current->type == ACTION_SHIFT);
 	session_dispose(&session);
 }
 
@@ -98,7 +98,7 @@ void session_match__reduce(){
 	session_init(&session, &fix.fsm);
 	MATCH(session, '1');
 	MATCH(session, '\0');
-	t_assert(session.current->type == ACTION_TYPE_ACCEPT);
+	t_assert(session.current->type == ACTION_ACCEPT);
 	session_dispose(&session);
 }
 
@@ -126,7 +126,7 @@ void session_match__reduce_shift(){
 	MATCH(session, '+');
 	MATCH(session, '2');
 	MATCH(session, '\0');
-	t_assert(session.current->type == ACTION_TYPE_ACCEPT);
+	t_assert(session.current->type == ACTION_ACCEPT);
 	session_dispose(&session);
 }
 
@@ -182,7 +182,7 @@ void session_match__reduce_handler(){
 	t_assert(token.symbol == fsm_get_symbol(&fix.fsm, nzs("sum")));
 	t_assert(token.index == 0);
 	t_assert(token.length == 6);
-	t_assert(session.current->type == ACTION_TYPE_ACCEPT);
+	t_assert(session.current->type == ACTION_ACCEPT);
 	session_dispose(&session);
 }
 

@@ -4,13 +4,13 @@
 #include "structs.h"
 #include "symbols.h"
 
-#define ACTION_TYPE_START 0
-#define ACTION_TYPE_SHIFT 1
-#define ACTION_TYPE_REDUCE 2
-#define ACTION_TYPE_CONTEXT_SHIFT 3
-#define ACTION_TYPE_ACCEPT 4
-#define ACTION_TYPE_ERROR 5
-#define ACTION_TYPE_EMPTY 6
+#define ACTION_START 0
+#define ACTION_SHIFT 1
+#define ACTION_REDUCE 2
+#define ACTION_CONTEXT_SHIFT 3
+#define ACTION_ACCEPT 4
+#define ACTION_ERROR 5
+#define ACTION_EMPTY 6
 
 typedef struct _State {
 	Node actions;

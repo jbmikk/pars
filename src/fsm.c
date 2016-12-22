@@ -13,11 +13,11 @@ void fsm_init(Fsm *fsm, SymbolTable *table)
 {
 	//TODO: Get symbol table as parameter
 	fsm->table = table;
-	action_init(&fsm->start, ACTION_TYPE_ERROR, NONE, NULL);
+	action_init(&fsm->start, ACTION_ERROR, NONE, NULL);
 
 	symbol_table_add(fsm->table, "__empty", 7);
 
-	action_init(&fsm->error, ACTION_TYPE_ERROR, NONE, NULL);
+	action_init(&fsm->error, ACTION_ERROR, NONE, NULL);
 	fsm->error.state = c_new(State, 1);
 	state_init(fsm->error.state);
 
@@ -124,7 +124,7 @@ Symbol *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 	NonTerminal *non_terminal;
 	if(!symbol->data) {
 		non_terminal = c_new(NonTerminal, 1);
-		action_init(&non_terminal->start, ACTION_TYPE_SHIFT, NONE, NULL);
+		action_init(&non_terminal->start, ACTION_SHIFT, NONE, NULL);
 		non_terminal->end = &non_terminal->start;
 		non_terminal->parent_refs = NULL;
 		non_terminal->unsolved_returns = 0;

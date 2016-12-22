@@ -52,13 +52,13 @@ Action *state_add(State *state, int symbol, int type, int reduction)
 	//TODO: detect duplicates
 	radix_tree_set_int(&state->actions, symbol, action);
 
-	if(type == ACTION_TYPE_CONTEXT_SHIFT) {
+	if(type == ACTION_CONTEXT_SHIFT) {
 		trace("add", state, action, symbol, "context-shift", 0);
-	} else if(type == ACTION_TYPE_SHIFT) {
+	} else if(type == ACTION_SHIFT) {
 		trace("add", state, action, symbol, "shift", 0);
-	} else if(type == ACTION_TYPE_REDUCE) {
+	} else if(type == ACTION_REDUCE) {
 		trace("add", state, action, symbol, "reduce", 0);
-	} else if(type == ACTION_TYPE_ACCEPT) {
+	} else if(type == ACTION_ACCEPT) {
 		trace("add", state, action, symbol, "accept", 0);
 	} else {
 		trace("add", state, action, symbol, "action", 0);
@@ -101,7 +101,7 @@ void state_add_first_set(State *state, State* source)
 		clone = c_new(Action, 1);
 		clone->reduction = action->reduction;
 		clone->state = action->state;
-		clone->type = ACTION_TYPE_CONTEXT_SHIFT;
+		clone->type = ACTION_CONTEXT_SHIFT;
 		state_add_buffer(state, it.key, it.size, 0, 0, clone);
 		trace("add", state, action, array_to_int(it.key, it.size), "first", 0);
 	}
@@ -118,7 +118,7 @@ void state_add_reduce_follow_set(State *from, State *to, int symbol)
 	// otherwise me might loose reductions.
 	radix_tree_iterator_init(&it, &(to->actions));
 	while(ac = (Action *)radix_tree_iterator_next(&it)) {
-		state_add_buffer(from, it.key, it.size, ACTION_TYPE_REDUCE, symbol, NULL);
+		state_add_buffer(from, it.key, it.size, ACTION_REDUCE, symbol, NULL);
 		trace("add", from, ac, array_to_int(it.key, it.size), "reduce-follow", symbol);
 	}
 	radix_tree_iterator_dispose(&it);
