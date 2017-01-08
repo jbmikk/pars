@@ -168,16 +168,16 @@ void action_add_reduce_follow_set(Action *from, Action *to, int symbol)
 }
 
 
-//# NonTerminal functions
+//# Nonterminal functions
 
-void nonterminal_init(NonTerminal *nonterminal)
+void nonterminal_init(Nonterminal *nonterminal)
 {
 	nonterminal->parent_refs = NULL;
 	nonterminal->unsolved_returns = 0;
 	nonterminal->unsolved_invokes = 0;
 }
 
-void nonterminal_add_reference(NonTerminal *nonterminal, Action *action, Symbol *symbol, Symbol *from_symbol, NonTerminal *from_nonterminal)
+void nonterminal_add_reference(Nonterminal *nonterminal, Action *action, Symbol *symbol, Symbol *from_symbol, Nonterminal *from_nonterminal)
 {
 	//Create reference from last non terminal to the named non terminal
 	Reference *pref = c_new(Reference, 1);
@@ -199,7 +199,7 @@ void nonterminal_add_reference(NonTerminal *nonterminal, Action *action, Symbol 
 
 }
 
-void nonterminal_dispose(NonTerminal *nonterminal)
+void nonterminal_dispose(Nonterminal *nonterminal)
 {
 	//Delete all references
 	Reference *ref = nonterminal->parent_refs;

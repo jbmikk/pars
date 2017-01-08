@@ -25,18 +25,18 @@ typedef struct _Action {
 	State *state;
 } Action;
 
-typedef struct _NonTerminal {
+typedef struct _Nonterminal {
 	Action start;
 	Action *end;
 	char unsolved_returns;
 	char unsolved_invokes;
 	struct _Reference *parent_refs;
-} NonTerminal;
+} Nonterminal;
 
 typedef struct _Reference {
 	Action *action;
 	Symbol *symbol;
-	NonTerminal *non_terminal;
+	Nonterminal *non_terminal;
 	char return_status;
 	char invoke_status;
 	struct _Reference *next;
@@ -53,7 +53,7 @@ typedef struct _Fsm {
 void fsm_init(Fsm *fsm, SymbolTable *table);
 void fsm_dispose(Fsm *fsm);
 
-NonTerminal *fsm_get_non_terminal(Fsm *fsm, unsigned char *name, int length);
+Nonterminal *fsm_get_non_terminal(Fsm *fsm, unsigned char *name, int length);
 Symbol *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length);
 
 Action *fsm_get_action(Fsm *fsm, unsigned char *name, int length);
@@ -80,10 +80,10 @@ void action_add_first_set(Action *from, State* state);
 void action_add_reduce_follow_set(Action *from, Action *to, int symbol);
 
 
-//# NonTerminal functions
+//# Nonterminal functions
 
-void nonterminal_init(NonTerminal *nonterminal);
-void nonterminal_add_reference(NonTerminal *nonterminal, Action *action, Symbol *symbol, Symbol *from_symbol, NonTerminal *from_nonterminal);
-void nonterminal_dispose(NonTerminal *nonterminal);
+void nonterminal_init(Nonterminal *nonterminal);
+void nonterminal_add_reference(Nonterminal *nonterminal, Action *action, Symbol *symbol, Symbol *from_symbol, Nonterminal *from_nonterminal);
+void nonterminal_dispose(Nonterminal *nonterminal);
 
 #endif //FSM_H

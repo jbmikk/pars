@@ -56,7 +56,7 @@ void fsm_dispose(Fsm *fsm)
 {
 	Node all_states;
 	Symbol *symbol;
-	NonTerminal *nt;
+	Nonterminal *nt;
 	Iterator it;
 
 	radix_tree_init(&all_states, 0, 0, NULL);
@@ -67,7 +67,7 @@ void fsm_dispose(Fsm *fsm)
 	radix_tree_iterator_init(&it, &fsm->table->symbols);
 	while(symbol = (Symbol *)radix_tree_iterator_next(&it)) {
 		//Get all actions reachable through other rules
-		nt = (NonTerminal *)symbol->data;
+		nt = (Nonterminal *)symbol->data;
 
 		if(!nt) {
 			//Some symbols may not have non terminals
@@ -107,18 +107,18 @@ void fsm_dispose(Fsm *fsm)
 	fsm->table = NULL;
 }
 
-NonTerminal *fsm_get_non_terminal(Fsm *fsm, unsigned char *name, int length)
+Nonterminal *fsm_get_non_terminal(Fsm *fsm, unsigned char *name, int length)
 {
 	Symbol *symbol = symbol_table_get(fsm->table, name, length);
-	return symbol? (NonTerminal *)symbol->data: NULL;
+	return symbol? (Nonterminal *)symbol->data: NULL;
 }
 
 Symbol *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 {
 	Symbol *symbol = symbol_table_add(fsm->table, name, length);
-	NonTerminal *non_terminal;
+	Nonterminal *non_terminal;
 	if(!symbol->data) {
-		non_terminal = c_new(NonTerminal, 1);
+		non_terminal = c_new(Nonterminal, 1);
 		action_init(&non_terminal->start, ACTION_SHIFT, NONE, NULL);
 		non_terminal->end = &non_terminal->start;
 		nonterminal_init(non_terminal);

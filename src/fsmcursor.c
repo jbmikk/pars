@@ -142,7 +142,7 @@ void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 {
 	Symbol *symbol = fsm_create_non_terminal(cur->fsm, name, length);
 	cur->last_symbol = symbol;
-	cur->last_non_terminal = (NonTerminal *)symbol->data;
+	cur->last_non_terminal = (Nonterminal *)symbol->data;
 	cur->current = &cur->last_non_terminal->start;
 	trace_non_terminal("set", name, length);
 
@@ -158,13 +158,13 @@ void fsm_cursor_end(FsmCursor *cursor)
 
 
 /**
- * Creates a reference to a NonTerminal and shifts the associated symbol.
+ * Creates a reference to a Nonterminal and shifts the associated symbol.
  */
 void fsm_cursor_nonterminal(FsmCursor *cur, unsigned char *name, int length)
 {
 	//Get or create symbol and associated non terminal
 	Symbol *sb = fsm_create_non_terminal(cur->fsm, name, length);
-	NonTerminal *nt = (NonTerminal *)sb->data;
+	Nonterminal *nt = (Nonterminal *)sb->data;
 
 	Action *from = cur->current;
 
@@ -178,7 +178,7 @@ void fsm_cursor_nonterminal(FsmCursor *cur, unsigned char *name, int length)
 static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 {
 	Symbol *sb = symbol_table_get(cur->fsm->table, name, length);
-	NonTerminal *nt = (NonTerminal *)sb->data;
+	Nonterminal *nt = (Nonterminal *)sb->data;
 
 	//If start already defined, delete it. Only one start allowed.
 	if(cur->fsm->start.state) {
@@ -207,7 +207,7 @@ static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 }
 
 int _solve_return_reference(Symbol *sb, Reference *ref) {
-	NonTerminal *nt = (NonTerminal *)sb->data;
+	Nonterminal *nt = (Nonterminal *)sb->data;
 
 	if(ref->return_status == REF_SOLVED) {
 		//Ref already solved
@@ -237,7 +237,7 @@ int _solve_return_reference(Symbol *sb, Reference *ref) {
 }
 
 int _solve_invoke_reference(Symbol *sb, Reference *ref) {
-	NonTerminal *nt = (NonTerminal *)sb->data;
+	Nonterminal *nt = (Nonterminal *)sb->data;
 
 	if(ref->invoke_status == REF_SOLVED) {
 		//Ref already solved
@@ -272,7 +272,7 @@ void _solve_references(FsmCursor *cur) {
 	Node *symbols = &cur->fsm->table->symbols;
 	Iterator it;
 	Symbol *sb;
-	NonTerminal *nt;
+	Nonterminal *nt;
 	int some_unsolved;
 retry:
 	some_unsolved = 0;
@@ -280,7 +280,7 @@ retry:
 	while(sb = (Symbol *)radix_tree_iterator_next(&it)) {
 		trace_non_terminal("solve references", sb->name, sb->length);
 
-		nt = (NonTerminal *)sb->data;
+		nt = (Nonterminal *)sb->data;
 		if(nt) {
 			Reference *ref;
 			ref = nt->parent_refs;
@@ -301,7 +301,7 @@ retry:
 
 void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 	Symbol *sb = cur->last_symbol;
-	NonTerminal *nt = cur->last_non_terminal;
+	Nonterminal *nt = cur->last_non_terminal;
 	if(nt) {
 		trace_non_terminal("main", sb->name, sb->length);
 		//TODO: Factor out action function to test this
