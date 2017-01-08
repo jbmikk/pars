@@ -12,6 +12,9 @@
 #define ACTION_ERROR 5
 #define ACTION_EMPTY 6
 
+#define REF_PENDING 0
+#define REF_SOLVED 1
+
 typedef struct _State {
 	Node actions;
 } State;
@@ -75,5 +78,12 @@ Action *action_add_buffer(Action *from, unsigned char *buffer, unsigned int size
 Action *action_add(Action *from, int symbol, int type, int reduction);
 void action_add_first_set(Action *from, State* state);
 void action_add_reduce_follow_set(Action *from, Action *to, int symbol);
+
+
+//# NonTerminal functions
+
+void nonterminal_init(NonTerminal *nonterminal);
+void nonterminal_add_reference(NonTerminal *nonterminal, Action *action, Symbol *symbol, Symbol *from_symbol, NonTerminal *from_nonterminal);
+void nonterminal_dispose(NonTerminal *nonterminal);
 
 #endif //FSM_H

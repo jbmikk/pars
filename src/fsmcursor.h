@@ -3,9 +3,6 @@
 
 #include "fsm.h"
 
-#define REF_PENDING 0
-#define REF_SOLVED 1
-
 typedef struct _FsmFrame {
 	Action *start;
 	State *continuation;

@@ -166,25 +166,13 @@ void fsm_cursor_nonterminal(FsmCursor *cur, unsigned char *name, int length)
 	Symbol *sb = fsm_create_non_terminal(cur->fsm, name, length);
 	NonTerminal *nt = (NonTerminal *)sb->data;
 
-	//Create reference from last non terminal to the named non terminal
-	Reference *pref = c_new(Reference, 1);
-	pref->action = cur->current;
-	pref->symbol = cur->last_symbol;
-	pref->non_terminal = cur->last_non_terminal;
-	pref->invoke_status = REF_PENDING;
-	pref->return_status = REF_PENDING;
-
-	//Push the reference on the non terminal
-	pref->next = nt->parent_refs;
-	nt->parent_refs = pref;
-	nt->unsolved_returns++;
-
-	//Only count children at the beginning of a non terminal
-	if(pref->action == &pref->non_terminal->start) {
-		pref->non_terminal->unsolved_invokes++;
-	}
+	Action *from = cur->current;
 
 	fsm_cursor_terminal(cur, sb->id);
+
+	//Create reference to return from the non terminal to the caller
+	//TODO: Should be cur->current->state?
+	nonterminal_add_reference(nt, from, sb, cur->last_symbol, cur->last_non_terminal);
 }
 
 static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)

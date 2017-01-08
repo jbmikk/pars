@@ -167,3 +167,45 @@ void action_add_reduce_follow_set(Action *from, Action *to, int symbol)
 	state_add_reduce_follow_set(from->state, to->state, symbol);
 }
 
+
+//# NonTerminal functions
+
+void nonterminal_init(NonTerminal *nonterminal)
+{
+	nonterminal->parent_refs = NULL;
+	nonterminal->unsolved_returns = 0;
+	nonterminal->unsolved_invokes = 0;
+}
+
+void nonterminal_add_reference(NonTerminal *nonterminal, Action *action, Symbol *symbol, Symbol *from_symbol, NonTerminal *from_nonterminal)
+{
+	//Create reference from last non terminal to the named non terminal
+	Reference *pref = c_new(Reference, 1);
+	pref->action = action;
+	pref->symbol = from_symbol;
+	pref->non_terminal = from_nonterminal;
+	pref->invoke_status = REF_PENDING;
+	pref->return_status = REF_PENDING;
+
+	//Push the reference on the non terminal
+	pref->next = nonterminal->parent_refs;
+	nonterminal->parent_refs = pref;
+	nonterminal->unsolved_returns++;
+
+	//Only count children at the beginning of a non terminal
+	if(pref->action == &pref->non_terminal->start) {
+		pref->non_terminal->unsolved_invokes++;
+	}
+
+}
+
+void nonterminal_dispose(NonTerminal *nonterminal)
+{
+	//Delete all references
+	Reference *ref = nonterminal->parent_refs;
+	while(ref) {
+		Reference *pref = ref;
+		ref = ref->next;
+		c_delete(pref);
+	}
+}

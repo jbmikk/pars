@@ -76,12 +76,7 @@ void fsm_dispose(Fsm *fsm)
 		}
 
 		_fsm_get_states(&all_states, &nt->start);
-		Reference *ref = nt->parent_refs;
-		while(ref) {
-			Reference *pref = ref;
-			ref = ref->next;
-			c_delete(pref);
-		}
+		nonterminal_dispose(nt);
 		c_delete(nt);
 		//TODO: Symbol table may live longer than fsm, makes sense?
 		symbol->data = NULL;
@@ -126,9 +121,7 @@ Symbol *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 		non_terminal = c_new(NonTerminal, 1);
 		action_init(&non_terminal->start, ACTION_SHIFT, NONE, NULL);
 		non_terminal->end = &non_terminal->start;
-		non_terminal->parent_refs = NULL;
-		non_terminal->unsolved_returns = 0;
-		non_terminal->unsolved_invokes = 0;
+		nonterminal_init(non_terminal);
 		symbol->data = non_terminal;
 		//TODO: Add to non_terminal struct: 
 		// * detect circular references.
