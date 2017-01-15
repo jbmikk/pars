@@ -66,7 +66,7 @@ int cli_parse_source(char *pathname, Fsm *fsm, Ast *ast)
 	check(input.is_open, "Could not find or open source file: %s", pathname);
 
 	error = parser_execute(&parser, ast, &input);
-	check(!error, "Could not build ast with grammar %s.", pathname);
+	check(!error, "Could not build ast for source %s.", pathname);
 
 	ast_print(ast);
 
