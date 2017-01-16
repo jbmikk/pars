@@ -86,7 +86,6 @@ void state_add_reduce_follow_set(State *from, State *to, int symbol);
 //# Action functions
 
 void action_init(Action *action, char type, int reduction, State *state);
-Action *action_add_buffer(Action *from, unsigned char *buffer, unsigned int size, int type, int reduction, Action *action);
 Action *action_add(Action *from, int symbol, int type, int reduction);
 void action_add_first_set(Action *from, State* state);
 void action_add_reduce_follow_set(Action *from, Action *to, int symbol);

@@ -173,12 +173,6 @@ static void action_ensure_state(Action *action)
 	}
 }
 
-Action *action_add_buffer(Action *from, unsigned char *buffer, unsigned int size, int type, int reduction, Action *action)
-{
-	action_ensure_state(from);
-	return state_add_buffer(from->state, buffer, size, type, reduction, action);
-}
-
 Action *action_add(Action *action, int symbol, int type, int reduction)
 {
 	action_ensure_state(action);
