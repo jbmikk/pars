@@ -12,6 +12,8 @@
 #define ACTION_ERROR 5
 #define ACTION_EMPTY 6
 
+#define NULL_SYMBOL 0
+
 #define REF_PENDING 0
 #define REF_SOLVED 1
 

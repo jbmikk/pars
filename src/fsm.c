@@ -7,17 +7,15 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define NONE 0
-
 void fsm_init(Fsm *fsm, SymbolTable *table)
 {
 	//TODO: Get symbol table as parameter
 	fsm->table = table;
-	action_init(&fsm->start, ACTION_ERROR, NONE, NULL);
+	action_init(&fsm->start, ACTION_ERROR, NULL_SYMBOL, NULL);
 
 	symbol_table_add(fsm->table, "__empty", 7);
 
-	action_init(&fsm->error, ACTION_ERROR, NONE, NULL);
+	action_init(&fsm->error, ACTION_ERROR, NULL_SYMBOL, NULL);
 	fsm->error.state = c_new(State, 1);
 	state_init(fsm->error.state);
 
@@ -119,8 +117,6 @@ Symbol *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 	Nonterminal *non_terminal;
 	if(!symbol->data) {
 		non_terminal = c_new(Nonterminal, 1);
-		action_init(&non_terminal->start, ACTION_SHIFT, NONE, NULL);
-		non_terminal->end = &non_terminal->start;
 		nonterminal_init(non_terminal);
 		symbol->data = non_terminal;
 		//TODO: Add to non_terminal struct: 

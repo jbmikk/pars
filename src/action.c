@@ -203,6 +203,7 @@ void action_add_reduce_follow_set(Action *from, Action *to, int symbol)
 void nonterminal_init(Nonterminal *nonterminal)
 {
 	radix_tree_init(&nonterminal->refs, 0, 0, NULL);
+	action_init(&nonterminal->start, ACTION_SHIFT, NULL_SYMBOL, NULL);
 	nonterminal->status = NONTERMINAL_CLEAR;
 	nonterminal->end = NULL;
 }
