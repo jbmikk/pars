@@ -90,7 +90,7 @@ Action *state_add(State *state, int symbol, int type, int reduction)
 	return action;
 }
 
-Action *state_add_buffer(State *state, unsigned char *buffer, unsigned int size, int type, int reduction, Action *action)
+static Action *_state_add_buffer(State *state, unsigned char *buffer, unsigned int size, int type, int reduction, Action *action)
 {
 	if(action == NULL) {
 		action = c_new(Action, 1);
@@ -132,7 +132,7 @@ void state_add_first_set(State *state, State* source)
 		clone->reduction = action->reduction;
 		clone->state = action->state;
 		clone->type = ACTION_CONTEXT_SHIFT;
-		state_add_buffer(state, it.key, it.size, 0, 0, clone);
+		_state_add_buffer(state, it.key, it.size, 0, 0, clone);
 		trace("add", state, action, array_to_int(it.key, it.size), "first", 0);
 	}
 	radix_tree_iterator_dispose(&it);
@@ -148,7 +148,7 @@ void state_add_reduce_follow_set(State *from, State *to, int symbol)
 	// otherwise me might loose reductions.
 	radix_tree_iterator_init(&it, &(to->actions));
 	while(ac = (Action *)radix_tree_iterator_next(&it)) {
-		state_add_buffer(from, it.key, it.size, ACTION_REDUCE, symbol, NULL);
+		_state_add_buffer(from, it.key, it.size, ACTION_REDUCE, symbol, NULL);
 		trace("add", from, ac, array_to_int(it.key, it.size), "reduce-follow", symbol);
 	}
 	radix_tree_iterator_dispose(&it);

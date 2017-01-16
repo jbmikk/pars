@@ -77,7 +77,6 @@ int fsm_get_symbol(Fsm *fsm, unsigned char *name, int length);
 void state_init(State *state);
 void state_add_reference(State *state, Symbol *symbol);
 void state_dispose(State *state);
-Action *state_add_buffer(State *from, unsigned char *buffer, unsigned int size, int type, int reduction, Action *action);
 Action *state_add(State *from, int symbol, int type, int reduction);
 void state_add_first_set(State *from, State* state);
 void state_add_reduce_follow_set(State *from, State *to, int symbol);
