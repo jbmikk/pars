@@ -61,11 +61,23 @@ static void _pop_frame(FsmCursor *cursor)
 	c_delete(frame);
 }
 
+static void _ensure_state(FsmCursor *cursor)
+{
+	Action *action = cursor->current;
+
+	if(!action->state) {
+		action->state = c_new(State, 1);
+		state_init(action->state);
+	}
+}
+
 static void _add_empty(FsmCursor *cursor)
 {
 	Fsm *fsm = cursor->fsm;
 	Symbol *symbol = symbol_table_get(fsm->table, "__empty", 7);
-	Action *action = action_add(cursor->current, symbol->id, ACTION_EMPTY, NONE);
+
+	_ensure_state(cursor);
+	Action *action = state_add(cursor->current->state, symbol->id, ACTION_EMPTY, NONE);
 	cursor->current = action;
 }
 
@@ -157,8 +169,10 @@ void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 void fsm_cursor_end(FsmCursor *cursor)
 {
 	//TODO: implicit fsm_cursor_group_end(cur); ??
-	//trace("end", cursor->current, 0, 0, "set");
+	// If that was the case, we wouldn't need to ensure state the exists
+	_ensure_state(cursor);
 	cursor->last_non_terminal->end = cursor->current;
+	//trace("end", cursor->current, 0, 0, "set");
 
 	// Add proper status to the end state to solve references later
 	if(cursor->last_non_terminal->status & NONTERMINAL_RETURN_REF) {
@@ -210,14 +224,15 @@ static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 	state_init(initial_state);
 	action_init(&cur->fsm->start, ACTION_SHIFT, NONE, initial_state);
 
-	action_add_first_set(&cur->fsm->start, nt->start.state);
+	state_add_first_set(cur->fsm->start.state, nt->start.state);
 
 	cur->current = &cur->fsm->start;
 
 	//TODO: Should check whether current->state is not null?
 	//TODO: Is there a test that checks whether this even works?
 	if(!radix_tree_contains_int(&cur->current->state->actions, sb->id)) {
-		cur->current = action_add(cur->current, sb->id, ACTION_ACCEPT, NONE);
+		_ensure_state(cur);
+		cur->current = state_add(cur->current->state, sb->id, ACTION_ACCEPT, NONE);
 
 		cur->current->state = cur->fsm->accept;
 	} else {
@@ -269,7 +284,8 @@ int _solve_return_references(FsmCursor *cur, Nonterminal *nt) {
 			cont->state,
 			""
 		);
-		action_add_reduce_follow_set(nt->end, cont, sb->id);
+
+		state_add_reduce_follow_set(nt->end->state, cont->state, sb->id);
 		ref->status = REF_SOLVED;
 	}
 	radix_tree_iterator_dispose(&it);
@@ -386,7 +402,9 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 		trace_non_terminal("main", sb->name, sb->length);
 		//TODO: Factor out action function to test this
 		if(!nt->end->state || !radix_tree_contains_int(&nt->end->state->actions, eof_symbol)) {
-			action_add(nt->end, eof_symbol, ACTION_REDUCE, sb->id);
+			cur->current = nt->end;
+			_ensure_state(cur);
+			state_add(cur->current->state, eof_symbol, ACTION_REDUCE, sb->id);
 		} else {
 			//TODO: issue warning or sentinel??
 		}
@@ -401,6 +419,8 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 void fsm_cursor_terminal(FsmCursor *cur, int symbol)
 {
 	int type = ACTION_SHIFT;
-	Action *action = action_add(cur->current, symbol, type, NONE);
+
+	_ensure_state(cur);
+	Action *action = state_add(cur->current->state, symbol, type, NONE);
 	cur->current = action;
 }

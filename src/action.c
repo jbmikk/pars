@@ -165,32 +165,6 @@ void action_init(Action *action, char type, int reduction, State *state)
 	action->state = state;
 }
 
-static void action_ensure_state(Action *action)
-{
-	if(!action->state) {
-		action->state = c_new(State, 1);
-		state_init(action->state);
-	}
-}
-
-Action *action_add(Action *action, int symbol, int type, int reduction)
-{
-	action_ensure_state(action);
-	return state_add(action->state, symbol, type, reduction);
-}
-
-void action_add_first_set(Action *action, State* source)
-{
-	action_ensure_state(action);
-	state_add_first_set(action->state, source);
-}
-
-void action_add_reduce_follow_set(Action *from, Action *to, int symbol)
-{
-	action_ensure_state(from);
-	state_add_reduce_follow_set(from->state, to->state, symbol);
-}
-
 
 //# Nonterminal functions
 
