@@ -20,7 +20,7 @@ run_test()
 
 		if [ "$1" = "leaks" -o "$1" = "leaktrace" ]; then
 			echo $3
-			valgrind $VALOPTIONS $3
+			OUTPUT=$(valgrind $VALOPTIONS $3)
 		fi
 
 		if [ "$1" = "run" -o "$1" = "trace" ]; then
