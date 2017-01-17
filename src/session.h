@@ -7,7 +7,7 @@
 #define SESSION_ERROR 1
 
 typedef struct _SessionNode {
-	Action *action;
+	State *state;
 	int index;
 	struct _SessionNode *next;
 } SessionNode;
@@ -24,7 +24,8 @@ typedef struct _FsmHandler {
 typedef struct _Session {
 	Fsm *fsm;
 	int status;
-	Action *current;
+	State *current;
+	Action *last_action;
 	unsigned int index;
 	unsigned int length;
 	Stack stack;

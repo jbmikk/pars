@@ -24,7 +24,8 @@ void session_init(Session *session, Fsm *fsm)
 {
 	session->fsm = fsm;
 	session->status = SESSION_OK;
-	session->current = &fsm->start;
+	session->current = fsm->start.state;
+	session->last_action = NULL;
 	session->stack.top = NULL;
 	session->index = 0;
 	session->handler.context_shift = NULL;
@@ -37,7 +38,7 @@ void session_init(Session *session, Fsm *fsm)
 void session_push(Session *session)
 {
 	SessionNode *node = c_new(SessionNode, 1);
-	node->action = session->current;
+	node->state = session->current;
 	node->index = session->index;
 	node->next = session->stack.top;
 	session->stack.top = node;
@@ -46,7 +47,7 @@ void session_push(Session *session)
 void session_pop(Session *session)
 {
 	SessionNode *top = session->stack.top;
-	session->current = top->action;
+	session->current = top->state;
 	session->index = top->index;
 	session->stack.top = top->next;
 	c_delete(top);
@@ -70,13 +71,14 @@ Action *session_test(Session *session, int symbol, unsigned int index, unsigned 
 	Action *action;
 	Action *prev;
 
-	action = radix_tree_get_int(&session->current->state->actions, symbol);
+	action = radix_tree_get_int(&session->current->actions, symbol);
 	if(action == NULL) {
-		if(session->current->type != ACTION_ACCEPT) {
+		if(session->last_action->type != ACTION_ACCEPT) {
 			trace("test", session->current, action, symbol, "error", 0);
-			session->current = &session->fsm->error;
+			session->last_action = &session->fsm->error;
+			session->current = session->last_action->state;
 		}
-		return session->current;
+		return session->last_action;
 	}
 
 	switch(action->type) {
@@ -105,25 +107,26 @@ void session_match(Session *session, int symbol, unsigned int index, unsigned in
 rematch:
 	session->index = index;
 	session->length = length;
-	action = radix_tree_get_int(&session->current->state->actions, symbol);
+	action = radix_tree_get_int(&session->current->actions, symbol);
 
 	if(action == NULL) {
 		// Attempt empty transition
 		Symbol *empty = symbol_table_get(session->fsm->table, "__empty", 7);
-		action = radix_tree_get_int(&session->current->state->actions, empty->id);
+		action = radix_tree_get_int(&session->current->actions, empty->id);
 
 		if(action == NULL) {
 			// Check if accepting state
-			if(session->current->type != ACTION_ACCEPT) {
+			if(!session->last_action || session->last_action->type != ACTION_ACCEPT) {
 				trace("match", session->current, action, symbol, "error", 0);
-				session->current = &session->fsm->error;
-				session->status = SESSION_ERROR;
+				session->last_action = &session->fsm->error;
+				session->current = session->last_action->state;
 			}
 			return;
 		} else {
 			trace("match", session->current, action, symbol, "fback", 0);
 		}
 	}
+	session->last_action = action;
 
 	switch(action->type) {
 	case ACTION_CONTEXT_SHIFT:
@@ -132,15 +135,15 @@ rematch:
 			session->handler.context_shift(session->target, session->index, session->length, symbol);
 		}
 		session_push(session);
-		session->current = action;
+		session->current = action->state;
 		break;
 	case ACTION_ACCEPT:
 		trace("match", session->current, action, symbol, "accept", 0);
-		session->current = action;
+		session->current = action->state;
 		break;
 	case ACTION_SHIFT:
 		trace("match", session->current, action, symbol, "shift", 0);
-		session->current = action;
+		session->current = action->state;
 		break;
 	case ACTION_REDUCE:
 		trace("match", session->current, action, symbol, "reduce", action->reduction);
@@ -154,7 +157,7 @@ rematch:
 		break;
 	case ACTION_EMPTY:
 		trace("match", session->current, action, symbol, "empty", 0);
-		session->current = action;
+		session->current = action->state;
 		goto rematch; // same as session_match(session, symbol);
 		break;
 	default:

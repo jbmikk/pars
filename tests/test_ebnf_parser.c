@@ -69,7 +69,7 @@ void ebnf_start_parsing__identifier(){
 	t_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
-	t_assert(session.current->type != ACTION_ERROR);
+	t_assert(session.last_action->type != ACTION_ERROR);
 	session_dispose(&session);
 
 	fsm_cursor_dispose(&cur);
@@ -103,7 +103,7 @@ void ebnf_start_parsing__terminal(){
 	t_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
-	t_assert(session.current->type == ACTION_ACCEPT);
+	t_assert(session.last_action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
 	fsm_cursor_dispose(&cur);
@@ -135,7 +135,7 @@ void ebnf_start_parsing__concatenate(){
 	t_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_DEFINITION_SEPARATOR_SYMBOL);
-	t_assert(session.current->type == ACTION_ACCEPT);
+	t_assert(session.last_action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
 	fsm_cursor_dispose(&cur);
@@ -163,7 +163,7 @@ void ebnf_start_parsing__separator(){
 	t_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
-	t_assert(session.current->type == ACTION_ACCEPT);
+	t_assert(session.last_action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
 	fsm_cursor_dispose(&cur);
@@ -194,7 +194,7 @@ void ebnf_start_parsing__declaration(){
 	t_assert(action->reduction == E_NON_TERMINAL_DECLARATION);
 
 	MATCH(session, L_EOF);
-	t_assert(session.current->type == ACTION_ACCEPT);
+	t_assert(session.last_action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
 	fsm_cursor_dispose(&cur);
@@ -222,7 +222,7 @@ void ebnf_start_parsing__group(){
 	t_assert(action->reduction == E_EXPRESSION);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
-	t_assert(session.current->type == ACTION_ACCEPT);
+	t_assert(session.last_action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
 	fsm_cursor_dispose(&cur);
@@ -249,7 +249,7 @@ void ebnf_start_parsing__syntax(){
 	t_assert(action->reduction == E_NON_TERMINAL_DECLARATION); 
 
 	MATCH(session, L_EOF);
-	t_assert(session.current->type == ACTION_ACCEPT);
+	t_assert(session.last_action->type == ACTION_ACCEPT);
 	session_dispose(&session);
 }
 
