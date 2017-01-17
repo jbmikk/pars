@@ -401,9 +401,8 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 	if(nt) {
 		trace_non_terminal("main", sb->name, sb->length);
 		//TODO: Factor out action function to test this
-		if(!nt->end->state || !radix_tree_contains_int(&nt->end->state->actions, eof_symbol)) {
+		if(!radix_tree_contains_int(&nt->end->state->actions, eof_symbol)) {
 			cur->current = nt->end;
-			_ensure_state(cur);
 			state_add(cur->current->state, eof_symbol, ACTION_REDUCE, sb->id);
 		} else {
 			//TODO: issue warning or sentinel??
