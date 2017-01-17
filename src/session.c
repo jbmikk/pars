@@ -23,6 +23,7 @@
 void session_init(Session *session, Fsm *fsm)
 {
 	session->fsm = fsm;
+	session->status = SESSION_OK;
 	session->current = &fsm->start;
 	session->stack.top = NULL;
 	session->index = 0;
@@ -116,6 +117,7 @@ rematch:
 			if(session->current->type != ACTION_ACCEPT) {
 				trace("match", session->current, action, symbol, "error", 0);
 				session->current = &session->fsm->error;
+				session->status = SESSION_ERROR;
 			}
 			return;
 		} else {

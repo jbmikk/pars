@@ -19,7 +19,7 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 		lexer_next(lexer);
 		session_match(&session, lexer->symbol, lexer->index, lexer->length);
 		check(
-			session.current->type != ACTION_ERROR,
+			session.status != SESSION_ERROR,
 			"Error parsing grammar at index: %i with symbol: %i, length: %i",
 			session.index, lexer->symbol, lexer->length
 		);

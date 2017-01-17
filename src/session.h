@@ -3,6 +3,9 @@
 
 #include "fsm.h"
 
+#define SESSION_OK 0
+#define SESSION_ERROR 1
+
 typedef struct _SessionNode {
 	Action *action;
 	int index;
@@ -20,6 +23,7 @@ typedef struct _FsmHandler {
 
 typedef struct _Session {
 	Fsm *fsm;
+	int status;
 	Action *current;
 	unsigned int index;
 	unsigned int length;
