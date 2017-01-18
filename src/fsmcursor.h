@@ -4,14 +4,15 @@
 #include "fsm.h"
 
 typedef struct _FsmFrame {
-	Action *start;
+	State *start;
 	State *continuation;
 	struct _FsmFrame *next;
 } FsmFrame;
 
 typedef struct _FsmCursor {
 	Fsm *fsm;
-	Action *current;
+	Action *action;
+	State *state;
 	FsmFrame *stack;
 	Symbol *last_symbol;
 	Nonterminal *last_non_terminal;

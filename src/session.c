@@ -24,7 +24,7 @@ void session_init(Session *session, Fsm *fsm)
 {
 	session->fsm = fsm;
 	session->status = SESSION_OK;
-	session->current = fsm->start.state;
+	session->current = fsm->start;
 	session->last_action = NULL;
 	session->stack.top = NULL;
 	session->index = 0;

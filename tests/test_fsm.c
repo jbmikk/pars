@@ -38,7 +38,7 @@ void fsm_cursor_define__single_get(){
 	FsmCursor cur;
 	fsm_cursor_init(&cur, &fix.fsm);
 	fsm_cursor_define(&cur, nzs("name"));
-	t_assert(cur.current != NULL);
+	t_assert(cur.state != NULL);
 	fsm_cursor_dispose(&cur);
 }
 
@@ -47,17 +47,17 @@ void fsm_cursor_define__two_gets(){
 	fsm_cursor_init(&cur, &fix.fsm);
 
 	fsm_cursor_define(&cur, nzs("rule1"));
-	Action *action1 = cur.current;
+	State *state1 = cur.state;
 	fsm_cursor_define(&cur, nzs("rule2"));
-	Action *action2 = cur.current;
+	State *state2 = cur.state;
 	fsm_cursor_define(&cur, nzs("rule1"));
-	Action *action3 = cur.current;
+	State *state3 = cur.state;
 	fsm_cursor_dispose(&cur);
 
-	t_assert(action1 != NULL);
-	t_assert(action2 != NULL);
-	t_assert(action3 != NULL);
-	t_assert(action1 == action3);
+	t_assert(state1 != NULL);
+	t_assert(state2 != NULL);
+	t_assert(state3 != NULL);
+	t_assert(state1 == state3);
 }
 
 void session_match__shift(){

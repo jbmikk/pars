@@ -11,7 +11,9 @@ void fsm_init(Fsm *fsm, SymbolTable *table)
 {
 	//TODO: Get symbol table as parameter
 	fsm->table = table;
-	action_init(&fsm->start, ACTION_ERROR, NULL_SYMBOL, NULL);
+
+	fsm->start = c_new(State, 1);
+	state_init(fsm->start);
 
 	symbol_table_add(fsm->table, "__empty", 7);
 
@@ -24,11 +26,10 @@ void fsm_init(Fsm *fsm, SymbolTable *table)
 	state_init(fsm->accept);
 }
 
-void fsm_get_states(Node *states, Action *action)
+void fsm_get_states(Node *states, State *state)
 {
 	unsigned char buffer[sizeof(intptr_t)];
 	unsigned int size;
-	State *state = action->state;
 
 	if(state) {
 		//TODO: Should have a separate ptr_to_array function
@@ -43,10 +44,11 @@ void fsm_get_states(Node *states, Action *action)
 			Iterator it;
 			radix_tree_iterator_init(&it, &(state->actions));
 			while(ac = (Action *)radix_tree_iterator_next(&it)) {
-				fsm_get_states(states, ac);
+				fsm_get_states(states, ac->state);
 			}
 			radix_tree_iterator_dispose(&it);
 		}
+
 	}
 }
 
@@ -60,8 +62,8 @@ void fsm_dispose(Fsm *fsm)
 
 	radix_tree_init(&all_states, 0, 0, NULL);
 
-	//Get all actions reachable through the starting action
-	fsm_get_states(&all_states, &fsm->start);
+	//Get all actions reachable through the starting state
+	fsm_get_states(&all_states, fsm->start);
 
 	radix_tree_iterator_init(&it, &fsm->table->symbols);
 	while(symbol = (Symbol *)radix_tree_iterator_next(&it)) {
@@ -74,7 +76,8 @@ void fsm_dispose(Fsm *fsm)
 			continue;
 		}
 
-		fsm_get_states(&all_states, &nt->start);
+		//Just in case some nonterminal is not reachable through start
+		fsm_get_states(&all_states, nt->start);
 		nonterminal_dispose(nt);
 		c_delete(nt);
 		//TODO: Symbol table may live longer than fsm, makes sense?
@@ -118,6 +121,8 @@ Symbol *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 	if(!symbol->data) {
 		non_terminal = c_new(Nonterminal, 1);
 		nonterminal_init(non_terminal);
+		non_terminal->start = c_new(State, 1);
+		state_init(non_terminal->start);
 		symbol->data = non_terminal;
 		//TODO: Add to non_terminal struct: 
 		// * detect circular references.
@@ -125,15 +130,9 @@ Symbol *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 	return symbol;
 }
 
-
-Action *fsm_get_action(Fsm *fsm, unsigned char *name, int length)
-{
-	return &fsm_get_non_terminal(fsm, name, length)->start;
-}
-
 State *fsm_get_state(Fsm *fsm, unsigned char *name, int length)
 {
-	return fsm_get_non_terminal(fsm, name, length)->start.state;
+	return fsm_get_non_terminal(fsm, name, length)->start;
 }
 
 int fsm_get_symbol(Fsm *fsm, unsigned char *name, int length)

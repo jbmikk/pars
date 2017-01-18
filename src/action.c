@@ -171,8 +171,8 @@ void action_init(Action *action, char type, int reduction, State *state)
 void nonterminal_init(Nonterminal *nonterminal)
 {
 	radix_tree_init(&nonterminal->refs, 0, 0, NULL);
-	action_init(&nonterminal->start, ACTION_SHIFT, NULL_SYMBOL, NULL);
 	nonterminal->status = NONTERMINAL_CLEAR;
+	nonterminal->start = NULL;
 	nonterminal->end = NULL;
 }
 
@@ -188,8 +188,8 @@ void nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *s
 	nonterminal->status |= NONTERMINAL_RETURN_REF;
 
 	//Set end state status if exists
-	if(nonterminal->end && nonterminal->end->state) {
-		nonterminal->end->state->status |= STATE_RETURN_REF;
+	if(nonterminal->end) {
+		nonterminal->end->status |= STATE_RETURN_REF;
 	}
 }
 

@@ -37,8 +37,8 @@ typedef struct _Action {
 } Action;
 
 typedef struct _Nonterminal {
-	Action start;
-	Action *end;
+	State *start;
+	State *end;
 	Node refs;
 	char status;
 } Nonterminal;
@@ -54,7 +54,7 @@ typedef struct _Reference {
 } Reference;
 
 typedef struct _Fsm {
-	Action start;
+	State *start;
 	Action error;
 	State *accept;
 	SymbolTable *table;
@@ -67,9 +67,8 @@ void fsm_dispose(Fsm *fsm);
 Nonterminal *fsm_get_non_terminal(Fsm *fsm, unsigned char *name, int length);
 Symbol *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length);
 
-Action *fsm_get_action(Fsm *fsm, unsigned char *name, int length);
 State *fsm_get_state(Fsm *fsm, unsigned char *name, int length);
-void fsm_get_states(Node *states, Action *action);
+void fsm_get_states(Node *states, State *state);
 int fsm_get_symbol(Fsm *fsm, unsigned char *name, int length);
 
 //# State functions

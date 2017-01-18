@@ -23,7 +23,8 @@
 void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
 {
 	cur->fsm = fsm;
-	cur->current = NULL;
+	cur->action = NULL;
+	cur->state = NULL;
 	cur->stack = NULL;
 	cur->last_symbol = NULL;
 	cur->last_non_terminal = NULL;
@@ -40,14 +41,15 @@ void fsm_cursor_dispose(FsmCursor *cur)
 		c_delete(frame);
 	}
 	cur->stack = NULL;
-	cur->current = NULL;
+	cur->action = NULL;
+	cur->state = NULL;
 	cur->fsm = NULL;
 }
 
 static void _push_frame(FsmCursor *cursor, State *state) 
 {
 	FsmFrame *frame = c_new(FsmFrame, 1);
-	frame->start = cursor->current;
+	frame->start = cursor->state;
 	frame->continuation = state;
 	frame->next = cursor->stack;
 	cursor->stack = frame;
@@ -61,13 +63,32 @@ static void _pop_frame(FsmCursor *cursor)
 	c_delete(frame);
 }
 
+static void _append_state(FsmCursor *cursor, State *state)
+{
+	if(cursor->action) {
+		cursor->action->state = state;
+	}
+	cursor->state = state;
+}
+
+static void _move_to(FsmCursor *cursor, State *state)
+{
+	cursor->action = NULL;
+	cursor->state = state;
+}
+
+static void _transition(FsmCursor *cursor, Action *action)
+{
+	cursor->action = action;
+	cursor->state = NULL;
+}
+
 static void _ensure_state(FsmCursor *cursor)
 {
-	Action *action = cursor->current;
-
-	if(!action->state) {
-		action->state = c_new(State, 1);
-		state_init(action->state);
+	if(!cursor->state) {
+		State *state = c_new(State, 1);
+		state_init(state);
+		_append_state(cursor, state);
 	}
 }
 
@@ -77,21 +98,21 @@ static void _add_empty(FsmCursor *cursor)
 	Symbol *symbol = symbol_table_get(fsm->table, "__empty", 7);
 
 	_ensure_state(cursor);
-	Action *action = state_add(cursor->current->state, symbol->id, ACTION_EMPTY, NONE);
-	cursor->current = action;
+	Action *action = state_add(cursor->state, symbol->id, ACTION_EMPTY, NONE);
+	_transition(cursor, action);
 }
 
 static void _reset(FsmCursor *cursor) 
 {
 	FsmFrame *frame = cursor->stack;
-	cursor->current = frame->start;
+	_move_to(cursor, frame->start);
 }
 
 static void _join_continuation(FsmCursor *cursor)
 {
 	FsmFrame *frame = cursor->stack;
 
-	if (cursor->current->state) {
+	if (cursor->state) {
 		// The action is already pointing to a state.
 		// We can't point it to another one without losing the current
 		// state.
@@ -108,7 +129,7 @@ static void _join_continuation(FsmCursor *cursor)
 		//   a state in place, and we must merge the states.
 		_add_empty(cursor);
 	}
-	cursor->current->state = frame->continuation;
+	_append_state(cursor, frame->continuation);
 
 	//TODO: Add trace for other types of operations or move to actions?
 	//trace("add", NULL, cursor->current, 0, "join", 0);
@@ -116,6 +137,7 @@ static void _join_continuation(FsmCursor *cursor)
 
 void fsm_cursor_group_start(FsmCursor *cursor)
 {
+	_ensure_state(cursor);
 	State *state = c_new(State, 1);
 	state_init(state);
 	trace_state("add", state, "continuation");
@@ -130,14 +152,8 @@ void fsm_cursor_group_end(FsmCursor *cursor)
 
 void fsm_cursor_loop_group_start(FsmCursor *cursor)
 {
-	State *state;
-	if(cursor->current->state) {
-		state = cursor->current->state;
-	} else {
-		state = c_new(State, 1);
-		state_init(state);
-		cursor->current->state = state;
-	}
+	_ensure_state(cursor);
+	State *state = cursor->state;
 	trace_state("push", state, "continuation");
 	_push_frame(cursor, state);
 }
@@ -160,7 +176,7 @@ void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 	Symbol *symbol = fsm_create_non_terminal(cur->fsm, name, length);
 	cur->last_symbol = symbol;
 	cur->last_non_terminal = (Nonterminal *)symbol->data;
-	cur->current = &cur->last_non_terminal->start;
+	_move_to(cur, cur->last_non_terminal->start);
 	trace_non_terminal("set", name, length);
 
 	//TODO: implicit fsm_cursor_group_start(cur); ??
@@ -171,7 +187,7 @@ void fsm_cursor_end(FsmCursor *cursor)
 	//TODO: implicit fsm_cursor_group_end(cur); ??
 	// If that was the case, we wouldn't need to ensure state the exists
 	_ensure_state(cursor);
-	cursor->last_non_terminal->end = cursor->current;
+	cursor->last_non_terminal->end = cursor->state;
 	//trace("end", cursor->current, 0, 0, "set");
 
 	// Add proper status to the end state to solve references later
@@ -181,7 +197,7 @@ void fsm_cursor_end(FsmCursor *cursor)
 			cursor->last_non_terminal->end,
 			""
 		);
-		cursor->last_non_terminal->end->state->status |= STATE_RETURN_REF;
+		cursor->last_non_terminal->end->status |= STATE_RETURN_REF;
 	}
 }
 
@@ -195,17 +211,20 @@ void fsm_cursor_nonterminal(FsmCursor *cur, unsigned char *name, int length)
 	Symbol *sb = fsm_create_non_terminal(cur->fsm, name, length);
 	Nonterminal *nt = (Nonterminal *)sb->data;
 
-	Action *from = cur->current;
+	_ensure_state(cur);
 
-	fsm_cursor_terminal(cur, sb->id);
+	State *prev = cur->state;
+
+	Action *action = state_add(cur->state, sb->id, ACTION_SHIFT, NONE);
+	_transition(cur, action);
 
 	//Create reference from last non terminal to the named non terminal
 	//State exists because we already added the terminal
-	state_add_reference(from->state, sb);
+	state_add_reference(prev, sb);
 
 	//Create reference to return from the non terminal to the caller
 	//TODO: Should be cur->current->state?
-	nonterminal_add_reference(nt, from->state, sb);
+	nonterminal_add_reference(nt, prev, sb);
 }
 
 static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
@@ -214,27 +233,27 @@ static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 	Nonterminal *nt = (Nonterminal *)sb->data;
 
 	//If start already defined, delete it. Only one start allowed.
-	if(cur->fsm->start.state) {
+	if(cur->fsm->start) {
 		//Delete state
-		state_dispose(cur->fsm->start.state);
-		c_delete(cur->fsm->start.state);
+		state_dispose(cur->fsm->start);
+		c_delete(cur->fsm->start);
 	}
 
 	State *initial_state = c_new(State, 1);
 	state_init(initial_state);
-	action_init(&cur->fsm->start, ACTION_SHIFT, NONE, initial_state);
+	cur->fsm->start = initial_state;
 
-	state_add_first_set(cur->fsm->start.state, nt->start.state);
+	state_add_first_set(cur->fsm->start, nt->start);
 
-	cur->current = &cur->fsm->start;
+	_move_to(cur, cur->fsm->start);
 
 	//TODO: Should check whether current->state is not null?
 	//TODO: Is there a test that checks whether this even works?
-	if(!radix_tree_contains_int(&cur->current->state->actions, sb->id)) {
+	if(!radix_tree_contains_int(&cur->state->actions, sb->id)) {
 		_ensure_state(cur);
-		cur->current = state_add(cur->current->state, sb->id, ACTION_ACCEPT, NONE);
-
-		cur->current->state = cur->fsm->accept;
+		Action *action = state_add(cur->state, sb->id, ACTION_ACCEPT, NONE);
+		_transition(cur, action);
+		_append_state(cur, cur->fsm->accept);
 	} else {
 		//TODO: issue warning or sentinel??
 	}
@@ -285,14 +304,14 @@ int _solve_return_references(FsmCursor *cur, Nonterminal *nt) {
 			""
 		);
 
-		state_add_reduce_follow_set(nt->end->state, cont->state, sb->id);
+		state_add_reduce_follow_set(nt->end, cont->state, sb->id);
 		ref->status = REF_SOLVED;
 	}
 	radix_tree_iterator_dispose(&it);
 
 	if(!unsolved) {
 		nt->status = NONTERMINAL_CLEAR;
-		nt->end->state->status &= !STATE_RETURN_REF;
+		nt->end->status &= !STATE_RETURN_REF;
 	}
 
 end:
@@ -321,7 +340,7 @@ int _solve_invoke_references(FsmCursor *cur, State *state) {
 		Symbol *sb = ref->symbol;
 		Nonterminal *nt = (Nonterminal *)sb->data;
 
-		if(nt->start.state->status != STATE_CLEAR) {
+		if(nt->start->status != STATE_CLEAR) {
 			trace_non_terminal(
 				"skip invoke ref to",
 				ref->symbol->name,
@@ -337,7 +356,7 @@ int _solve_invoke_references(FsmCursor *cur, State *state) {
 			ref->symbol->name,
 			ref->symbol->length
 		);
-		state_add_first_set(ref->state, nt->start.state);
+		state_add_first_set(ref->state, nt->start);
 		ref->status = REF_SOLVED;
 	}
 	radix_tree_iterator_dispose(&it);
@@ -361,7 +380,7 @@ void _solve_references(FsmCursor *cur) {
 	//TODO: Do all states exist this point and are connected?
 	Node all_states;
 	radix_tree_init(&all_states, 0, 0, NULL);
-	fsm_get_states(&all_states, &cur->fsm->start);
+	fsm_get_states(&all_states, cur->fsm->start);
 
 retry:
 	some_unsolved = 0;
@@ -374,7 +393,7 @@ retry:
 			some_unsolved |= _solve_return_references(cur, nt);
 
 			//TODO: Should avoid collecting states multiple times
-			fsm_get_states(&all_states, &nt->start);
+			fsm_get_states(&all_states, nt->start);
 		}
 	}
 	radix_tree_iterator_dispose(&it);
@@ -401,9 +420,9 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 	if(nt) {
 		trace_non_terminal("main", sb->name, sb->length);
 		//TODO: Factor out action function to test this
-		if(!radix_tree_contains_int(&nt->end->state->actions, eof_symbol)) {
-			cur->current = nt->end;
-			state_add(cur->current->state, eof_symbol, ACTION_REDUCE, sb->id);
+		if(!radix_tree_contains_int(&nt->end->actions, eof_symbol)) {
+			_move_to(cur, nt->end);
+			state_add(cur->state, eof_symbol, ACTION_REDUCE, sb->id);
 		} else {
 			//TODO: issue warning or sentinel??
 		}
@@ -420,6 +439,6 @@ void fsm_cursor_terminal(FsmCursor *cur, int symbol)
 	int type = ACTION_SHIFT;
 
 	_ensure_state(cur);
-	Action *action = state_add(cur->current->state, symbol, type, NONE);
-	cur->current = action;
+	Action *action = state_add(cur->state, symbol, type, NONE);
+	_transition(cur, action);
 }
