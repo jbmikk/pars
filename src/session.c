@@ -120,6 +120,7 @@ rematch:
 				trace("match", session->current, action, symbol, "error", 0);
 				session->last_action = &session->fsm->error;
 				session->current = session->last_action->state;
+				session->status = SESSION_ERROR;
 			}
 			return;
 		} else {
