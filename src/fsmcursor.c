@@ -344,20 +344,20 @@ int _solve_invoke_references(FsmCursor *cur, State *state) {
 		}
 
 		if(ref->to_state->status != STATE_CLEAR) {
-			trace_non_terminal(
-				"skip invoke ref to",
-				ref->symbol->name,
-				ref->symbol->length
+			trace_state(
+				"skip first set from",
+				ref->to_state,
+				""
 			);
 			unsolved = 1;
 			continue;
 		}
 
 		//solve reference
-		trace_non_terminal(
-			"append invoke ref to",
-			ref->symbol->name,
-			ref->symbol->length
+		trace_state(
+			"append first set from",
+			ref->to_state,
+			""
 		);
 		state_add_first_set(ref->state, ref->to_state);
 		ref->status = REF_SOLVED;

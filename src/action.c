@@ -36,6 +36,7 @@ void state_add_reference(State *state, Symbol *symbol, State *to_state)
 	Reference *ref = c_new(Reference, 1);
 	ref->state = state;
 	ref->to_state = to_state;
+	//TODO: Is it really necessary? Not used right now.
 	ref->symbol = symbol;
 	ref->status = REF_PENDING;
 
