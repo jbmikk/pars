@@ -46,11 +46,11 @@ void fsm_cursor_dispose(FsmCursor *cur)
 	cur->fsm = NULL;
 }
 
-static void _push_frame(FsmCursor *cursor, State *state) 
+static void _push_frame(FsmCursor *cursor, State *start, State *cont) 
 {
 	FsmFrame *frame = c_new(FsmFrame, 1);
-	frame->start = cursor->state;
-	frame->continuation = state;
+	frame->start = start;
+	frame->continuation = cont;
 	frame->next = cursor->stack;
 	cursor->stack = frame;
 }
@@ -138,10 +138,13 @@ static void _join_continuation(FsmCursor *cursor)
 void fsm_cursor_group_start(FsmCursor *cursor)
 {
 	_ensure_state(cursor);
-	State *state = c_new(State, 1);
-	state_init(state);
-	trace_state("add", state, "continuation");
-	_push_frame(cursor, state);
+
+	State *start = cursor->state;
+	State *cont = c_new(State, 1);
+	state_init(cont);
+
+	trace_state("add", cont, "continuation");
+	_push_frame(cursor, start, cont);
 }
 
 void fsm_cursor_group_end(FsmCursor *cursor)
@@ -153,9 +156,12 @@ void fsm_cursor_group_end(FsmCursor *cursor)
 void fsm_cursor_loop_group_start(FsmCursor *cursor)
 {
 	_ensure_state(cursor);
-	State *state = cursor->state;
-	trace_state("push", state, "continuation");
-	_push_frame(cursor, state);
+
+	State *start = cursor->state;
+	State *cont = cursor->state;
+
+	trace_state("push", cont, "continuation");
+	_push_frame(cursor, start, cont);
 }
 
 void fsm_cursor_loop_group_end(FsmCursor *cursor)
