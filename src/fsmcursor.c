@@ -226,7 +226,7 @@ void fsm_cursor_nonterminal(FsmCursor *cur, unsigned char *name, int length)
 
 	//Create reference from last non terminal to the named non terminal
 	//State exists because we already added the terminal
-	state_add_reference(prev, sb);
+	state_add_reference(prev, sb, nt->start);
 
 	//Create reference to return from the non terminal to the caller
 	//TODO: Should be cur->current->state?
@@ -343,10 +343,7 @@ int _solve_invoke_references(FsmCursor *cur, State *state) {
 			continue;
 		}
 
-		Symbol *sb = ref->symbol;
-		Nonterminal *nt = (Nonterminal *)sb->data;
-
-		if(nt->start->status != STATE_CLEAR) {
+		if(ref->to_state->status != STATE_CLEAR) {
 			trace_non_terminal(
 				"skip invoke ref to",
 				ref->symbol->name,
@@ -362,7 +359,7 @@ int _solve_invoke_references(FsmCursor *cur, State *state) {
 			ref->symbol->name,
 			ref->symbol->length
 		);
-		state_add_first_set(ref->state, nt->start);
+		state_add_first_set(ref->state, ref->to_state);
 		ref->status = REF_SOLVED;
 	}
 	radix_tree_iterator_dispose(&it);

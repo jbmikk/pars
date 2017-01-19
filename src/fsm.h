@@ -48,6 +48,7 @@ typedef struct _Nonterminal {
 // state) to a concrete state.
 typedef struct _Reference {
 	State *state;
+	State *to_state;
 	Symbol *symbol;
 	char type;
 	char status;
@@ -74,7 +75,7 @@ int fsm_get_symbol(Fsm *fsm, unsigned char *name, int length);
 //# State functions
 
 void state_init(State *state);
-void state_add_reference(State *state, Symbol *symbol);
+void state_add_reference(State *state, Symbol *symbol, State *to_state);
 void state_dispose(State *state);
 Action *state_add(State *from, int symbol, int type, int reduction);
 void state_add_first_set(State *from, State* state);
