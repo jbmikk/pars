@@ -45,12 +45,17 @@ void _ast_dispose_node(AstNode *node)
 
 void ast_dispose(Ast *ast)
 {
+	//TODO Write tests for ast disposal
+	while(ast->current && ast->current != &ast->root) {
+		ast_close(ast, 0, 0, 0);
+	}
+	ast_done(ast);
+
 	_ast_dispose_node(&ast->root);
 
-	if(ast->previous) {
-		//TODO: write test for open ast tree
-		_ast_dispose_node(ast->previous);
-	}
+	//In order to dispose multiple times we need to delete old references
+	//Another solution would be to make the root node dynamic.
+	radix_tree_init(&ast->root.children, 0, 0, NULL);
 	ast->table = NULL;
 }
 

@@ -31,7 +31,9 @@ int cli_load_grammar(char *pathname, Fsm *fsm)
 
 	ebnf_ast_to_fsm(fsm, &ast);
 
+	//Must be disposed always, unless parser_execute fails.
 	ast_dispose(&ast);
+
 	//TODO?: can't dispose parser before ast, shared symbol table
 	ebnf_dispose_parser(&parser);
 	input_dispose(&input);
