@@ -60,7 +60,7 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_end(&cur);
 
 	//Non Terminal Declaration
-	fsm_cursor_define(&cur, nzs("non_terminal_declaration"));
+	fsm_cursor_define(&cur, nzs("nonterminal_declaration"));
 	fsm_cursor_terminal(&cur, L_IDENTIFIER);
 	fsm_cursor_terminal(&cur, L_DEFINING_SYMBOL);
 	fsm_cursor_nonterminal(&cur,  nzs("definitions_list"));
@@ -70,9 +70,9 @@ void ebnf_init_fsm(Fsm *fsm)
 	//Syntax
 	//TODO: Remove double call to support zero elements
 	fsm_cursor_define(&cur, nzs("syntax"));
-	fsm_cursor_nonterminal(&cur,  nzs("non_terminal_declaration"));
+	fsm_cursor_nonterminal(&cur,  nzs("nonterminal_declaration"));
 	fsm_cursor_loop_group_start(&cur);
-	fsm_cursor_nonterminal(&cur,  nzs("non_terminal_declaration"));
+	fsm_cursor_nonterminal(&cur,  nzs("nonterminal_declaration"));
 	fsm_cursor_loop_group_end(&cur);
 	fsm_cursor_end(&cur);
 
@@ -171,7 +171,7 @@ void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur)
 	} while(ast_cursor_next_sibling_symbol(a_cur, E_SINGLE_DEFINITION));
 }
 
-void ebnf_build_non_terminal_declaration(FsmCursor *f_cur, AstCursor *a_cur)
+void ebnf_build_nonterminal_declaration(FsmCursor *f_cur, AstCursor *a_cur)
 {
 	unsigned char *string;
 	int length;
@@ -200,10 +200,10 @@ void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
 	ast_cursor_init(&a_cur, ast);
 	fsm_cursor_init(&f_cur, fsm);
 
-	int E_NON_TERMINAL_DECLARATION = ast_get_symbol(&a_cur, nzs("non_terminal_declaration"));
-	while(ast_cursor_depth_next_symbol(&a_cur, E_NON_TERMINAL_DECLARATION)) {
+	int E_NONTERMINAL_DECLARATION = ast_get_symbol(&a_cur, nzs("nonterminal_declaration"));
+	while(ast_cursor_depth_next_symbol(&a_cur, E_NONTERMINAL_DECLARATION)) {
 		ast_cursor_push(&a_cur);
-		ebnf_build_non_terminal_declaration(&f_cur, &a_cur);
+		ebnf_build_nonterminal_declaration(&f_cur, &a_cur);
 		ast_cursor_pop(&a_cur);
 	}
 

@@ -14,10 +14,10 @@
 		"%-5s: [%-9p --(%-9p)--> %-9p] %-13s\n", \
 		M, NULL, NULL, S, A \
 	)
-#define trace_non_terminal(M, S, L) printf("trace: %-5s: %.*s\n", M, L, S);
+#define trace_nonterminal(M, S, L) printf("trace: %-5s: %.*s\n", M, L, S);
 #else
 #define trace_state(M, S, A)
-#define trace_non_terminal(M, S, L)
+#define trace_nonterminal(M, S, L)
 #endif
 
 void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
@@ -27,7 +27,7 @@ void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
 	cur->state = NULL;
 	cur->stack = NULL;
 	cur->last_symbol = NULL;
-	cur->last_non_terminal = NULL;
+	cur->last_nonterminal = NULL;
 }
 
 void fsm_cursor_dispose(FsmCursor *cur)
@@ -185,11 +185,11 @@ void fsm_cursor_or(FsmCursor *cur)
 
 void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 {
-	Symbol *symbol = fsm_create_non_terminal(cur->fsm, name, length);
+	Symbol *symbol = fsm_create_nonterminal(cur->fsm, name, length);
 	cur->last_symbol = symbol;
-	cur->last_non_terminal = (Nonterminal *)symbol->data;
-	_move_to(cur, cur->last_non_terminal->start);
-	trace_non_terminal("set", name, length);
+	cur->last_nonterminal = (Nonterminal *)symbol->data;
+	_move_to(cur, cur->last_nonterminal->start);
+	trace_nonterminal("set", name, length);
 
 	//TODO: implicit fsm_cursor_group_start(cur); ??
 }
@@ -199,17 +199,17 @@ void fsm_cursor_end(FsmCursor *cursor)
 	//TODO: implicit fsm_cursor_group_end(cur); ??
 	// If that was the case, we wouldn't need to ensure state the exists
 	_ensure_state(cursor);
-	cursor->last_non_terminal->end = cursor->state;
+	cursor->last_nonterminal->end = cursor->state;
 	//trace("end", cursor->current, 0, 0, "set");
 
 	// Add proper status to the end state to solve references later
-	if(cursor->last_non_terminal->status & NONTERMINAL_RETURN_REF) {
+	if(cursor->last_nonterminal->status & NONTERMINAL_RETURN_REF) {
 		trace_state(
 			"end state pending follow-set",
-			cursor->last_non_terminal->end,
+			cursor->last_nonterminal->end,
 			""
 		);
-		cursor->last_non_terminal->end->status |= STATE_RETURN_REF;
+		cursor->last_nonterminal->end->status |= STATE_RETURN_REF;
 	}
 }
 
@@ -220,7 +220,7 @@ void fsm_cursor_end(FsmCursor *cursor)
 void fsm_cursor_nonterminal(FsmCursor *cur, unsigned char *name, int length)
 {
 	//Get or create symbol and associated non terminal
-	Symbol *sb = fsm_create_non_terminal(cur->fsm, name, length);
+	Symbol *sb = fsm_create_nonterminal(cur->fsm, name, length);
 	Nonterminal *nt = (Nonterminal *)sb->data;
 
 	_ensure_state(cur);
@@ -395,7 +395,7 @@ retry:
 	some_unsolved = 0;
 	radix_tree_iterator_init(&it, symbols);
 	while(sb = (Symbol *)radix_tree_iterator_next(&it)) {
-		trace_non_terminal("solve return references from: ", sb->name, sb->length);
+		trace_nonterminal("solve return references from: ", sb->name, sb->length);
 
 		nt = (Nonterminal *)sb->data;
 		if(nt) {
@@ -425,9 +425,9 @@ retry:
 
 void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 	Symbol *sb = cur->last_symbol;
-	Nonterminal *nt = cur->last_non_terminal;
+	Nonterminal *nt = cur->last_nonterminal;
 	if(nt) {
-		trace_non_terminal("main", sb->name, sb->length);
+		trace_nonterminal("main", sb->name, sb->length);
 		//TODO: Factor out action function to test this
 		if(!radix_tree_contains_int(&nt->end->actions, eof_symbol)) {
 			_move_to(cur, nt->end);
@@ -436,7 +436,7 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 			//TODO: issue warning or sentinel??
 		}
 		_solve_references(cur);
-		trace_non_terminal("set initial state", sb->name, sb->length);
+		trace_nonterminal("set initial state", sb->name, sb->length);
 		_set_start(cur, sb->name, sb->length);
 	} else {
 		//TODO: issue warning or sentinel??

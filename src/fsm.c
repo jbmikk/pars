@@ -118,23 +118,23 @@ void fsm_dispose(Fsm *fsm)
 	fsm->table = NULL;
 }
 
-Nonterminal *fsm_get_non_terminal(Fsm *fsm, unsigned char *name, int length)
+Nonterminal *fsm_get_nonterminal(Fsm *fsm, unsigned char *name, int length)
 {
 	Symbol *symbol = symbol_table_get(fsm->table, name, length);
 	return symbol? (Nonterminal *)symbol->data: NULL;
 }
 
-Symbol *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
+Symbol *fsm_create_nonterminal(Fsm *fsm, unsigned char *name, int length)
 {
 	Symbol *symbol = symbol_table_add(fsm->table, name, length);
-	Nonterminal *non_terminal;
+	Nonterminal *nonterminal;
 	if(!symbol->data) {
-		non_terminal = c_new(Nonterminal, 1);
-		nonterminal_init(non_terminal);
-		non_terminal->start = c_new(State, 1);
-		state_init(non_terminal->start);
-		symbol->data = non_terminal;
-		//TODO: Add to non_terminal struct: 
+		nonterminal = c_new(Nonterminal, 1);
+		nonterminal_init(nonterminal);
+		nonterminal->start = c_new(State, 1);
+		state_init(nonterminal->start);
+		symbol->data = nonterminal;
+		//TODO: Add to nonterminal struct: 
 		// * detect circular references.
 	}
 	return symbol;
@@ -142,7 +142,7 @@ Symbol *fsm_create_non_terminal(Fsm *fsm, unsigned char *name, int length)
 
 State *fsm_get_state(Fsm *fsm, unsigned char *name, int length)
 {
-	return fsm_get_non_terminal(fsm, name, length)->start;
+	return fsm_get_nonterminal(fsm, name, length)->start;
 }
 
 int fsm_get_symbol(Fsm *fsm, unsigned char *name, int length)

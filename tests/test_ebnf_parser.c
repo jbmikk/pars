@@ -174,11 +174,11 @@ void ebnf_start_parsing__declaration(){
 
 	//Fake main nonterminal
 	fsm_cursor_init(&cur, &fix.fsm);
-	fsm_cursor_define(&cur, nzs("non_terminal_declaration"));
+	fsm_cursor_define(&cur, nzs("nonterminal_declaration"));
 	fsm_cursor_done(&cur, '\0');
 
 	Action *action;
-	int E_NON_TERMINAL_DECLARATION = fsm_get_symbol(&fix.fsm, nzs("non_terminal_declaration"));
+	int E_NONTERMINAL_DECLARATION = fsm_get_symbol(&fix.fsm, nzs("nonterminal_declaration"));
 
 	Session session;
 	session_init(&session, &fix.fsm);
@@ -191,7 +191,7 @@ void ebnf_start_parsing__declaration(){
 
 	action = TEST(session, L_EOF);
 	t_assert(action->type == ACTION_REDUCE);
-	t_assert(action->reduction == E_NON_TERMINAL_DECLARATION);
+	t_assert(action->reduction == E_NONTERMINAL_DECLARATION);
 
 	MATCH(session, L_EOF);
 	t_assert(session.last_action->type == ACTION_ACCEPT);
@@ -231,7 +231,7 @@ void ebnf_start_parsing__group(){
 void ebnf_start_parsing__syntax(){
 	Action *action;
 
-	int E_NON_TERMINAL_DECLARATION = fsm_get_symbol(&fix.fsm, nzs("non_terminal_declaration"));
+	int E_NONTERMINAL_DECLARATION = fsm_get_symbol(&fix.fsm, nzs("nonterminal_declaration"));
 	Session session;
 	session_init(&session, &fix.fsm);
 	MATCH(session, L_IDENTIFIER);
@@ -246,7 +246,7 @@ void ebnf_start_parsing__syntax(){
 	action = TEST(session, L_EOF);
 	t_assert(action->type == ACTION_REDUCE);
 	//First reduction only, not recursive
-	t_assert(action->reduction == E_NON_TERMINAL_DECLARATION); 
+	t_assert(action->reduction == E_NONTERMINAL_DECLARATION); 
 
 	MATCH(session, L_EOF);
 	t_assert(session.last_action->type == ACTION_ACCEPT);

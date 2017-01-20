@@ -15,7 +15,7 @@ typedef struct _FsmCursor {
 	State *state;
 	FsmFrame *stack;
 	Symbol *last_symbol;
-	Nonterminal *last_non_terminal;
+	Nonterminal *last_nonterminal;
 } FsmCursor;
 
 void fsm_cursor_init(FsmCursor *cur, Fsm *fsm);
