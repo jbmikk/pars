@@ -11,8 +11,8 @@
 #ifdef FSM_TRACE
 #define trace_state(M, S, A) \
 	printf( \
-		"%-5s: [%-9p --(%-9p)--> %-9p] %-13s\n", \
-		M, NULL, NULL, S, A \
+		"%-5s: %-9p %-13s\n", \
+		M, S, A \
 	)
 #define trace_nonterminal(M, S, L) printf("trace: %-5s: %.*s\n", M, L, S);
 #else
@@ -339,7 +339,7 @@ int _solve_invoke_references(FsmCursor *cur, State *state) {
 		goto end;
 	}
 
-	trace_state("solve refs from state", state, "");
+	trace_state("solve refs for state", state, "");
 
 	radix_tree_iterator_init(&it, &state->refs);
 	while(ref = (Reference *)radix_tree_iterator_next(&it)) {
