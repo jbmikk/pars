@@ -40,11 +40,21 @@ void fsm_get_states(Node *states, State *state)
 		if(!in_states) {
 			radix_tree_set(states, buffer, size, state);
 
-			Action *ac;
 			Iterator it;
+
+			//Jump to other states
+			Action *ac;
 			radix_tree_iterator_init(&it, &(state->actions));
 			while(ac = (Action *)radix_tree_iterator_next(&it)) {
 				fsm_get_states(states, ac->state);
+			}
+			radix_tree_iterator_dispose(&it);
+
+			//Jump to references
+			Reference *ref;
+			radix_tree_iterator_init(&it, &state->refs);
+			while(ref = (Reference *)radix_tree_iterator_next(&it)) {
+				fsm_get_states(states, ref->to_state);
 			}
 			radix_tree_iterator_dispose(&it);
 		}
