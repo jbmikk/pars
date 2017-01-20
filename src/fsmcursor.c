@@ -157,11 +157,17 @@ void fsm_cursor_loop_group_start(FsmCursor *cursor)
 {
 	_ensure_state(cursor);
 
-	State *start = cursor->state;
-	State *cont = cursor->state;
+	State *start = c_new(State, 1);
+	state_init(start);
+
+	State *cont = start;
+
+	state_add_reference(cursor->state, NULL, start);
 
 	trace_state("push", cont, "continuation");
 	_push_frame(cursor, start, cont);
+
+	_move_to(cursor, start);
 }
 
 void fsm_cursor_loop_group_end(FsmCursor *cursor)
@@ -249,7 +255,7 @@ static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 	state_init(initial_state);
 	cur->fsm->start = initial_state;
 
-	state_add_first_set(cur->fsm->start, nt->start);
+	state_add_first_set(cur->fsm->start, nt->start, sb);
 
 	_move_to(cur, cur->fsm->start);
 
@@ -359,7 +365,7 @@ int _solve_invoke_references(FsmCursor *cur, State *state) {
 			ref->to_state,
 			""
 		);
-		state_add_first_set(ref->state, ref->to_state);
+		state_add_first_set(ref->state, ref->to_state, ref->symbol);
 		ref->status = REF_SOLVED;
 	}
 	radix_tree_iterator_dispose(&it);

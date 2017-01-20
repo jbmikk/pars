@@ -78,7 +78,7 @@ void state_init(State *state);
 void state_add_reference(State *state, Symbol *symbol, State *to_state);
 void state_dispose(State *state);
 Action *state_add(State *from, int symbol, int type, int reduction);
-void state_add_first_set(State *from, State* state);
+void state_add_first_set(State *from, State* state, Symbol *symbol);
 void state_add_reduce_follow_set(State *from, State *to, int symbol);
 
 

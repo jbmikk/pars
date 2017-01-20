@@ -116,7 +116,7 @@ static Action *_state_add_buffer(State *state, unsigned char *buffer, unsigned i
 	return action;
 }
 
-void state_add_first_set(State *state, State* source)
+void state_add_first_set(State *state, State* source, Symbol *symbol)
 {
 	Action *action, *clone;
 	Iterator it;
@@ -124,16 +124,30 @@ void state_add_first_set(State *state, State* source)
 	while(action = (Action *)radix_tree_iterator_next(&it)) {
 		//TODO: Make type for clone a parameter, do not override by
 		// default.
-		if (action->type == ACTION_REDUCE) {
-			// This should never happen in practice, but just in
-			// case we have a malformed fsm we check it here.
-			trace("skip", state, action, array_to_int(it.key, it.size), "reduction on first-set", 0);
-			continue;
-		}
 		clone = c_new(Action, 1);
 		clone->reduction = action->reduction;
 		clone->state = action->state;
-		clone->type = ACTION_CONTEXT_SHIFT;
+		// When a symbol is present, assume nonterminal invocation
+		if(symbol) {
+			if (action->type == ACTION_REDUCE) {
+				// This could happen when the start state of a
+				// nonterminal is also an end state.
+				trace(
+					"skip",
+					state,
+					action,
+					array_to_int(it.key, it.size),
+					"reduction on first-set",
+					0
+				);
+				 continue;
+			}
+			clone->type = ACTION_CONTEXT_SHIFT;
+		} else {
+			// It could happen when merging loops in final states
+			// that action->type == ACTION_REDUCE
+			clone->type = action->type;
+		}
 		_state_add_buffer(state, it.key, it.size, 0, 0, clone);
 		trace("add", state, action, array_to_int(it.key, it.size), "first", 0);
 	}
