@@ -196,6 +196,7 @@ void nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *s
 {
 	Reference *ref = c_new(Reference, 1);
 	ref->state = state;
+	ref->to_state = NULL;
 	//TODO: Is it used?
 	ref->symbol = symbol;
 	ref->status = REF_PENDING;
