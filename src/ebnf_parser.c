@@ -72,7 +72,6 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_end(&cur);
 
 	//Syntax
-	//TODO: Remove double call to support zero elements
 	fsm_cursor_define(&cur, nzs("syntax"));
 	fsm_cursor_nonterminal(&cur,  nzs("nonterminal_declaration"));
 	fsm_cursor_loop_group_start(&cur);
