@@ -28,14 +28,14 @@ void ast_init(Ast *ast, Input *input, SymbolTable *table)
 	ast->table = table;
 }
 
-void _ast_dispose_node(AstNode *node)
+void ast_node_dispose(AstNode *node)
 {
 	AstNode *an;
 	Iterator it;
 
 	radix_tree_iterator_init(&it, &node->children);
 	while(an = (AstNode *)radix_tree_iterator_next(&it)) {
-		_ast_dispose_node(an);
+		ast_node_dispose(an);
 		c_delete(an);
 	}
 	radix_tree_iterator_dispose(&it);
@@ -51,7 +51,7 @@ void ast_dispose(Ast *ast)
 	}
 	ast_done(ast);
 
-	_ast_dispose_node(&ast->root);
+	ast_node_dispose(&ast->root);
 
 	//In order to dispose multiple times we need to delete old references
 	//Another solution would be to make the root node dynamic.
