@@ -2,5 +2,5 @@
  * Ab grammar
  * Simple grammar used to test rules with terminals and nonterminals.
  *)
-aa = "A";
+aa = 'A';
 bb = aa, "B";
