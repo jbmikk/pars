@@ -119,10 +119,12 @@ void ast_close(void *ast_p, unsigned int index, unsigned int length, int symbol)
 
 void ast_done(Ast *ast)
 {
-	trace(ast->previous, "done", 0, ast->previous->index, 0);
 	if(ast->previous != NULL) {
+		trace(ast->previous, "done", 0, ast->previous->index, 0);
 		ast_bind_to_parent(ast->previous);
 		ast->previous = NULL;
+	} else {
+		//TODO: warning or sentinel?
 	}
 }
 
