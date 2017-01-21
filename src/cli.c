@@ -101,8 +101,8 @@ int main(int argc, char** argv){
 			log_info("Parsing source.");
 			error = cli_parse_source(argv[2], &fsm, &ast);
 
-			//TODO: Dispose crashes when error during parse!
-			//Possible segmentation fault later if skipped too!
+			//TODO: no need to dispose on parsing error
+			//Safe to dispose twice anyway.
 			ast_dispose(&ast);
 		}
 
