@@ -171,6 +171,20 @@ next_token:
 			}
 		}
 		token = L_TERMINAL_STRING;
+	} else if (c == '?') {
+		while(1) {
+			unsigned char prev;
+			prev = c;
+			NEXT;
+			if(END(0))
+				break;
+			c = CURRENT;
+			if(c == '?' && prev != '\\') {
+				NEXT;
+				break;
+			}
+		}
+		token = L_SPECIAL_SEQUENCE;
 	} else if (c == '(' && !END(1) && LOOKAHEAD(1) == '*') {
 		while(1) {
 			unsigned char prev;

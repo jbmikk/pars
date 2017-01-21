@@ -29,6 +29,9 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_terminal(&cur, L_TERMINAL_STRING);
 	fsm_cursor_or(&cur);
 
+	fsm_cursor_terminal(&cur, L_SPECIAL_SEQUENCE);
+	fsm_cursor_or(&cur);
+
 	fsm_cursor_terminal(&cur, L_START_GROUP_SYMBOL);
 	fsm_cursor_nonterminal(&cur,  nzs("definitions_list"));
 	fsm_cursor_terminal(&cur, L_END_GROUP_SYMBOL);
@@ -127,6 +130,10 @@ void ebnf_build_expression(FsmCursor *f_cur, AstCursor *a_cur)
 			//TODO: literal strings should be tokenized into simbols (utf8)
 			fsm_cursor_terminal(f_cur, string[i]);
 		}
+		break;
+	case L_SPECIAL_SEQUENCE:
+		//TODO: define special sequences behaviour
+		log_warn("Special sequence is not defined");
 		break;
 	case '(':
 		ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);

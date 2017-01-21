@@ -20,7 +20,8 @@ typedef enum {
 	L_COMMENT,
 	L_INTEGER,
 	L_IDENTIFIER,
-	L_TERMINAL_STRING
+	L_TERMINAL_STRING,
+	L_SPECIAL_SEQUENCE
 } LToken;
 
 typedef struct _Lexer {
