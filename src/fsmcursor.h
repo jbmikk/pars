@@ -30,6 +30,8 @@ void fsm_cursor_group_start(FsmCursor *cur);
 void fsm_cursor_group_end(FsmCursor *cur);
 void fsm_cursor_loop_group_start(FsmCursor *cur);
 void fsm_cursor_loop_group_end(FsmCursor *cur);
+void fsm_cursor_option_group_start(FsmCursor *cur);
+void fsm_cursor_option_group_end(FsmCursor *cur);
 void fsm_cursor_or(FsmCursor *cur);
 void fsm_cursor_terminal(FsmCursor *cur, int symbol);
 void fsm_cursor_nonterminal(FsmCursor *cur, unsigned char *name, int length);

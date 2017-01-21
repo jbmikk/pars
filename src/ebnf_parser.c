@@ -31,8 +31,12 @@ void ebnf_init_fsm(Fsm *fsm)
 
 	fsm_cursor_terminal(&cur, L_START_GROUP_SYMBOL);
 	fsm_cursor_nonterminal(&cur,  nzs("definitions_list"));
-
 	fsm_cursor_terminal(&cur, L_END_GROUP_SYMBOL);
+	fsm_cursor_or(&cur);
+
+	fsm_cursor_terminal(&cur, L_START_OPTION_SYMBOL);
+	fsm_cursor_nonterminal(&cur,  nzs("definitions_list"));
+	fsm_cursor_terminal(&cur, L_END_OPTION_SYMBOL);
 	fsm_cursor_or(&cur);
 
 	fsm_cursor_terminal(&cur, L_START_REPETITION_SYMBOL);
@@ -136,6 +140,12 @@ void ebnf_build_expression(FsmCursor *f_cur, AstCursor *a_cur)
 		fsm_cursor_loop_group_start(f_cur);
 		ebnf_build_definitions_list(f_cur, a_cur);
 		fsm_cursor_loop_group_end(f_cur);
+		break;
+	case '[':
+		ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);
+		fsm_cursor_option_group_start(f_cur);
+		ebnf_build_definitions_list(f_cur, a_cur);
+		fsm_cursor_option_group_end(f_cur);
 		break;
 	default:
 		//TODO:sentinel??

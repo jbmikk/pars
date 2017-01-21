@@ -177,6 +177,26 @@ void fsm_cursor_loop_group_end(FsmCursor *cursor)
 	_pop_frame(cursor);
 }
 
+void fsm_cursor_option_group_start(FsmCursor *cursor)
+{
+	_ensure_state(cursor);
+
+	State *start = cursor->state;
+	State *cont = c_new(State, 1);
+	state_init(cont);
+
+	state_add_reference(start, NULL, cont);
+
+	trace_state("add", cont, "continuation");
+	_push_frame(cursor, start, cont);
+}
+
+void fsm_cursor_option_group_end(FsmCursor *cursor)
+{
+	_join_continuation(cursor);
+	_pop_frame(cursor);
+}
+
 void fsm_cursor_or(FsmCursor *cur)
 {
 	_join_continuation(cur);

@@ -78,6 +78,8 @@ run_test $MODE $PATTERN "./pars ./tests/grammars/ab2-grammar.txt ./tests/grammar
 run_test $MODE $PATTERN "./pars ./tests/grammars/repetition-with-continuation-grammar.txt ./tests/grammars/repetition-with-continuation-source.txt"
 run_test $MODE $PATTERN "./pars ./tests/grammars/repetition-inside-group-grammar.txt ./tests/grammars/repetition-inside-group-source.txt"
 run_test $MODE $PATTERN "./pars ./tests/grammars/repetition-inside-group-grammar.txt ./tests/grammars/repetition-inside-group-source-2.txt"
+run_test $MODE $PATTERN "./pars ./tests/grammars/option-grammar.txt ./tests/grammars/option-source.txt"
+run_test $MODE $PATTERN "./pars ./tests/grammars/option-grammar.txt ./tests/grammars/option-source-2.txt"
 
 cd ..
 
