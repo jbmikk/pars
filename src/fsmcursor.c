@@ -14,10 +14,11 @@
 		"%-5s: %-9p %-13s\n", \
 		M, S, A \
 	)
-#define trace_nonterminal(M, S, L) printf("trace: %-5s: %.*s\n", M, L, S);
+#define trace_symbol(M, S) \
+	printf("trace: %-5s: %.*s [id:%i]\n", M, (S)->length, (S)->name, (S)->id);
 #else
 #define trace_state(M, S, A)
-#define trace_nonterminal(M, S, L)
+#define trace_symbol(M, S)
 #endif
 
 void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
@@ -209,7 +210,7 @@ void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
 	cur->last_symbol = symbol;
 	cur->last_nonterminal = (Nonterminal *)symbol->data;
 	_move_to(cur, cur->last_nonterminal->start);
-	trace_nonterminal("set", name, length);
+	trace_symbol("set", symbol);
 
 	//TODO: implicit fsm_cursor_group_start(cur); ??
 }
@@ -415,7 +416,7 @@ retry:
 	some_unsolved = 0;
 	radix_tree_iterator_init(&it, symbols);
 	while(sb = (Symbol *)radix_tree_iterator_next(&it)) {
-		trace_nonterminal("solve return references from: ", sb->name, sb->length);
+		trace_symbol("solve return references from: ", sb);
 
 		nt = (Nonterminal *)sb->data;
 		if(nt) {
@@ -447,7 +448,7 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 	Symbol *sb = cur->last_symbol;
 	Nonterminal *nt = cur->last_nonterminal;
 	if(nt) {
-		trace_nonterminal("main", sb->name, sb->length);
+		trace_symbol("main", sb);
 		//TODO: Factor out action function to test this
 		if(!radix_tree_contains_int(&nt->end->actions, eof_symbol)) {
 			_move_to(cur, nt->end);
@@ -456,7 +457,7 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 			//TODO: issue warning or sentinel??
 		}
 		_solve_references(cur);
-		trace_nonterminal("set initial state", sb->name, sb->length);
+		trace_symbol("set initial state", sb);
 		_set_start(cur, sb->name, sb->length);
 	} else {
 		//TODO: issue warning or sentinel??
