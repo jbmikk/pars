@@ -46,27 +46,27 @@ void ebnf_start_parsing__identifier(){
 
 	//Fake main nonterminal
 	fsm_cursor_init(&cur, &fix.fsm);
-	fsm_cursor_define(&cur, "expression", 10);
+	fsm_cursor_define(&cur, nzs("syntactic_primary"));
 	fsm_cursor_done(&cur, '\0');
 
 	Action *action;
-	int E_EXPRESSION = fsm_get_symbol(&fix.fsm, nzs("expression"));
+	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
 	session_init(&session, &fix.fsm);
-	MATCH(session, L_IDENTIFIER);
+	MATCH(session, L_META_IDENTIFIER);
 
 	action = TEST(session, L_CONCATENATE_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
-	t_assert(action->reduction == E_EXPRESSION);
+	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
 	action = TEST(session, L_DEFINITION_SEPARATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
-	t_assert(action->reduction == E_EXPRESSION);
+	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
 	action = TEST(session, L_TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
-	t_assert(action->reduction == E_EXPRESSION);
+	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
 	t_assert(session.last_action->type != ACTION_ERROR);
@@ -80,11 +80,11 @@ void ebnf_start_parsing__terminal(){
 
 	//Fake main nonterminal
 	fsm_cursor_init(&cur, &fix.fsm);
-	fsm_cursor_define(&cur, nzs("expression"));
+	fsm_cursor_define(&cur, nzs("syntactic_primary"));
 	fsm_cursor_done(&cur, '\0');
 
 	Action *action;
-	int E_EXPRESSION = fsm_get_symbol(&fix.fsm, nzs("expression"));
+	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
 	session_init(&session, &fix.fsm);
@@ -92,15 +92,15 @@ void ebnf_start_parsing__terminal(){
 
 	action = TEST(session, L_CONCATENATE_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
-	t_assert(action->reduction == E_EXPRESSION);
+	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
 	action = TEST(session, L_DEFINITION_SEPARATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
-	t_assert(action->reduction == E_EXPRESSION);
+	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
 	action = TEST(session, L_TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
-	t_assert(action->reduction == E_EXPRESSION);
+	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
 	t_assert(session.last_action->type == ACTION_ACCEPT);
@@ -118,21 +118,21 @@ void ebnf_start_parsing__concatenate(){
 	fsm_cursor_done(&cur, '\0');
 
 	Action *action;
-	int E_EXPRESSION = fsm_get_symbol(&fix.fsm, nzs("expression"));
+	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
 	session_init(&session, &fix.fsm);
-	MATCH(session, L_IDENTIFIER);
+	MATCH(session, L_META_IDENTIFIER);
 	MATCH(session, L_CONCATENATE_SYMBOL);
 	MATCH(session, L_TERMINAL_STRING);
 
 	action = TEST(session, L_DEFINITION_SEPARATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
-	t_assert(action->reduction == E_EXPRESSION);
+	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
 	action = TEST(session, L_TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
-	t_assert(action->reduction == E_EXPRESSION);
+	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
 	MATCH(session, L_DEFINITION_SEPARATOR_SYMBOL);
 	t_assert(session.last_action->type == ACTION_ACCEPT);
@@ -150,17 +150,17 @@ void ebnf_start_parsing__separator(){
 	fsm_cursor_done(&cur, '\0');
 
 	Action *action;
-	int E_EXPRESSION = fsm_get_symbol(&fix.fsm, nzs("expression"));
+	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
 	session_init(&session, &fix.fsm);
-	MATCH(session, L_IDENTIFIER);
+	MATCH(session, L_META_IDENTIFIER);
 	MATCH(session, L_DEFINITION_SEPARATOR_SYMBOL);
 	MATCH(session, L_TERMINAL_STRING);
 
 	action = TEST(session, L_TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
-	t_assert(action->reduction == E_EXPRESSION);
+	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
 	t_assert(session.last_action->type == ACTION_ACCEPT);
@@ -169,29 +169,29 @@ void ebnf_start_parsing__separator(){
 	fsm_cursor_dispose(&cur);
 }
 
-void ebnf_start_parsing__declaration(){
+void ebnf_start_parsing__syntax_rule(){
 	FsmCursor cur;
 
 	//Fake main nonterminal
 	fsm_cursor_init(&cur, &fix.fsm);
-	fsm_cursor_define(&cur, nzs("nonterminal_declaration"));
+	fsm_cursor_define(&cur, nzs("syntax_rule"));
 	fsm_cursor_done(&cur, '\0');
 
 	Action *action;
-	int E_NONTERMINAL_DECLARATION = fsm_get_symbol(&fix.fsm, nzs("nonterminal_declaration"));
+	int E_SYNTAX_RULE = fsm_get_symbol(&fix.fsm, nzs("syntax_rule"));
 
 	Session session;
 	session_init(&session, &fix.fsm);
-	MATCH(session, L_IDENTIFIER);
+	MATCH(session, L_META_IDENTIFIER);
 	MATCH(session, L_DEFINING_SYMBOL);
 	MATCH(session, L_TERMINAL_STRING);
 	MATCH(session, L_DEFINITION_SEPARATOR_SYMBOL);
-	MATCH(session, L_IDENTIFIER);
+	MATCH(session, L_META_IDENTIFIER);
 	MATCH(session, L_TERMINATOR_SYMBOL);
 
 	action = TEST(session, L_EOF);
 	t_assert(action->type == ACTION_REDUCE);
-	t_assert(action->reduction == E_NONTERMINAL_DECLARATION);
+	t_assert(action->reduction == E_SYNTAX_RULE);
 
 	MATCH(session, L_EOF);
 	t_assert(session.last_action->type == ACTION_ACCEPT);
@@ -205,11 +205,11 @@ void ebnf_start_parsing__group(){
 
 	//Fake main nonterminal
 	fsm_cursor_init(&cur, &fix.fsm);
-	fsm_cursor_define(&cur, nzs("expression"));
+	fsm_cursor_define(&cur, nzs("syntactic_primary"));
 	fsm_cursor_done(&cur, '\0');
 
 	Action *action;
-	int E_EXPRESSION = fsm_get_symbol(&fix.fsm, nzs("expression"));
+	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
 	session_init(&session, &fix.fsm);
@@ -219,7 +219,7 @@ void ebnf_start_parsing__group(){
 
 	action = TEST(session, L_TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
-	t_assert(action->reduction == E_EXPRESSION);
+	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
 	MATCH(session, L_TERMINATOR_SYMBOL);
 	t_assert(session.last_action->type == ACTION_ACCEPT);
@@ -231,22 +231,22 @@ void ebnf_start_parsing__group(){
 void ebnf_start_parsing__syntax(){
 	Action *action;
 
-	int E_NONTERMINAL_DECLARATION = fsm_get_symbol(&fix.fsm, nzs("nonterminal_declaration"));
+	int E_SYNTAX_RULE = fsm_get_symbol(&fix.fsm, nzs("syntax_rule"));
 	Session session;
 	session_init(&session, &fix.fsm);
-	MATCH(session, L_IDENTIFIER);
+	MATCH(session, L_META_IDENTIFIER);
 	MATCH(session, L_DEFINING_SYMBOL);
 	MATCH(session, L_TERMINAL_STRING);
 	MATCH(session, L_TERMINATOR_SYMBOL);
-	MATCH(session, L_IDENTIFIER);
+	MATCH(session, L_META_IDENTIFIER);
 	MATCH(session, L_DEFINING_SYMBOL);
-	MATCH(session, L_IDENTIFIER);
+	MATCH(session, L_META_IDENTIFIER);
 	MATCH(session, L_TERMINATOR_SYMBOL);
 
 	action = TEST(session, L_EOF);
 	t_assert(action->type == ACTION_REDUCE);
 	//First reduction only, not recursive
-	t_assert(action->reduction == E_NONTERMINAL_DECLARATION); 
+	t_assert(action->reduction == E_SYNTAX_RULE); 
 
 	MATCH(session, L_EOF);
 	t_assert(session.last_action->type == ACTION_ACCEPT);
@@ -259,7 +259,7 @@ int main(int argc, char** argv){
 	t_test(ebnf_start_parsing__terminal);
 	t_test(ebnf_start_parsing__concatenate);
 	t_test(ebnf_start_parsing__separator);
-	t_test(ebnf_start_parsing__declaration);
+	t_test(ebnf_start_parsing__syntax_rule);
 	t_test(ebnf_start_parsing__group);
 	t_test(ebnf_start_parsing__syntax);
 	return t_done();

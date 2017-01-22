@@ -71,7 +71,7 @@ void lexer_input_next__integer_token(){
 
 void lexer_input_next__identifier_token(){
 	lexer_next(&fix.lexer_identifier);
-	t_assert(fix.lexer_identifier.symbol == L_IDENTIFIER);
+	t_assert(fix.lexer_identifier.symbol == L_META_IDENTIFIER);
 	t_assert(fix.lexer_identifier.index == 0);
 	t_assert(fix.lexer_identifier.length == strlen(I_IDENTIFIER));
 }
@@ -85,7 +85,7 @@ void lexer_input_next__terminal_string_token(){
 
 void lexer_input_next__skip_white_space(){
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == L_IDENTIFIER);
+	t_assert(fix.lexer_rule_one.symbol == L_META_IDENTIFIER);
 	t_assert(fix.lexer_rule_one.index == 0);
 	t_assert(fix.lexer_rule_one.length == 3);
 	lexer_next(&fix.lexer_rule_one);
@@ -96,7 +96,7 @@ void lexer_input_next__skip_white_space(){
 
 void lexer_input_next__whole_rule(){
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == L_IDENTIFIER);
+	t_assert(fix.lexer_rule_one.symbol == L_META_IDENTIFIER);
 	t_assert(fix.lexer_rule_one.index == 0);
 	t_assert(fix.lexer_rule_one.length == 3);
 	lexer_next(&fix.lexer_rule_one);
@@ -139,7 +139,7 @@ void lexer_input_next__whole_rule(){
 
 void lexer_input_next__white_token(){
 	lexer_next(&fix.lexer_white);
-	t_assert(fix.lexer_white.symbol == L_IDENTIFIER);
+	t_assert(fix.lexer_white.symbol == L_META_IDENTIFIER);
 	t_assert(fix.lexer_white.index == 5);
 	t_assert(fix.lexer_white.length == strlen("identifier"));
 }

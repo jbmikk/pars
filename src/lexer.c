@@ -132,7 +132,7 @@ next_token:
 			if(!BETWEEN(c, 'a', 'z') && !BETWEEN(c, 'A', 'Z') && !BETWEEN(c, '0', '9'))
 				break;
 		}
-		token = L_IDENTIFIER;
+		token = L_META_IDENTIFIER;
 	} else if (BETWEEN(c, '0', '9')) {
 		while(1) {
 			NEXT;

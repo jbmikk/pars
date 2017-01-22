@@ -19,11 +19,11 @@ void ebnf_init_fsm(Fsm *fsm)
 
 	fsm_cursor_init(&cur, fsm);
 
-	//Expression
-	fsm_cursor_define(&cur, nzs("expression"));
+	//Syntactic Primary
+	fsm_cursor_define(&cur, nzs("syntactic_primary"));
 	fsm_cursor_group_start(&cur);
 
-	fsm_cursor_terminal(&cur, L_IDENTIFIER);
+	fsm_cursor_terminal(&cur, L_META_IDENTIFIER);
 	fsm_cursor_or(&cur);
 
 	fsm_cursor_terminal(&cur, L_TERMINAL_STRING);
@@ -50,10 +50,10 @@ void ebnf_init_fsm(Fsm *fsm)
 
 	//Single Definition
 	fsm_cursor_define(&cur, nzs("single_definition"));
-	fsm_cursor_nonterminal(&cur,  nzs("expression"));
+	fsm_cursor_nonterminal(&cur,  nzs("syntactic_primary"));
 	fsm_cursor_loop_group_start(&cur);
 	fsm_cursor_terminal(&cur, L_CONCATENATE_SYMBOL);
-	fsm_cursor_nonterminal(&cur,  nzs("expression"));
+	fsm_cursor_nonterminal(&cur,  nzs("syntactic_primary"));
 	fsm_cursor_loop_group_end(&cur);
 	fsm_cursor_end(&cur);
 
@@ -66,9 +66,9 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_loop_group_end(&cur);
 	fsm_cursor_end(&cur);
 
-	//Non Terminal Declaration
-	fsm_cursor_define(&cur, nzs("nonterminal_declaration"));
-	fsm_cursor_terminal(&cur, L_IDENTIFIER);
+	//Syntax Rule
+	fsm_cursor_define(&cur, nzs("syntax_rule"));
+	fsm_cursor_terminal(&cur, L_META_IDENTIFIER);
 	fsm_cursor_terminal(&cur, L_DEFINING_SYMBOL);
 	fsm_cursor_nonterminal(&cur,  nzs("definitions_list"));
 	fsm_cursor_terminal(&cur, L_TERMINATOR_SYMBOL);
@@ -76,9 +76,9 @@ void ebnf_init_fsm(Fsm *fsm)
 
 	//Syntax
 	fsm_cursor_define(&cur, nzs("syntax"));
-	fsm_cursor_nonterminal(&cur,  nzs("nonterminal_declaration"));
+	fsm_cursor_nonterminal(&cur,  nzs("syntax_rule"));
 	fsm_cursor_loop_group_start(&cur);
-	fsm_cursor_nonterminal(&cur,  nzs("nonterminal_declaration"));
+	fsm_cursor_nonterminal(&cur,  nzs("syntax_rule"));
 	fsm_cursor_loop_group_end(&cur);
 	fsm_cursor_end(&cur);
 
@@ -112,7 +112,7 @@ int ebnf_dispose_parser(Parser *parser)
 
 void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur);
 
-void ebnf_build_expression(FsmCursor *f_cur, AstCursor *a_cur)
+void ebnf_build_syntactic_primary(FsmCursor *f_cur, AstCursor *a_cur)
 {
 	AstNode *node = ast_cursor_depth_next(a_cur);
 	unsigned char *string;
@@ -120,7 +120,7 @@ void ebnf_build_expression(FsmCursor *f_cur, AstCursor *a_cur)
 
 	int E_DEFINITIONS_LIST = ast_get_symbol(a_cur, nzs("definitions_list"));
 	switch(node->symbol) {
-	case L_IDENTIFIER:
+	case L_META_IDENTIFIER:
 		ast_cursor_get_string(a_cur, &string, &length);
 		fsm_cursor_nonterminal(f_cur, string, length);
 		break;
@@ -161,13 +161,13 @@ void ebnf_build_expression(FsmCursor *f_cur, AstCursor *a_cur)
 
 void ebnf_build_single_definition(FsmCursor *f_cur, AstCursor *a_cur)
 {
-	int E_EXPRESSION = ast_get_symbol(a_cur, nzs("expression"));
-	ast_cursor_depth_next_symbol(a_cur, E_EXPRESSION);
+	int E_SYNTACTIC_PRIMARY = ast_get_symbol(a_cur, nzs("syntactic_primary"));
+	ast_cursor_depth_next_symbol(a_cur, E_SYNTACTIC_PRIMARY);
 	do {
 		ast_cursor_push(a_cur);
-		ebnf_build_expression(f_cur, a_cur);
+		ebnf_build_syntactic_primary(f_cur, a_cur);
 		ast_cursor_pop(a_cur);
-	} while(ast_cursor_next_sibling_symbol(a_cur, E_EXPRESSION));
+	} while(ast_cursor_next_sibling_symbol(a_cur, E_SYNTACTIC_PRIMARY));
 }
 
 void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur)
@@ -187,7 +187,7 @@ void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur)
 	} while(ast_cursor_next_sibling_symbol(a_cur, E_SINGLE_DEFINITION));
 }
 
-void ebnf_build_nonterminal_declaration(FsmCursor *f_cur, AstCursor *a_cur)
+void ebnf_build_syntax_rule(FsmCursor *f_cur, AstCursor *a_cur)
 {
 	unsigned char *string;
 	int length;
@@ -196,7 +196,7 @@ void ebnf_build_nonterminal_declaration(FsmCursor *f_cur, AstCursor *a_cur)
 	// If the ast is badly formed we could end up reading a different node
 	// than expected. This situations should be handled gracefully
 	// Maybe an error could be thrown or a sentinel could be placed.
-	ast_cursor_depth_next_symbol(a_cur, L_IDENTIFIER);
+	ast_cursor_depth_next_symbol(a_cur, L_META_IDENTIFIER);
 	ast_cursor_get_string(a_cur, &string, &length);
 	fsm_cursor_define(f_cur, string, length);
 
@@ -216,10 +216,10 @@ void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
 	ast_cursor_init(&a_cur, ast);
 	fsm_cursor_init(&f_cur, fsm);
 
-	int E_NONTERMINAL_DECLARATION = ast_get_symbol(&a_cur, nzs("nonterminal_declaration"));
-	while(ast_cursor_depth_next_symbol(&a_cur, E_NONTERMINAL_DECLARATION)) {
+	int E_SYNTAX_RULE = ast_get_symbol(&a_cur, nzs("syntax_rule"));
+	while(ast_cursor_depth_next_symbol(&a_cur, E_SYNTAX_RULE)) {
 		ast_cursor_push(&a_cur);
-		ebnf_build_nonterminal_declaration(&f_cur, &a_cur);
+		ebnf_build_syntax_rule(&f_cur, &a_cur);
 		ast_cursor_pop(&a_cur);
 	}
 
