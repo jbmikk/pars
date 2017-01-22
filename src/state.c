@@ -70,28 +70,6 @@ void state_dispose(State *state)
 	radix_tree_dispose(&state->refs);
 }
 
-Action *state_add(State *state, int symbol, int type, int reduction)
-{
-	Action * action = c_new(Action, 1);
-	action_init(action, type, reduction, NULL);
-
-	//TODO: detect duplicates
-	radix_tree_set_int(&state->actions, symbol, action);
-
-	if(type == ACTION_CONTEXT_SHIFT) {
-		trace("add", state, action, symbol, "context-shift", 0);
-	} else if(type == ACTION_SHIFT) {
-		trace("add", state, action, symbol, "shift", 0);
-	} else if(type == ACTION_REDUCE) {
-		trace("add", state, action, symbol, "reduce", 0);
-	} else if(type == ACTION_ACCEPT) {
-		trace("add", state, action, symbol, "accept", 0);
-	} else {
-		trace("add", state, action, symbol, "action", 0);
-	}
-	return action;
-}
-
 static Action *_state_add_buffer(State *state, unsigned char *buffer, unsigned int size, Action *action)
 {
 	Action *prev = (Action *)radix_tree_try_set(&state->actions, buffer, size, action);
@@ -121,6 +99,33 @@ static Action *_state_add_buffer(State *state, unsigned char *buffer, unsigned i
 		}
 		c_delete(action);
 		action = NULL;
+	}
+	return action;
+}
+
+Action *state_add(State *state, int symbol, int type, int reduction)
+{
+	Action * action = c_new(Action, 1);
+	action_init(action, type, reduction, NULL);
+
+	unsigned char buffer[sizeof(int)];
+	unsigned int size;
+	int_to_padded_array(buffer, symbol);
+
+	action = _state_add_buffer(state, buffer, sizeof(int), action);
+
+	if(action) {
+		if(type == ACTION_CONTEXT_SHIFT) {
+			trace("add", state, action, symbol, "context-shift", 0);
+		} else if(type == ACTION_SHIFT) {
+			trace("add", state, action, symbol, "shift", 0);
+		} else if(type == ACTION_REDUCE) {
+			trace("add", state, action, symbol, "reduce", 0);
+		} else if(type == ACTION_ACCEPT) {
+			trace("add", state, action, symbol, "accept", 0);
+		} else {
+			trace("add", state, action, symbol, "action", 0);
+		}
 	}
 	return action;
 }
