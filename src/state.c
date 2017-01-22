@@ -114,6 +114,21 @@ Action *state_add(State *state, int symbol, int type, int reduction)
 
 	action = _state_add_buffer(state, buffer, sizeof(int), action);
 
+	//TODO: Ambiguos transitions should be handled properly.
+	// There are different types of conflicts that could arise with 
+	// different implications.
+	// SHIFT/SHIFT: they could happen within a nonterminal or when merging
+	// follow sets for other nonterminals. New states should be created
+	// until ambiguity is solved. If the nonterminals are ambiguos until
+	// their end state, then the final state is also duplicated, including
+	// only the reductions belonging to the place of invocation.
+	// REDUCE/REDUCE: for now we don't unify nonterminals with identical
+	// states ahead of time, we only do it when they are invoked at the
+	// same location. If two nonterminals are ambiguos until reaching the
+	// final state and both are invoked at the same location we are going
+	// to generate a whole set of ambiguos states with the same followset,
+	// in this case we are going to have a REDUCE/REDUCE conflict that 
+	// cannot be avoided.
 	if(action) {
 		if(type == ACTION_CONTEXT_SHIFT) {
 			trace("add", state, action, symbol, "context-shift", 0);
