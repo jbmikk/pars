@@ -346,7 +346,7 @@ int _solve_return_references(FsmCursor *cur, Nonterminal *nt) {
 
 	if(!unsolved) {
 		nt->status = NONTERMINAL_CLEAR;
-		nt->end->status &= !STATE_RETURN_REF;
+		nt->end->status &= ~STATE_RETURN_REF;
 		trace_state(
 			"state return refs clear",
 			nt->end,
@@ -399,7 +399,7 @@ int _solve_invoke_references(FsmCursor *cur, State *state) {
 	radix_tree_iterator_dispose(&it);
 
 	if(!unsolved) {
-		state->status &= !STATE_INVOKE_REF;
+		state->status &= ~STATE_INVOKE_REF;
 		trace_state(
 			"state refs clear",
 			state,
