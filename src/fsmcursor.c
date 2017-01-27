@@ -11,8 +11,8 @@
 #ifdef FSM_TRACE
 #define trace_state(M, S, A) \
 	printf( \
-		"%-5s: %-9p %-13s\n", \
-		M, S, A \
+		"%-5s: %-9p(refstat:%i) %-13s\n", \
+		(M), (S), (S)->status, (A) \
 	)
 #define trace_symbol(M, S) \
 	printf("trace: %-5s: %.*s [id:%i]\n", M, (S)->length, (S)->name, (S)->id);
@@ -347,6 +347,11 @@ int _solve_return_references(FsmCursor *cur, Nonterminal *nt) {
 	if(!unsolved) {
 		nt->status = NONTERMINAL_CLEAR;
 		nt->end->status &= !STATE_RETURN_REF;
+		trace_state(
+			"state return refs clear",
+			nt->end,
+			""
+		);
 	}
 
 end:
@@ -395,6 +400,11 @@ int _solve_invoke_references(FsmCursor *cur, State *state) {
 
 	if(!unsolved) {
 		state->status &= !STATE_INVOKE_REF;
+		trace_state(
+			"state refs clear",
+			state,
+			""
+		);
 	}
 
 end:
