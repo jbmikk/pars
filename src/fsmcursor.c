@@ -129,6 +129,7 @@ static void _join_continuation(FsmCursor *cursor)
 		//   Then when the outer group tries to join we already have
 		//   a state in place, and we must merge the states.
 		_add_empty(cursor);
+		trace_state("add", cursor->state, "empty-action");
 	}
 	_append_state(cursor, frame->continuation);
 
@@ -275,6 +276,7 @@ static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
 	State *initial_state = c_new(State, 1);
 	state_init(initial_state);
 	cur->fsm->start = initial_state;
+	trace_state("add", initial_state, "start state");
 
 	state_add_first_set(cur->fsm->start, nt->start, sb);
 
