@@ -195,6 +195,12 @@ void fsm_cursor_option_group_start(FsmCursor *cursor)
 
 void fsm_cursor_option_group_end(FsmCursor *cursor)
 {
+	//TODO: if we join the continuations of multiple nested groups we
+	// the end state of some groups we will have redundant states.
+	// Right now their are connected through empty transitions, but if we
+	// start using references (first sets) we may produce memory leaks.
+	// The end state of the outer group will not be referenced by any 
+	// state, only by the references themselves.
 	_join_continuation(cursor);
 	_pop_frame(cursor);
 }
