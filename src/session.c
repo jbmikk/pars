@@ -4,20 +4,20 @@
 #include <stdio.h>
 
 #ifdef FSM_TRACE
-#define trace(M, T1, T2, S, A, R) \
+#define trace(M, ST, T, S, A, R) \
 	printf( \
 		"%-5s: [%-9p --(%-9p)--> %-9p] %-13s %c %3i (%3i=%2c)\n", \
 		M, \
-		T1? ((Action*)T1)->state: NULL, \
-		T2, \
-		T2? ((Action*)T2)->state: NULL, \
+		ST, \
+		T, \
+		T? ((Action*)T)->state: NULL, \
 		A, \
 		(R != 0)? '>': ' ', \
 		R, \
 		S, (char)S \
 	)
 #else
-#define trace(M, T1, T2, S, A, R)
+#define trace(M, ST, T, S, A, R)
 #endif
 
 void session_init(Session *session, Fsm *fsm)
