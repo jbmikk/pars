@@ -172,13 +172,14 @@ void state_add_first_set(State *state, State* source, Symbol *symbol)
 				 continue;
 			}
 			clone->type = ACTION_CONTEXT_SHIFT;
+			trace("add", state, action, array_to_int(it.key, it.size), "context-shift", 0);
 		} else {
 			// It could happen when merging loops in final states
 			// that action->type == ACTION_REDUCE
 			clone->type = action->type;
+			trace("add", state, action, array_to_int(it.key, it.size), "first-set", 0);
 		}
 		_state_add_buffer(state, it.key, it.size, clone);
-		trace("add", state, action, array_to_int(it.key, it.size), "first", 0);
 	}
 	radix_tree_iterator_dispose(&it);
 }
