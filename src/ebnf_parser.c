@@ -48,12 +48,26 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_group_end(&cur);
 	fsm_cursor_end(&cur);
 
+	//Syntactic Exception
+	fsm_cursor_define(&cur, nzs("syntactic_exception"));
+	fsm_cursor_nonterminal(&cur,  nzs("syntactic_primary"));
+	fsm_cursor_end(&cur);
+
+	//Syntactic Term
+	fsm_cursor_define(&cur, nzs("syntactic_term"));
+	fsm_cursor_nonterminal(&cur,  nzs("syntactic_primary"));
+	fsm_cursor_option_group_start(&cur);
+	fsm_cursor_terminal(&cur, L_EXCEPT_SYMBOL);
+	fsm_cursor_nonterminal(&cur,  nzs("syntactic_exception"));
+	fsm_cursor_option_group_end(&cur);
+	fsm_cursor_end(&cur);
+
 	//Single Definition
 	fsm_cursor_define(&cur, nzs("single_definition"));
-	fsm_cursor_nonterminal(&cur,  nzs("syntactic_primary"));
+	fsm_cursor_nonterminal(&cur,  nzs("syntactic_term"));
 	fsm_cursor_loop_group_start(&cur);
 	fsm_cursor_terminal(&cur, L_CONCATENATE_SYMBOL);
-	fsm_cursor_nonterminal(&cur,  nzs("syntactic_primary"));
+	fsm_cursor_nonterminal(&cur,  nzs("syntactic_term"));
 	fsm_cursor_loop_group_end(&cur);
 	fsm_cursor_end(&cur);
 
@@ -159,15 +173,29 @@ void ebnf_build_syntactic_primary(FsmCursor *f_cur, AstCursor *a_cur)
 	}
 }
 
-void ebnf_build_single_definition(FsmCursor *f_cur, AstCursor *a_cur)
+void ebnf_build_syntactic_term(FsmCursor *f_cur, AstCursor *a_cur)
 {
 	int E_SYNTACTIC_PRIMARY = ast_get_symbol(a_cur, nzs("syntactic_primary"));
+	int E_SYNTACTIC_EXCEPTION = ast_get_symbol(a_cur, nzs("syntactic_exception"));
+
 	ast_cursor_depth_next_symbol(a_cur, E_SYNTACTIC_PRIMARY);
+	ast_cursor_push(a_cur);
+	ebnf_build_syntactic_primary(f_cur, a_cur);
+	ast_cursor_pop(a_cur);
+	if(ast_cursor_next_sibling_symbol(a_cur, E_SYNTACTIC_EXCEPTION)) {
+		log_warn("Syntactic exceptions are not supported");
+	}
+}
+
+void ebnf_build_single_definition(FsmCursor *f_cur, AstCursor *a_cur)
+{
+	int E_SYNTACTIC_TERM = ast_get_symbol(a_cur, nzs("syntactic_term"));
+	ast_cursor_depth_next_symbol(a_cur, E_SYNTACTIC_TERM);
 	do {
 		ast_cursor_push(a_cur);
-		ebnf_build_syntactic_primary(f_cur, a_cur);
+		ebnf_build_syntactic_term(f_cur, a_cur);
 		ast_cursor_pop(a_cur);
-	} while(ast_cursor_next_sibling_symbol(a_cur, E_SYNTACTIC_PRIMARY));
+	} while(ast_cursor_next_sibling_symbol(a_cur, E_SYNTACTIC_TERM));
 }
 
 void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur)

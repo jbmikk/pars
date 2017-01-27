@@ -1,0 +1,6 @@
+(*
+ * Simple grammar used to test exceptions, which are not yet implemented, we
+ * are only testing the syntax.
+ *)
+abc = 'A' | 'B' | 'C';
+ac = abc - 'B';

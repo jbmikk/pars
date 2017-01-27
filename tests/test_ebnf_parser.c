@@ -169,6 +169,38 @@ void ebnf_start_parsing__separator(){
 	fsm_cursor_dispose(&cur);
 }
 
+void ebnf_start_parsing__syntactic_term(){
+	FsmCursor cur;
+
+	fsm_cursor_init(&cur, &fix.fsm);
+	fsm_cursor_define(&cur, nzs("syntactic_term"));
+	fsm_cursor_done(&cur, '\0');
+
+	Action *action;
+	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
+
+	Session session;
+	session_init(&session, &fix.fsm);
+	MATCH(session, L_TERMINAL_STRING);
+
+	action = TEST(session, L_TERMINATOR_SYMBOL);
+	t_assert(action->type == ACTION_REDUCE);
+	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
+
+	MATCH(session, L_EXCEPT_SYMBOL);
+	MATCH(session, L_TERMINAL_STRING);
+
+	action = TEST(session, L_TERMINATOR_SYMBOL);
+	t_assert(action->type == ACTION_REDUCE);
+	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
+
+	MATCH(session, L_TERMINATOR_SYMBOL);
+	t_assert(session.last_action->type == ACTION_ACCEPT);
+
+	session_dispose(&session);
+	fsm_cursor_dispose(&cur);
+}
+
 void ebnf_start_parsing__syntax_rule(){
 	FsmCursor cur;
 
@@ -259,6 +291,7 @@ int main(int argc, char** argv){
 	t_test(ebnf_start_parsing__terminal);
 	t_test(ebnf_start_parsing__concatenate);
 	t_test(ebnf_start_parsing__separator);
+	t_test(ebnf_start_parsing__syntactic_term);
 	t_test(ebnf_start_parsing__syntax_rule);
 	t_test(ebnf_start_parsing__group);
 	t_test(ebnf_start_parsing__syntax);
