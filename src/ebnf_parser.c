@@ -48,14 +48,23 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_group_end(&cur);
 	fsm_cursor_end(&cur);
 
+	//Syntactic Factor
+	fsm_cursor_define(&cur, nzs("syntactic_factor"));
+	fsm_cursor_option_group_start(&cur);
+	fsm_cursor_terminal(&cur, L_INTEGER);
+	fsm_cursor_terminal(&cur, L_REPETITION_SYMBOL);
+	fsm_cursor_option_group_end(&cur);
+	fsm_cursor_nonterminal(&cur,  nzs("syntactic_primary"));
+	fsm_cursor_end(&cur);
+
 	//Syntactic Exception
 	fsm_cursor_define(&cur, nzs("syntactic_exception"));
-	fsm_cursor_nonterminal(&cur,  nzs("syntactic_primary"));
+	fsm_cursor_nonterminal(&cur,  nzs("syntactic_factor"));
 	fsm_cursor_end(&cur);
 
 	//Syntactic Term
 	fsm_cursor_define(&cur, nzs("syntactic_term"));
-	fsm_cursor_nonterminal(&cur,  nzs("syntactic_primary"));
+	fsm_cursor_nonterminal(&cur,  nzs("syntactic_factor"));
 	fsm_cursor_option_group_start(&cur);
 	fsm_cursor_terminal(&cur, L_EXCEPT_SYMBOL);
 	fsm_cursor_nonterminal(&cur,  nzs("syntactic_exception"));
@@ -173,14 +182,30 @@ void ebnf_build_syntactic_primary(FsmCursor *f_cur, AstCursor *a_cur)
 	}
 }
 
-void ebnf_build_syntactic_term(FsmCursor *f_cur, AstCursor *a_cur)
+void ebnf_build_syntactic_factor(FsmCursor *f_cur, AstCursor *a_cur)
 {
 	int E_SYNTACTIC_PRIMARY = ast_get_symbol(a_cur, nzs("syntactic_primary"));
-	int E_SYNTACTIC_EXCEPTION = ast_get_symbol(a_cur, nzs("syntactic_exception"));
+
+	/*
+	 * TODO: Can't use depth_next methods to probe optional children.
+	 * It may jump to its grandchildren.
+	if(ast_cursor_depth_next_symbol(a_cur, L_INTEGER)) {
+		log_warn("Syntactic factors are not supported");
+	}
+	*/
 
 	ast_cursor_depth_next_symbol(a_cur, E_SYNTACTIC_PRIMARY);
-	ast_cursor_push(a_cur);
 	ebnf_build_syntactic_primary(f_cur, a_cur);
+}
+
+void ebnf_build_syntactic_term(FsmCursor *f_cur, AstCursor *a_cur)
+{
+	int E_SYNTACTIC_FACTOR = ast_get_symbol(a_cur, nzs("syntactic_factor"));
+	int E_SYNTACTIC_EXCEPTION = ast_get_symbol(a_cur, nzs("syntactic_exception"));
+
+	ast_cursor_depth_next_symbol(a_cur, E_SYNTACTIC_FACTOR);
+	ast_cursor_push(a_cur);
+	ebnf_build_syntactic_factor(f_cur, a_cur);
 	ast_cursor_pop(a_cur);
 	if(ast_cursor_next_sibling_symbol(a_cur, E_SYNTACTIC_EXCEPTION)) {
 		log_warn("Syntactic exceptions are not supported");

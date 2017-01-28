@@ -1,0 +1,4 @@
+(*
+ * Simple grammar used to test factors
+ *)
+factor = 3 * 'C';
