@@ -54,21 +54,21 @@ void ebnf_start_parsing__identifier(){
 
 	Session session;
 	session_init(&session, &fix.fsm);
-	MATCH(session, L_META_IDENTIFIER);
+	MATCH(session, E_META_IDENTIFIER);
 
-	action = TEST(session, L_CONCATENATE_SYMBOL);
+	action = TEST(session, E_CONCATENATE_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
-	action = TEST(session, L_DEFINITION_SEPARATOR_SYMBOL);
+	action = TEST(session, E_DEFINITION_SEPARATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
-	action = TEST(session, L_TERMINATOR_SYMBOL);
+	action = TEST(session, E_TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
-	MATCH(session, L_TERMINATOR_SYMBOL);
+	MATCH(session, E_TERMINATOR_SYMBOL);
 	t_assert(session.last_action->type != ACTION_ERROR);
 	session_dispose(&session);
 
@@ -88,21 +88,21 @@ void ebnf_start_parsing__terminal(){
 
 	Session session;
 	session_init(&session, &fix.fsm);
-	MATCH(session, L_TERMINAL_STRING);
+	MATCH(session, E_TERMINAL_STRING);
 
-	action = TEST(session, L_CONCATENATE_SYMBOL);
+	action = TEST(session, E_CONCATENATE_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
-	action = TEST(session, L_DEFINITION_SEPARATOR_SYMBOL);
+	action = TEST(session, E_DEFINITION_SEPARATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
-	action = TEST(session, L_TERMINATOR_SYMBOL);
+	action = TEST(session, E_TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
-	MATCH(session, L_TERMINATOR_SYMBOL);
+	MATCH(session, E_TERMINATOR_SYMBOL);
 	t_assert(session.last_action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
@@ -122,19 +122,19 @@ void ebnf_start_parsing__concatenate(){
 
 	Session session;
 	session_init(&session, &fix.fsm);
-	MATCH(session, L_META_IDENTIFIER);
-	MATCH(session, L_CONCATENATE_SYMBOL);
-	MATCH(session, L_TERMINAL_STRING);
+	MATCH(session, E_META_IDENTIFIER);
+	MATCH(session, E_CONCATENATE_SYMBOL);
+	MATCH(session, E_TERMINAL_STRING);
 
-	action = TEST(session, L_DEFINITION_SEPARATOR_SYMBOL);
+	action = TEST(session, E_DEFINITION_SEPARATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
-	action = TEST(session, L_TERMINATOR_SYMBOL);
+	action = TEST(session, E_TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
-	MATCH(session, L_DEFINITION_SEPARATOR_SYMBOL);
+	MATCH(session, E_DEFINITION_SEPARATOR_SYMBOL);
 	t_assert(session.last_action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
@@ -154,15 +154,15 @@ void ebnf_start_parsing__separator(){
 
 	Session session;
 	session_init(&session, &fix.fsm);
-	MATCH(session, L_META_IDENTIFIER);
-	MATCH(session, L_DEFINITION_SEPARATOR_SYMBOL);
-	MATCH(session, L_TERMINAL_STRING);
+	MATCH(session, E_META_IDENTIFIER);
+	MATCH(session, E_DEFINITION_SEPARATOR_SYMBOL);
+	MATCH(session, E_TERMINAL_STRING);
 
-	action = TEST(session, L_TERMINATOR_SYMBOL);
+	action = TEST(session, E_TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
-	MATCH(session, L_TERMINATOR_SYMBOL);
+	MATCH(session, E_TERMINATOR_SYMBOL);
 	t_assert(session.last_action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
@@ -181,20 +181,20 @@ void ebnf_start_parsing__syntactic_term(){
 
 	Session session;
 	session_init(&session, &fix.fsm);
-	MATCH(session, L_TERMINAL_STRING);
+	MATCH(session, E_TERMINAL_STRING);
 
-	action = TEST(session, L_TERMINATOR_SYMBOL);
+	action = TEST(session, E_TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
-	MATCH(session, L_EXCEPT_SYMBOL);
-	MATCH(session, L_TERMINAL_STRING);
+	MATCH(session, E_EXCEPT_SYMBOL);
+	MATCH(session, E_TERMINAL_STRING);
 
-	action = TEST(session, L_TERMINATOR_SYMBOL);
+	action = TEST(session, E_TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
-	MATCH(session, L_TERMINATOR_SYMBOL);
+	MATCH(session, E_TERMINATOR_SYMBOL);
 	t_assert(session.last_action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
@@ -214,12 +214,12 @@ void ebnf_start_parsing__syntax_rule(){
 
 	Session session;
 	session_init(&session, &fix.fsm);
-	MATCH(session, L_META_IDENTIFIER);
-	MATCH(session, L_DEFINING_SYMBOL);
-	MATCH(session, L_TERMINAL_STRING);
-	MATCH(session, L_DEFINITION_SEPARATOR_SYMBOL);
-	MATCH(session, L_META_IDENTIFIER);
-	MATCH(session, L_TERMINATOR_SYMBOL);
+	MATCH(session, E_META_IDENTIFIER);
+	MATCH(session, E_DEFINING_SYMBOL);
+	MATCH(session, E_TERMINAL_STRING);
+	MATCH(session, E_DEFINITION_SEPARATOR_SYMBOL);
+	MATCH(session, E_META_IDENTIFIER);
+	MATCH(session, E_TERMINATOR_SYMBOL);
 
 	action = TEST(session, L_EOF);
 	t_assert(action->type == ACTION_REDUCE);
@@ -245,15 +245,15 @@ void ebnf_start_parsing__group(){
 
 	Session session;
 	session_init(&session, &fix.fsm);
-	MATCH(session, L_START_GROUP_SYMBOL);
-	MATCH(session, L_TERMINAL_STRING);
-	MATCH(session, L_END_GROUP_SYMBOL);
+	MATCH(session, E_START_GROUP_SYMBOL);
+	MATCH(session, E_TERMINAL_STRING);
+	MATCH(session, E_END_GROUP_SYMBOL);
 
-	action = TEST(session, L_TERMINATOR_SYMBOL);
+	action = TEST(session, E_TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == E_SYNTACTIC_PRIMARY);
 
-	MATCH(session, L_TERMINATOR_SYMBOL);
+	MATCH(session, E_TERMINATOR_SYMBOL);
 	t_assert(session.last_action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
@@ -266,14 +266,14 @@ void ebnf_start_parsing__syntax(){
 	int E_SYNTAX_RULE = fsm_get_symbol(&fix.fsm, nzs("syntax_rule"));
 	Session session;
 	session_init(&session, &fix.fsm);
-	MATCH(session, L_META_IDENTIFIER);
-	MATCH(session, L_DEFINING_SYMBOL);
-	MATCH(session, L_TERMINAL_STRING);
-	MATCH(session, L_TERMINATOR_SYMBOL);
-	MATCH(session, L_META_IDENTIFIER);
-	MATCH(session, L_DEFINING_SYMBOL);
-	MATCH(session, L_META_IDENTIFIER);
-	MATCH(session, L_TERMINATOR_SYMBOL);
+	MATCH(session, E_META_IDENTIFIER);
+	MATCH(session, E_DEFINING_SYMBOL);
+	MATCH(session, E_TERMINAL_STRING);
+	MATCH(session, E_TERMINATOR_SYMBOL);
+	MATCH(session, E_META_IDENTIFIER);
+	MATCH(session, E_DEFINING_SYMBOL);
+	MATCH(session, E_META_IDENTIFIER);
+	MATCH(session, E_TERMINATOR_SYMBOL);
 
 	action = TEST(session, L_EOF);
 	t_assert(action->type == ACTION_REDUCE);

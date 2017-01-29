@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "lexer.h"
+#include "ebnf_lexer.h"
 #include "test.h"
 
 typedef struct {
@@ -64,71 +65,71 @@ void t_teardown(){
 
 void lexer_input_next__integer_token(){
 	lexer_next(&fix.lexer_integer);
-	t_assert(fix.lexer_integer.symbol == L_INTEGER);
+	t_assert(fix.lexer_integer.symbol == E_INTEGER);
 	t_assert(fix.lexer_integer.index == 0);
 	t_assert(fix.lexer_integer.length == strlen(I_INTEGER));
 }
 
 void lexer_input_next__identifier_token(){
 	lexer_next(&fix.lexer_identifier);
-	t_assert(fix.lexer_identifier.symbol == L_META_IDENTIFIER);
+	t_assert(fix.lexer_identifier.symbol == E_META_IDENTIFIER);
 	t_assert(fix.lexer_identifier.index == 0);
 	t_assert(fix.lexer_identifier.length == strlen(I_IDENTIFIER));
 }
 
 void lexer_input_next__terminal_string_token(){
 	lexer_next(&fix.lexer_terminal_string);
-	t_assert(fix.lexer_terminal_string.symbol == L_TERMINAL_STRING);
+	t_assert(fix.lexer_terminal_string.symbol == E_TERMINAL_STRING);
 	t_assert(fix.lexer_terminal_string.index == 0);
 	t_assert(fix.lexer_terminal_string.length == strlen(I_TERMINAL_STRING));
 }
 
 void lexer_input_next__skip_white_space(){
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == L_META_IDENTIFIER);
+	t_assert(fix.lexer_rule_one.symbol == E_META_IDENTIFIER);
 	t_assert(fix.lexer_rule_one.index == 0);
 	t_assert(fix.lexer_rule_one.length == 3);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == L_DEFINING_SYMBOL);
+	t_assert(fix.lexer_rule_one.symbol == E_DEFINING_SYMBOL);
 	t_assert(fix.lexer_rule_one.index == 4);
 	t_assert(fix.lexer_rule_one.length == 1);
 }
 
 void lexer_input_next__whole_rule(){
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == L_META_IDENTIFIER);
+	t_assert(fix.lexer_rule_one.symbol == E_META_IDENTIFIER);
 	t_assert(fix.lexer_rule_one.index == 0);
 	t_assert(fix.lexer_rule_one.length == 3);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == L_DEFINING_SYMBOL);
+	t_assert(fix.lexer_rule_one.symbol == E_DEFINING_SYMBOL);
 	t_assert(fix.lexer_rule_one.index == 4);
 	t_assert(fix.lexer_rule_one.length == 1);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == L_TERMINAL_STRING);
+	t_assert(fix.lexer_rule_one.symbol == E_TERMINAL_STRING);
 	t_assert(fix.lexer_rule_one.index == 6);
 	t_assert(fix.lexer_rule_one.length == 3);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == L_CONCATENATE_SYMBOL);
+	t_assert(fix.lexer_rule_one.symbol == E_CONCATENATE_SYMBOL);
 	t_assert(fix.lexer_rule_one.index == 9);
 	t_assert(fix.lexer_rule_one.length == 1);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == L_START_GROUP_SYMBOL);
+	t_assert(fix.lexer_rule_one.symbol == E_START_GROUP_SYMBOL);
 	t_assert(fix.lexer_rule_one.index == 10);
 	t_assert(fix.lexer_rule_one.length == 1);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == L_TERMINAL_STRING);
+	t_assert(fix.lexer_rule_one.symbol == E_TERMINAL_STRING);
 	t_assert(fix.lexer_rule_one.index == 11);
 	t_assert(fix.lexer_rule_one.length == 3);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == L_DEFINITION_SEPARATOR_SYMBOL);
+	t_assert(fix.lexer_rule_one.symbol == E_DEFINITION_SEPARATOR_SYMBOL);
 	t_assert(fix.lexer_rule_one.index == 14);
 	t_assert(fix.lexer_rule_one.length == 1);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == L_TERMINAL_STRING);
+	t_assert(fix.lexer_rule_one.symbol == E_TERMINAL_STRING);
 	t_assert(fix.lexer_rule_one.index == 15);
 	t_assert(fix.lexer_rule_one.length == 3);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == L_END_GROUP_SYMBOL);
+	t_assert(fix.lexer_rule_one.symbol == E_END_GROUP_SYMBOL);
 	t_assert(fix.lexer_rule_one.index == 18);
 	t_assert(fix.lexer_rule_one.length == 1);
 	lexer_next(&fix.lexer_rule_one);
@@ -139,7 +140,7 @@ void lexer_input_next__whole_rule(){
 
 void lexer_input_next__white_token(){
 	lexer_next(&fix.lexer_white);
-	t_assert(fix.lexer_white.symbol == L_META_IDENTIFIER);
+	t_assert(fix.lexer_white.symbol == E_META_IDENTIFIER);
 	t_assert(fix.lexer_white.index == 5);
 	t_assert(fix.lexer_white.length == strlen("identifier"));
 }

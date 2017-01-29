@@ -2,10 +2,12 @@
 #define EBNF_PARSER_H
 
 #include "lexer.h"
+#include "ebnf_lexer.h"
 #include "fsm.h"
 #include "fsmcursor.h"
 #include "ast.h"
 #include "parser.h"
+
 
 void ebnf_init_fsm(Fsm *fsm);
 int ebnf_fsm_ast_handler(int type, void *target, void *args);

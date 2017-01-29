@@ -23,36 +23,36 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_define(&cur, nzs("syntactic_primary"));
 	fsm_cursor_group_start(&cur);
 
-	fsm_cursor_terminal(&cur, L_META_IDENTIFIER);
+	fsm_cursor_terminal(&cur, E_META_IDENTIFIER);
 	fsm_cursor_or(&cur);
 
-	fsm_cursor_terminal(&cur, L_TERMINAL_STRING);
+	fsm_cursor_terminal(&cur, E_TERMINAL_STRING);
 	fsm_cursor_or(&cur);
 
-	fsm_cursor_terminal(&cur, L_SPECIAL_SEQUENCE);
+	fsm_cursor_terminal(&cur, E_SPECIAL_SEQUENCE);
 	fsm_cursor_or(&cur);
 
-	fsm_cursor_terminal(&cur, L_START_GROUP_SYMBOL);
+	fsm_cursor_terminal(&cur, E_START_GROUP_SYMBOL);
 	fsm_cursor_nonterminal(&cur,  nzs("definitions_list"));
-	fsm_cursor_terminal(&cur, L_END_GROUP_SYMBOL);
+	fsm_cursor_terminal(&cur, E_END_GROUP_SYMBOL);
 	fsm_cursor_or(&cur);
 
-	fsm_cursor_terminal(&cur, L_START_OPTION_SYMBOL);
+	fsm_cursor_terminal(&cur, E_START_OPTION_SYMBOL);
 	fsm_cursor_nonterminal(&cur,  nzs("definitions_list"));
-	fsm_cursor_terminal(&cur, L_END_OPTION_SYMBOL);
+	fsm_cursor_terminal(&cur, E_END_OPTION_SYMBOL);
 	fsm_cursor_or(&cur);
 
-	fsm_cursor_terminal(&cur, L_START_REPETITION_SYMBOL);
+	fsm_cursor_terminal(&cur, E_START_REPETITION_SYMBOL);
 	fsm_cursor_nonterminal(&cur,  nzs("definitions_list"));
-	fsm_cursor_terminal(&cur, L_END_REPETITION_SYMBOL);
+	fsm_cursor_terminal(&cur, E_END_REPETITION_SYMBOL);
 	fsm_cursor_group_end(&cur);
 	fsm_cursor_end(&cur);
 
 	//Syntactic Factor
 	fsm_cursor_define(&cur, nzs("syntactic_factor"));
 	fsm_cursor_option_group_start(&cur);
-	fsm_cursor_terminal(&cur, L_INTEGER);
-	fsm_cursor_terminal(&cur, L_REPETITION_SYMBOL);
+	fsm_cursor_terminal(&cur, E_INTEGER);
+	fsm_cursor_terminal(&cur, E_REPETITION_SYMBOL);
 	fsm_cursor_option_group_end(&cur);
 	fsm_cursor_nonterminal(&cur,  nzs("syntactic_primary"));
 	fsm_cursor_end(&cur);
@@ -66,7 +66,7 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_define(&cur, nzs("syntactic_term"));
 	fsm_cursor_nonterminal(&cur,  nzs("syntactic_factor"));
 	fsm_cursor_option_group_start(&cur);
-	fsm_cursor_terminal(&cur, L_EXCEPT_SYMBOL);
+	fsm_cursor_terminal(&cur, E_EXCEPT_SYMBOL);
 	fsm_cursor_nonterminal(&cur,  nzs("syntactic_exception"));
 	fsm_cursor_option_group_end(&cur);
 	fsm_cursor_end(&cur);
@@ -75,7 +75,7 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_define(&cur, nzs("single_definition"));
 	fsm_cursor_nonterminal(&cur,  nzs("syntactic_term"));
 	fsm_cursor_loop_group_start(&cur);
-	fsm_cursor_terminal(&cur, L_CONCATENATE_SYMBOL);
+	fsm_cursor_terminal(&cur, E_CONCATENATE_SYMBOL);
 	fsm_cursor_nonterminal(&cur,  nzs("syntactic_term"));
 	fsm_cursor_loop_group_end(&cur);
 	fsm_cursor_end(&cur);
@@ -84,17 +84,17 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_define(&cur, nzs("definitions_list"));
 	fsm_cursor_nonterminal(&cur,  nzs("single_definition"));
 	fsm_cursor_loop_group_start(&cur);
-	fsm_cursor_terminal(&cur, L_DEFINITION_SEPARATOR_SYMBOL);
+	fsm_cursor_terminal(&cur, E_DEFINITION_SEPARATOR_SYMBOL);
 	fsm_cursor_nonterminal(&cur,  nzs("single_definition"));
 	fsm_cursor_loop_group_end(&cur);
 	fsm_cursor_end(&cur);
 
 	//Syntax Rule
 	fsm_cursor_define(&cur, nzs("syntax_rule"));
-	fsm_cursor_terminal(&cur, L_META_IDENTIFIER);
-	fsm_cursor_terminal(&cur, L_DEFINING_SYMBOL);
+	fsm_cursor_terminal(&cur, E_META_IDENTIFIER);
+	fsm_cursor_terminal(&cur, E_DEFINING_SYMBOL);
 	fsm_cursor_nonterminal(&cur,  nzs("definitions_list"));
-	fsm_cursor_terminal(&cur, L_TERMINATOR_SYMBOL);
+	fsm_cursor_terminal(&cur, E_TERMINATOR_SYMBOL);
 	fsm_cursor_end(&cur);
 
 	//Syntax
@@ -143,18 +143,18 @@ void ebnf_build_syntactic_primary(FsmCursor *f_cur, AstCursor *a_cur)
 
 	int E_DEFINITIONS_LIST = ast_get_symbol(a_cur, nzs("definitions_list"));
 	switch(node->symbol) {
-	case L_META_IDENTIFIER:
+	case E_META_IDENTIFIER:
 		ast_cursor_get_string(a_cur, &string, &length);
 		fsm_cursor_nonterminal(f_cur, string, length);
 		break;
-	case L_TERMINAL_STRING:
+	case E_TERMINAL_STRING:
 		ast_cursor_get_string(a_cur, &string, &length);
 		for(i = 1; i < length-1; i++) {
 			//TODO: literal strings should be tokenized into simbols (utf8)
 			fsm_cursor_terminal(f_cur, string[i]);
 		}
 		break;
-	case L_SPECIAL_SEQUENCE:
+	case E_SPECIAL_SEQUENCE:
 		//TODO: define special sequences behaviour
 		log_warn("Special sequence is not defined");
 		break;
@@ -189,7 +189,7 @@ void ebnf_build_syntactic_factor(FsmCursor *f_cur, AstCursor *a_cur)
 	/*
 	 * TODO: Can't use depth_next methods to probe optional children.
 	 * It may jump to its grandchildren.
-	if(ast_cursor_depth_next_symbol(a_cur, L_INTEGER)) {
+	if(ast_cursor_depth_next_symbol(a_cur, E_INTEGER)) {
 		log_warn("Syntactic factors are not supported");
 	}
 	*/
@@ -249,7 +249,7 @@ void ebnf_build_syntax_rule(FsmCursor *f_cur, AstCursor *a_cur)
 	// If the ast is badly formed we could end up reading a different node
 	// than expected. This situations should be handled gracefully
 	// Maybe an error could be thrown or a sentinel could be placed.
-	ast_cursor_depth_next_symbol(a_cur, L_META_IDENTIFIER);
+	ast_cursor_depth_next_symbol(a_cur, E_META_IDENTIFIER);
 	ast_cursor_get_string(a_cur, &string, &length);
 	fsm_cursor_define(f_cur, string, length);
 
