@@ -3,9 +3,9 @@
 void lexer_init(Lexer *lexer, Input *input, void (*handler)(Lexer *lexer))
 {
 	lexer->input = input;
-	lexer->index = 0;
-	lexer->length = 0;
-	lexer->symbol = 0;
+	lexer->token.index = 0;
+	lexer->token.length = 0;
+	lexer->token.symbol = 0;
 	lexer->handler = handler;
 }
 
@@ -17,6 +17,7 @@ void lexer_next(Lexer *lexer)
 void identity_lexer(Lexer *lexer)
 {
 	int token;
+	unsigned int index;
 	unsigned char c;
 
 #define CURRENT (lexer->input->buffer[lexer->input->buffer_index])
@@ -24,7 +25,7 @@ void identity_lexer(Lexer *lexer)
 #define END(V) (lexer->input->buffer_index >= lexer->input->buffer_size-V)
 
 next_token:
-	lexer->index = lexer->input->buffer_index;
+	index = lexer->input->buffer_index;
 
 	if (END(0)) {
 		token = L_EOF;
@@ -36,13 +37,15 @@ next_token:
 	token = c;
 	NEXT;
 eof:
-	lexer->symbol = token;
-	lexer->length = lexer->input->buffer_index - lexer->index;
+	lexer->token.symbol = token;
+	lexer->token.index = index;
+	lexer->token.length = lexer->input->buffer_index - index;
 }
 
 void utf8_lexer(Lexer *lexer)
 {
 	int token;
+	unsigned int index;
 	unsigned char c;
 
 #define CURRENT (lexer->input->buffer[lexer->input->buffer_index])
@@ -50,7 +53,7 @@ void utf8_lexer(Lexer *lexer)
 #define END(V) (lexer->input->buffer_index >= lexer->input->buffer_size-V)
 
 next_token:
-	lexer->index = lexer->input->buffer_index;
+	index = lexer->input->buffer_index;
 
 	if (END(0)) {
 		token = L_EOF;
@@ -85,7 +88,8 @@ next_token:
 		}
 	}
 eof:
-	lexer->symbol = token;
-	lexer->length = lexer->input->buffer_index - lexer->index;
+	lexer->token.symbol = token;
+	lexer->token.index = index;
+	lexer->token.length = lexer->input->buffer_index - index;
 }
 

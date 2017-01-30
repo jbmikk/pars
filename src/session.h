@@ -2,6 +2,7 @@
 #define SESSION_H
 
 #include "fsm.h"
+#include "lexer.h"
 
 #define SESSION_OK 0
 #define SESSION_ERROR 1
@@ -41,7 +42,7 @@ Session *session_set_handler(Session *session, FsmHandler handler, void *target)
 void session_push(Session *session);
 void session_pop(Session *session);
 
-void session_match(Session *session, int symbol, unsigned int index, unsigned int length);
-Action *session_test(Session *session, int symbol, unsigned int index, unsigned int length);
+void session_match(Session *session, Token *token);
+Action *session_test(Session *session, Token *token);
 
 #endif //SESSION_H

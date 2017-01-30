@@ -7,19 +7,13 @@
 #include "fsmcursor.h"
 #include "test.h"
 
-#define MATCH(S, Y) session_match(&(S), Y, 0, 0);
-#define MATCH_AT(S, Y, I) session_match(&(S), Y, I, 0);
+#define MATCH(S, Y) session_match(&(S), &(struct _Token){ 0, 0, (Y)});
+#define MATCH_AT(S, Y, I) session_match(&(S), &(struct _Token){ (I), 0, (Y)});
 
 typedef struct {
 	SymbolTable table;
 	Fsm fsm;
 } Fixture;
-
-typedef struct {
-	int symbol;
-	unsigned int index;
-	unsigned int length;
-} Token;
 
 Token token;
 Fixture fix;

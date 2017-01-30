@@ -8,10 +8,14 @@ typedef enum {
 	L_EOF = 0
 } LToken;
 
-typedef struct _Lexer {
+typedef struct _Token {
 	unsigned int index;
 	unsigned int length;
 	int symbol;
+} Token;
+
+typedef struct _Lexer {
+	Token token;
 	Input *input;
 	void (*handler)(struct _Lexer *lexer);
 } Lexer;

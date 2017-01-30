@@ -17,11 +17,11 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 
 	while (!input->eof) {
 		lexer_next(lexer);
-		session_match(&session, lexer->symbol, lexer->index, lexer->length);
+		session_match(&session, &lexer->token);
 		check(
 			session.status != SESSION_ERROR,
 			"Error parsing grammar at index: %i with symbol: %i, length: %i",
-			session.index, lexer->symbol, lexer->length
+			session.index, lexer->token.symbol, lexer->token.length
 		);
 	}
 

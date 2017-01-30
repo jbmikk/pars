@@ -5,8 +5,8 @@
 #include "ebnf_parser.h"
 #include "test.h"
 
-#define MATCH(S, I) session_match(&(S), I, 0, 0);
-#define TEST(S, I) session_test(&(S), I, 0, 0);
+#define MATCH(S, Y) session_match(&(S), &(struct _Token){ 0, 0, (Y)});
+#define TEST(S, Y) session_test(&(S), &(struct _Token){ 0, 0, (Y)});
 
 typedef struct {
 	SymbolTable table;

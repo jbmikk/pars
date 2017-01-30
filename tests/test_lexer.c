@@ -65,98 +65,98 @@ void t_teardown(){
 
 void lexer_input_next__integer_token(){
 	lexer_next(&fix.lexer_integer);
-	t_assert(fix.lexer_integer.symbol == E_INTEGER);
-	t_assert(fix.lexer_integer.index == 0);
-	t_assert(fix.lexer_integer.length == strlen(I_INTEGER));
+	t_assert(fix.lexer_integer.token.symbol == E_INTEGER);
+	t_assert(fix.lexer_integer.token.index == 0);
+	t_assert(fix.lexer_integer.token.length == strlen(I_INTEGER));
 }
 
 void lexer_input_next__identifier_token(){
 	lexer_next(&fix.lexer_identifier);
-	t_assert(fix.lexer_identifier.symbol == E_META_IDENTIFIER);
-	t_assert(fix.lexer_identifier.index == 0);
-	t_assert(fix.lexer_identifier.length == strlen(I_IDENTIFIER));
+	t_assert(fix.lexer_identifier.token.symbol == E_META_IDENTIFIER);
+	t_assert(fix.lexer_identifier.token.index == 0);
+	t_assert(fix.lexer_identifier.token.length == strlen(I_IDENTIFIER));
 }
 
 void lexer_input_next__terminal_string_token(){
 	lexer_next(&fix.lexer_terminal_string);
-	t_assert(fix.lexer_terminal_string.symbol == E_TERMINAL_STRING);
-	t_assert(fix.lexer_terminal_string.index == 0);
-	t_assert(fix.lexer_terminal_string.length == strlen(I_TERMINAL_STRING));
+	t_assert(fix.lexer_terminal_string.token.symbol == E_TERMINAL_STRING);
+	t_assert(fix.lexer_terminal_string.token.index == 0);
+	t_assert(fix.lexer_terminal_string.token.length == strlen(I_TERMINAL_STRING));
 }
 
 void lexer_input_next__skip_white_space(){
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == E_META_IDENTIFIER);
-	t_assert(fix.lexer_rule_one.index == 0);
-	t_assert(fix.lexer_rule_one.length == 3);
+	t_assert(fix.lexer_rule_one.token.symbol == E_META_IDENTIFIER);
+	t_assert(fix.lexer_rule_one.token.index == 0);
+	t_assert(fix.lexer_rule_one.token.length == 3);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == E_DEFINING_SYMBOL);
-	t_assert(fix.lexer_rule_one.index == 4);
-	t_assert(fix.lexer_rule_one.length == 1);
+	t_assert(fix.lexer_rule_one.token.symbol == E_DEFINING_SYMBOL);
+	t_assert(fix.lexer_rule_one.token.index == 4);
+	t_assert(fix.lexer_rule_one.token.length == 1);
 }
 
 void lexer_input_next__whole_rule(){
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == E_META_IDENTIFIER);
-	t_assert(fix.lexer_rule_one.index == 0);
-	t_assert(fix.lexer_rule_one.length == 3);
+	t_assert(fix.lexer_rule_one.token.symbol == E_META_IDENTIFIER);
+	t_assert(fix.lexer_rule_one.token.index == 0);
+	t_assert(fix.lexer_rule_one.token.length == 3);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == E_DEFINING_SYMBOL);
-	t_assert(fix.lexer_rule_one.index == 4);
-	t_assert(fix.lexer_rule_one.length == 1);
+	t_assert(fix.lexer_rule_one.token.symbol == E_DEFINING_SYMBOL);
+	t_assert(fix.lexer_rule_one.token.index == 4);
+	t_assert(fix.lexer_rule_one.token.length == 1);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == E_TERMINAL_STRING);
-	t_assert(fix.lexer_rule_one.index == 6);
-	t_assert(fix.lexer_rule_one.length == 3);
+	t_assert(fix.lexer_rule_one.token.symbol == E_TERMINAL_STRING);
+	t_assert(fix.lexer_rule_one.token.index == 6);
+	t_assert(fix.lexer_rule_one.token.length == 3);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == E_CONCATENATE_SYMBOL);
-	t_assert(fix.lexer_rule_one.index == 9);
-	t_assert(fix.lexer_rule_one.length == 1);
+	t_assert(fix.lexer_rule_one.token.symbol == E_CONCATENATE_SYMBOL);
+	t_assert(fix.lexer_rule_one.token.index == 9);
+	t_assert(fix.lexer_rule_one.token.length == 1);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == E_START_GROUP_SYMBOL);
-	t_assert(fix.lexer_rule_one.index == 10);
-	t_assert(fix.lexer_rule_one.length == 1);
+	t_assert(fix.lexer_rule_one.token.symbol == E_START_GROUP_SYMBOL);
+	t_assert(fix.lexer_rule_one.token.index == 10);
+	t_assert(fix.lexer_rule_one.token.length == 1);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == E_TERMINAL_STRING);
-	t_assert(fix.lexer_rule_one.index == 11);
-	t_assert(fix.lexer_rule_one.length == 3);
+	t_assert(fix.lexer_rule_one.token.symbol == E_TERMINAL_STRING);
+	t_assert(fix.lexer_rule_one.token.index == 11);
+	t_assert(fix.lexer_rule_one.token.length == 3);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == E_DEFINITION_SEPARATOR_SYMBOL);
-	t_assert(fix.lexer_rule_one.index == 14);
-	t_assert(fix.lexer_rule_one.length == 1);
+	t_assert(fix.lexer_rule_one.token.symbol == E_DEFINITION_SEPARATOR_SYMBOL);
+	t_assert(fix.lexer_rule_one.token.index == 14);
+	t_assert(fix.lexer_rule_one.token.length == 1);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == E_TERMINAL_STRING);
-	t_assert(fix.lexer_rule_one.index == 15);
-	t_assert(fix.lexer_rule_one.length == 3);
+	t_assert(fix.lexer_rule_one.token.symbol == E_TERMINAL_STRING);
+	t_assert(fix.lexer_rule_one.token.index == 15);
+	t_assert(fix.lexer_rule_one.token.length == 3);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == E_END_GROUP_SYMBOL);
-	t_assert(fix.lexer_rule_one.index == 18);
-	t_assert(fix.lexer_rule_one.length == 1);
+	t_assert(fix.lexer_rule_one.token.symbol == E_END_GROUP_SYMBOL);
+	t_assert(fix.lexer_rule_one.token.index == 18);
+	t_assert(fix.lexer_rule_one.token.length == 1);
 	lexer_next(&fix.lexer_rule_one);
-	t_assert(fix.lexer_rule_one.symbol == L_EOF);
-	t_assert(fix.lexer_rule_one.index == 19);
-	t_assert(fix.lexer_rule_one.length == 0);
+	t_assert(fix.lexer_rule_one.token.symbol == L_EOF);
+	t_assert(fix.lexer_rule_one.token.index == 19);
+	t_assert(fix.lexer_rule_one.token.length == 0);
 }
 
 void lexer_input_next__white_token(){
 	lexer_next(&fix.lexer_white);
-	t_assert(fix.lexer_white.symbol == E_META_IDENTIFIER);
-	t_assert(fix.lexer_white.index == 5);
-	t_assert(fix.lexer_white.length == strlen("identifier"));
+	t_assert(fix.lexer_white.token.symbol == E_META_IDENTIFIER);
+	t_assert(fix.lexer_white.token.index == 5);
+	t_assert(fix.lexer_white.token.length == strlen("identifier"));
 }
 
 void lexer_input_next__utf8_two_byte(){
 	lexer_next(&fix.lexer_utf8_two_byte);
-	t_assert(fix.lexer_utf8_two_byte.symbol == 0xF1);
-	t_assert(fix.lexer_utf8_two_byte.index == 0);
-	t_assert(fix.lexer_utf8_two_byte.length == 2);
+	t_assert(fix.lexer_utf8_two_byte.token.symbol == 0xF1);
+	t_assert(fix.lexer_utf8_two_byte.token.index == 0);
+	t_assert(fix.lexer_utf8_two_byte.token.length == 2);
 }
 
 void lexer_input_next__utf8_three_byte(){
 	lexer_next(&fix.lexer_utf8_three_byte);
-	t_assert(fix.lexer_utf8_three_byte.symbol == 0xF71);
-	t_assert(fix.lexer_utf8_three_byte.index == 0);
-	t_assert(fix.lexer_utf8_three_byte.length == 3);
+	t_assert(fix.lexer_utf8_three_byte.token.symbol == 0xF71);
+	t_assert(fix.lexer_utf8_three_byte.token.index == 0);
+	t_assert(fix.lexer_utf8_three_byte.token.length == 3);
 }
 
 int main(int argc, char** argv){

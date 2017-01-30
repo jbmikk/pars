@@ -14,7 +14,7 @@
 		A, \
 		(R != 0)? '>': ' ', \
 		R, \
-		S, (char)S \
+		(S)->symbol, (char)(S)->symbol \
 	)
 #else
 #define trace(M, ST, T, S, A, R)
@@ -66,15 +66,15 @@ Session *session_set_handler(Session *session, FsmHandler handler, void *target)
 	session->target = target;
 }
 
-Action *session_test(Session *session, int symbol, unsigned int index, unsigned int length)
+Action *session_test(Session *session, Token *token)
 {
 	Action *action;
 	Action *prev;
 
-	action = radix_tree_get_int(&session->current->actions, symbol);
+	action = radix_tree_get_int(&session->current->actions, token->symbol);
 	if(action == NULL) {
 		if(session->last_action->type != ACTION_ACCEPT) {
-			trace("test", session->current, action, symbol, "error", 0);
+			trace("test", session->current, action, token, "error", 0);
 			session->last_action = &session->fsm->error;
 			session->current = session->last_action->state;
 		}
@@ -83,16 +83,16 @@ Action *session_test(Session *session, int symbol, unsigned int index, unsigned 
 
 	switch(action->type) {
 	case ACTION_CONTEXT_SHIFT:
-		trace("test", session->current, action, symbol, "context shift", 0);
+		trace("test", session->current, action, token, "context shift", 0);
 		break;
 	case ACTION_ACCEPT:
-		trace("test", session->current, action, symbol, "accept", 0);
+		trace("test", session->current, action, token, "accept", 0);
 		break;
 	case ACTION_SHIFT:
-		trace("test", session->current, action, symbol, "shift", 0);
+		trace("test", session->current, action, token, "shift", 0);
 		break;
 	case ACTION_REDUCE:
-		trace("test", session->current, action, symbol, "reduce", action->reduction);
+		trace("test", session->current, action, token, "reduce", action->reduction);
 		break;
 	default:
 		break;
@@ -100,14 +100,14 @@ Action *session_test(Session *session, int symbol, unsigned int index, unsigned 
 	return action;
 }
 
-void session_match(Session *session, int symbol, unsigned int index, unsigned int length)
+void session_match(Session *session, Token *token)
 {
 	Action *action;
 
 rematch:
-	session->index = index;
-	session->length = length;
-	action = radix_tree_get_int(&session->current->actions, symbol);
+	session->index = token->index;
+	session->length = token->length;
+	action = radix_tree_get_int(&session->current->actions, token->symbol);
 
 	if(action == NULL) {
 		// Attempt empty transition
@@ -117,47 +117,48 @@ rematch:
 		if(action == NULL) {
 			// Check if accepting state
 			if(!session->last_action || session->last_action->type != ACTION_ACCEPT) {
-				trace("match", session->current, action, symbol, "error", 0);
+				trace("match", session->current, action, token, "error", 0);
 				session->last_action = &session->fsm->error;
 				session->current = session->last_action->state;
 				session->status = SESSION_ERROR;
 			}
 			return;
 		} else {
-			trace("match", session->current, action, symbol, "fback", 0);
+			trace("match", session->current, action, token, "fback", 0);
 		}
 	}
 	session->last_action = action;
 
 	switch(action->type) {
 	case ACTION_CONTEXT_SHIFT:
-		trace("match", session->current, action, symbol, "context shift", 0);
+		trace("match", session->current, action, token, "context shift", 0);
 		if(session->handler.context_shift) {
-			session->handler.context_shift(session->target, session->index, session->length, symbol);
+			session->handler.context_shift(session->target, session->index, session->length, token->symbol);
 		}
 		session_push(session);
 		session->current = action->state;
 		break;
 	case ACTION_ACCEPT:
-		trace("match", session->current, action, symbol, "accept", 0);
+		trace("match", session->current, action, token, "accept", 0);
 		session->current = action->state;
 		break;
 	case ACTION_SHIFT:
-		trace("match", session->current, action, symbol, "shift", 0);
+		trace("match", session->current, action, token, "shift", 0);
 		session->current = action->state;
 		break;
 	case ACTION_REDUCE:
-		trace("match", session->current, action, symbol, "reduce", action->reduction);
+		trace("match", session->current, action, token, "reduce", action->reduction);
 		session_pop(session);
-		session->length = index - session->index;
+		session->length = token->index - session->index;
 		if(session->handler.reduce) {
 			session->handler.reduce(session->target, session->index, session->length, action->reduction);
 		}
-		session_match(session, action->reduction, session->index, session->length);
+		Token reduction = { session->index, session->length, action->reduction };
+		session_match(session, &reduction);
 		goto rematch; // same as session_match(session, symbol);
 		break;
 	case ACTION_EMPTY:
-		trace("match", session->current, action, symbol, "empty", 0);
+		trace("match", session->current, action, token, "empty", 0);
 		session->current = action->state;
 		goto rematch; // same as session_match(session, symbol);
 		break;

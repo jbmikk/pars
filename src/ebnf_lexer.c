@@ -3,6 +3,7 @@
 void ebnf_lexer(Lexer *lexer)
 {
 	EBNFToken token;
+	unsigned int index;
 	unsigned char c;
 
 #define CURRENT (lexer->input->buffer[lexer->input->buffer_index])
@@ -14,7 +15,7 @@ void ebnf_lexer(Lexer *lexer)
 #define IS_SPACE(V) (V == ' ' || V == '\t' || V == '\n' || V == '\r' || V =='\f')
 
 next_token:
-	lexer->index = lexer->input->buffer_index;
+	index = lexer->input->buffer_index;
 
 	if (END(0)) {
 		token = L_EOF;
@@ -118,7 +119,8 @@ next_token:
 		goto next_token;
 
 eof:
-	lexer->symbol = token;
-	lexer->length = lexer->input->buffer_index - lexer->index;
+	lexer->token.symbol = token;
+	lexer->token.index = index;
+	lexer->token.length = lexer->input->buffer_index - index;
 }
 
