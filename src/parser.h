@@ -12,7 +12,7 @@ typedef struct _Parser {
 	SymbolTable table;
 	Fsm fsm;
 	FsmHandler handler;
-	void (*lexer_handler)(Lexer *lexer, Token *token);
+	LexerHandler lexer_handler;
 } Parser;
 
 int parser_execute(Parser *parser, Ast *ast, Input *input);

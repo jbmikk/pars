@@ -7,7 +7,7 @@ void token_init(Token *token)
 	token->length = 0;
 }
 
-void lexer_init(Lexer *lexer, Input *input, void (*handler)(Lexer *lexer, Token *token))
+void lexer_init(Lexer *lexer, Input *input, LexerHandler handler)
 {
 	lexer->input = input;
 	lexer->handler = handler;
