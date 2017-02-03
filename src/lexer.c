@@ -1,22 +1,26 @@
 #include "lexer.h"
 
-void lexer_init(Lexer *lexer, Input *input, void (*handler)(Lexer *lexer))
+void token_init(Token *token)
+{
+	token->symbol = 0;
+	token->index = 0;
+	token->length = 0;
+}
+
+void lexer_init(Lexer *lexer, Input *input, void (*handler)(Lexer *lexer, Token *token))
 {
 	lexer->input = input;
-	lexer->token.index = 0;
-	lexer->token.length = 0;
-	lexer->token.symbol = 0;
 	lexer->handler = handler;
 }
 
-void lexer_next(Lexer *lexer)
+void lexer_next(Lexer *lexer, Token *token)
 {
-	lexer->handler(lexer);
+	lexer->handler(lexer, token);
 }
 
-void identity_lexer(Lexer *lexer)
+void identity_lexer(Lexer *lexer, Token *token)
 {
-	int token;
+	int symbol;
 	unsigned int index;
 	unsigned char c;
 
@@ -28,23 +32,23 @@ next_token:
 	index = lexer->input->buffer_index;
 
 	if (END(0)) {
-		token = L_EOF;
+		symbol = L_EOF;
 		lexer->input->eof = 1;
 		goto eof;
 	}
 
 	c = CURRENT;
-	token = c;
+	symbol = c;
 	NEXT;
 eof:
-	lexer->token.symbol = token;
-	lexer->token.index = index;
-	lexer->token.length = lexer->input->buffer_index - index;
+	token->symbol = symbol;
+	token->index = index;
+	token->length = lexer->input->buffer_index - index;
 }
 
-void utf8_lexer(Lexer *lexer)
+void utf8_lexer(Lexer *lexer, Token *token)
 {
-	int token;
+	int symbol;
 	unsigned int index;
 	unsigned char c;
 
@@ -56,7 +60,7 @@ next_token:
 	index = lexer->input->buffer_index;
 
 	if (END(0)) {
-		token = L_EOF;
+		symbol = L_EOF;
 		lexer->input->eof = 1;
 		goto eof;
 	}
@@ -67,7 +71,7 @@ next_token:
 		NEXT;
 		c = CURRENT;
 		if (!END(0)) {
-			token = ((prev & 0x1F) << 6) | (c & 0x3F);
+			symbol = ((prev & 0x1F) << 6) | (c & 0x3F);
 			NEXT;
 		} else {
 			//TODO: for now we ignore incomplete sequences
@@ -80,7 +84,7 @@ next_token:
 			unsigned char second = CURRENT;
 			NEXT;
 			unsigned char third = CURRENT;
-			token = ((first & 0x0F) << 12) | ((second & 0x3F) << 6) | (third & 0x3F);
+			symbol = ((first & 0x0F) << 12) | ((second & 0x3F) << 6) | (third & 0x3F);
 			NEXT;
 		} else {
 			//TODO: for now we ignore incomplete sequences
@@ -88,8 +92,8 @@ next_token:
 		}
 	}
 eof:
-	lexer->token.symbol = token;
-	lexer->token.index = index;
-	lexer->token.length = lexer->input->buffer_index - index;
+	token->symbol = symbol;
+	token->index = index;
+	token->length = lexer->input->buffer_index - index;
 }
 

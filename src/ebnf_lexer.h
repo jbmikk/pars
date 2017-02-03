@@ -24,6 +24,6 @@ typedef enum {
 	E_SPECIAL_SEQUENCE
 } EBNFToken;
 
-void ebnf_lexer(Lexer *lexer);
+void ebnf_lexer(Lexer *lexer, Token *token);
 
 #endif //EBNF_LEXER_H

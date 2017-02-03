@@ -1,8 +1,8 @@
 #include "ebnf_lexer.h"
 
-void ebnf_lexer(Lexer *lexer)
+void ebnf_lexer(Lexer *lexer, Token *token)
 {
-	EBNFToken token;
+	EBNFToken symbol;
 	unsigned int index;
 	unsigned char c;
 
@@ -18,7 +18,7 @@ next_token:
 	index = lexer->input->buffer_index;
 
 	if (END(0)) {
-		token = L_EOF;
+		symbol = L_EOF;
 		lexer->input->eof = 1;
 		goto eof;
 	}
@@ -33,7 +33,7 @@ next_token:
 			if(!IS_SPACE(c))
 				break;
 		}
-		token = E_WHITE_SPACE;
+		symbol = E_WHITE_SPACE;
 	} else if (BETWEEN(c, 'a', 'z') || BETWEEN(c, 'A', 'Z')) {
 		while(1) {
 			NEXT;
@@ -43,7 +43,7 @@ next_token:
 			if(!BETWEEN(c, 'a', 'z') && !BETWEEN(c, 'A', 'Z') && !BETWEEN(c, '0', '9'))
 				break;
 		}
-		token = E_META_IDENTIFIER;
+		symbol = E_META_IDENTIFIER;
 	} else if (BETWEEN(c, '0', '9')) {
 		while(1) {
 			NEXT;
@@ -53,7 +53,7 @@ next_token:
 			if(!BETWEEN(c, '0', '9'))
 				break;
 		}
-		token = E_INTEGER;
+		symbol = E_INTEGER;
 	} else if (c == '"') {
 		while(1) {
 			unsigned char prev;
@@ -67,7 +67,7 @@ next_token:
 				break;
 			}
 		}
-		token = E_TERMINAL_STRING;
+		symbol = E_TERMINAL_STRING;
 	} else if (c == '\'') {
 		while(1) {
 			unsigned char prev;
@@ -81,7 +81,7 @@ next_token:
 				break;
 			}
 		}
-		token = E_TERMINAL_STRING;
+		symbol = E_TERMINAL_STRING;
 	} else if (c == '?') {
 		while(1) {
 			unsigned char prev;
@@ -95,7 +95,7 @@ next_token:
 				break;
 			}
 		}
-		token = E_SPECIAL_SEQUENCE;
+		symbol = E_SPECIAL_SEQUENCE;
 	} else if (c == '(' && !END(1) && LOOKAHEAD(1) == '*') {
 		while(1) {
 			unsigned char prev;
@@ -109,18 +109,18 @@ next_token:
 				break;
 			}
 		}
-		token = E_COMMENT;
+		symbol = E_COMMENT;
 	} else {
-		token = c;
+		symbol = c;
 		NEXT;
 	}
 
-	if(token == E_WHITE_SPACE || token == E_COMMENT)
+	if(symbol == E_WHITE_SPACE || symbol == E_COMMENT)
 		goto next_token;
 
 eof:
-	lexer->token.symbol = token;
-	lexer->token.index = index;
-	lexer->token.length = lexer->input->buffer_index - index;
+	token->symbol = symbol;
+	token->index = index;
+	token->length = lexer->input->buffer_index - index;
 }
 

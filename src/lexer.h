@@ -15,15 +15,16 @@ typedef struct _Token {
 } Token;
 
 typedef struct _Lexer {
-	Token token;
 	Input *input;
-	void (*handler)(struct _Lexer *lexer);
+	void (*handler)(struct _Lexer *lexer, Token *token);
 } Lexer;
 
-void lexer_init(Lexer *lexer, Input *input, void (*handler)(Lexer *lexer));
-void lexer_next(Lexer *lexer);
+void token_init(Token *token);
 
-void identity_lexer(Lexer *lexer);
-void utf8_lexer(Lexer *lexer);
+void lexer_init(Lexer *lexer, Input *input, void (*handler)(Lexer *lexer, Token *token));
+void lexer_next(Lexer *lexer, Token *token);
+
+void identity_lexer(Lexer *lexer, Token *token);
+void utf8_lexer(Lexer *lexer, Token *token);
 
 #endif //LEXER_H
