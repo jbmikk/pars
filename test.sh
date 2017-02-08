@@ -105,6 +105,10 @@ cd ..
 
 cd ..
 
+if [ "$MODE" = "prof" ]; then
+	echo "Usage gprof executable gmon.out > output.txt"
+fi
+
 # TODO: short version for leaks
 # TODO: add colors for output, specially test results
 # TODO: save output?
