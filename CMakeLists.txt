@@ -3,6 +3,10 @@ project (pars)
 
 include(ExternalProject)
 
+
+# Traces
+# ------
+
 option(ENABLE_FSM_TRACE "Enable fsm traces" OFF)
 option(ENABLE_AST_TRACE "Enable ast traces" OFF)
 option(TRACE "Enable all traces" OFF)
@@ -12,6 +16,15 @@ if(TRACE)
         set(ENABLE_AST_TRACE ON)
 endif(TRACE)
 
+
+# Profiling
+# ---------
+
+option(PROFILE "Enable profiling options" OFF)
+
+if(PROFILE)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg")
+endif(PROFILE)
 
 
 # Depend on dbg
