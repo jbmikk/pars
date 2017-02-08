@@ -23,6 +23,18 @@ run_test()
 			OUTPUT=$(valgrind $VALOPTIONS $3)
 		fi
 
+		if [ "$1" = "calls" ]; then
+			echo $3
+			OUTPUT=$(valgrind --tool=callgrind $3)
+			echo "Usage: callgrind_annotate --auto=yes callgrind.out.pid"
+		fi
+
+		if [ "$1" = "cache" ]; then
+			echo $3
+			OUTPUT=$(valgrind --tool=callgrind --simulate-cache=yes $3)
+			echo "Usage: callgrind_annotate --auto=yes callgrind.out.pid"
+		fi
+
 		if [ "$1" = "run" -o "$1" = "trace" ]; then
 			echo $3
 			$3
