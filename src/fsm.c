@@ -70,7 +70,7 @@ void fsm_dispose(Fsm *fsm)
 	Nonterminal *nt;
 	Iterator it;
 
-	radix_tree_init(&all_states, 0, 0, NULL);
+	radix_tree_init(&all_states);
 
 	//Get all actions reachable through the starting state
 	fsm_get_states(&all_states, fsm->start);

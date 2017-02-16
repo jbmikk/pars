@@ -26,8 +26,8 @@
 
 void state_init(State *state)
 {
-	radix_tree_init(&state->actions, 0, 0, NULL);
-	radix_tree_init(&state->refs, 0, 0, NULL);
+	radix_tree_init(&state->actions);
+	radix_tree_init(&state->refs);
 	state->status = STATE_CLEAR;
 }
 
@@ -219,7 +219,7 @@ void action_init(Action *action, char type, int reduction, State *state)
 
 void nonterminal_init(Nonterminal *nonterminal)
 {
-	radix_tree_init(&nonterminal->refs, 0, 0, NULL);
+	radix_tree_init(&nonterminal->refs);
 	nonterminal->status = NONTERMINAL_CLEAR;
 	nonterminal->start = NULL;
 	nonterminal->end = NULL;

@@ -5,8 +5,8 @@
 void symbol_table_init(SymbolTable *table)
 {
 	table->id_base = -1;
-	radix_tree_init(&table->symbols, 0, 0, NULL);
-	radix_tree_init(&table->symbols_by_id, 0, 0, NULL);
+	radix_tree_init(&table->symbols);
+	radix_tree_init(&table->symbols_by_id);
 }
 
 Symbol *symbol_table_add(SymbolTable *table, char *name, unsigned int length)

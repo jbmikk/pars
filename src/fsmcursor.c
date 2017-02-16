@@ -427,7 +427,7 @@ void _solve_references(FsmCursor *cur) {
 	//TODO: Are all states reachable through start?
 	//TODO: Do all states exist this point and are connected?
 	Node all_states;
-	radix_tree_init(&all_states, 0, 0, NULL);
+	radix_tree_init(&all_states);
 	fsm_get_states(&all_states, cur->fsm->start);
 
 retry:

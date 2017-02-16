@@ -12,7 +12,7 @@
 
 void ast_node_init(AstNode *node, AstNode *parent, unsigned int index)
 {
-	radix_tree_init(&node->children, 0, 0, NULL);
+	radix_tree_init(&node->children);
 	node->parent = parent;
 	node->index = index;
 	//TODO: Should initialize other fields even if not always used?
@@ -55,7 +55,7 @@ void ast_dispose(Ast *ast)
 
 	//In order to dispose multiple times we need to delete old references
 	//Another solution would be to make the root node dynamic.
-	radix_tree_init(&ast->root.children, 0, 0, NULL);
+	radix_tree_init(&ast->root.children);
 	ast->table = NULL;
 }
 
