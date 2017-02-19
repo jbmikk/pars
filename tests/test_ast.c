@@ -365,32 +365,32 @@ void ast_cursor_get_strings(){
 
 	ast_cursor_depth_next(&cursor);
 	ast_cursor_get_string(&cursor, &string, &length);
-	diff = strncmp(string, "this is a test", strlen("this is a test"));
+	diff = strncmp((char*)string, "this is a test", strlen("this is a test"));
 	t_assert(diff == 0);
 
 	ast_cursor_depth_next(&cursor);
 	ast_cursor_get_string(&cursor, &string, &length);
-	diff = strncmp(string, "t", strlen("t"));
+	diff = strncmp((char*)string, "t", strlen("t"));
 	t_assert(diff == 0);
 
 	ast_cursor_depth_next(&cursor);
 	ast_cursor_get_string(&cursor, &string, &length);
-	diff = strncmp(string, "is", strlen("is"));
+	diff = strncmp((char*)string, "is", strlen("is"));
 	t_assert(diff == 0);
 
 	ast_cursor_depth_next(&cursor);
 	ast_cursor_get_string(&cursor, &string, &length);
-	diff = strncmp(string, "i", strlen("i"));
+	diff = strncmp((char*)string, "i", strlen("i"));
 	t_assert(diff == 0);
 
 	ast_cursor_depth_next(&cursor);
 	ast_cursor_get_string(&cursor, &string, &length);
-	diff = strncmp(string, "a", strlen("a"));
+	diff = strncmp((char*)string, "a", strlen("a"));
 	t_assert(diff == 0);
 
 	ast_cursor_depth_next(&cursor);
 	ast_cursor_get_string(&cursor, &string, &length);
-	diff = strncmp(string, "a", strlen("a"));
+	diff = strncmp((char*)string, "a", strlen("a"));
 	t_assert(diff == 0);
 
 	ast_cursor_dispose(&cursor);
