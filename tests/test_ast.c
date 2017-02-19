@@ -286,7 +286,7 @@ void ast_next_sibling_symbol(){
 void ast_push_pop_state(){
 	AstCursor cursor;
 	AstNode *sibling1, *sibling1_child, *sibling2, *sibling2_child;
-	AstNode  *sibling2again, *sibling3, *last;
+	AstNode  *sibling2again, *sibling3;
 
 	ast_open(&fix.ast, 1, 1, 0);
 	ast_open(&fix.ast, 2, 1, 0);
@@ -347,7 +347,6 @@ void ast_push_pop_state(){
 
 void ast_cursor_get_strings(){
 	AstCursor cursor;
-	AstNode *sibling1, *sibling1_child, *sibling2, *sibling2_child, *sibling3, *sibling3_child;
 	unsigned char *string;
 	int length, diff;
 
@@ -364,32 +363,32 @@ void ast_cursor_get_strings(){
 	//Skip root
 	ast_cursor_depth_next(&cursor);
 
-	sibling1 = ast_cursor_depth_next(&cursor);
+	ast_cursor_depth_next(&cursor);
 	ast_cursor_get_string(&cursor, &string, &length);
 	diff = strncmp(string, "this is a test", strlen("this is a test"));
 	t_assert(diff == 0);
 
-	sibling1_child = ast_cursor_depth_next(&cursor);
+	ast_cursor_depth_next(&cursor);
 	ast_cursor_get_string(&cursor, &string, &length);
 	diff = strncmp(string, "t", strlen("t"));
 	t_assert(diff == 0);
 
-	sibling2 = ast_cursor_depth_next(&cursor);
+	ast_cursor_depth_next(&cursor);
 	ast_cursor_get_string(&cursor, &string, &length);
 	diff = strncmp(string, "is", strlen("is"));
 	t_assert(diff == 0);
 
-	sibling2_child = ast_cursor_depth_next(&cursor);
+	ast_cursor_depth_next(&cursor);
 	ast_cursor_get_string(&cursor, &string, &length);
 	diff = strncmp(string, "i", strlen("i"));
 	t_assert(diff == 0);
 
-	sibling3 = ast_cursor_depth_next(&cursor);
+	ast_cursor_depth_next(&cursor);
 	ast_cursor_get_string(&cursor, &string, &length);
 	diff = strncmp(string, "a", strlen("a"));
 	t_assert(diff == 0);
 
-	sibling3_child = ast_cursor_depth_next(&cursor);
+	ast_cursor_depth_next(&cursor);
 	ast_cursor_get_string(&cursor, &string, &length);
 	diff = strncmp(string, "a", strlen("a"));
 	t_assert(diff == 0);
