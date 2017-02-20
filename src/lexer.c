@@ -28,7 +28,6 @@ void identity_lexer(Lexer *lexer, Token *token)
 #define NEXT (++lexer->input->buffer_index)
 #define END(V) (lexer->input->buffer_index >= lexer->input->buffer_size-V)
 
-next_token:
 	index = lexer->input->buffer_index;
 
 	if (END(0)) {
@@ -56,7 +55,6 @@ void utf8_lexer(Lexer *lexer, Token *token)
 #define NEXT (++lexer->input->buffer_index)
 #define END(V) (lexer->input->buffer_index >= lexer->input->buffer_size-V)
 
-next_token:
 	index = lexer->input->buffer_index;
 
 	if (END(0)) {
