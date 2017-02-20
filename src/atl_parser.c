@@ -41,16 +41,18 @@ int atl_init_parser(Parser *parser)
 	atl_init_fsm(&parser->fsm);
 
 	return 0;
-error:
+//error:
 	//TODO: free
 
-	return -1;
+	//return -1;
 }
 
 int atl_dispose_parser(Parser *parser)
 {
 	fsm_dispose(&parser->fsm);
 	symbol_table_dispose(&parser->table);
+	//TODO: handle errors?
+	return 0;
 }
 
 void atl_ast_transform(Ast *ast)
