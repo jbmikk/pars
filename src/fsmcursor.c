@@ -267,7 +267,7 @@ void fsm_cursor_nonterminal(FsmCursor *cur, unsigned char *name, int length)
 	nonterminal_add_reference(nt, prev, sb);
 }
 
-static Action *_set_start(FsmCursor *cur, unsigned char *name, int length)
+static void _set_start(FsmCursor *cur, char *name, int length)
 {
 	Symbol *sb = symbol_table_get(cur->fsm->table, name, length);
 	Nonterminal *nt = (Nonterminal *)sb->data;
@@ -310,7 +310,7 @@ int _solve_return_references(FsmCursor *cur, Nonterminal *nt) {
 	}
 
 	radix_tree_iterator_init(&it, &nt->refs);
-	while(ref = (Reference *)radix_tree_iterator_next(&it)) {
+	while((ref = (Reference *)radix_tree_iterator_next(&it))) {
 		Symbol *sb = ref->symbol;
 
 		if(ref->status == REF_SOLVED) {
@@ -376,7 +376,7 @@ int _solve_invoke_references(FsmCursor *cur, State *state) {
 	trace_state("solve refs for state", state, "");
 
 	radix_tree_iterator_init(&it, &state->refs);
-	while(ref = (Reference *)radix_tree_iterator_next(&it)) {
+	while((ref = (Reference *)radix_tree_iterator_next(&it))) {
 
 		if(ref->status == REF_SOLVED) {
 			//ref already solved
@@ -433,7 +433,7 @@ void _solve_references(FsmCursor *cur) {
 retry:
 	some_unsolved = 0;
 	radix_tree_iterator_init(&it, symbols);
-	while(sb = (Symbol *)radix_tree_iterator_next(&it)) {
+	while((sb = (Symbol *)radix_tree_iterator_next(&it))) {
 		trace_symbol("solve return references from: ", sb);
 
 		nt = (Nonterminal *)sb->data;
@@ -449,7 +449,7 @@ retry:
 	//Solve return
 	State *state;
 	radix_tree_iterator_init(&it, &all_states);
-	while(state = (State *)radix_tree_iterator_next(&it)) {
+	while((state = (State *)radix_tree_iterator_next(&it))) {
 		some_unsolved |= _solve_invoke_references(cur, state);
 	}
 	radix_tree_iterator_dispose(&it);
