@@ -37,7 +37,7 @@ typedef struct _Session {
 void session_init(Session *session, Fsm *fsm);
 void session_dispose(Session *session);
 
-Session *session_set_handler(Session *session, FsmHandler handler, void *target);
+void session_set_handler(Session *session, FsmHandler handler, void *target);
 
 void session_push(Session *session);
 void session_pop(Session *session);

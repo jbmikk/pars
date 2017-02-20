@@ -60,7 +60,7 @@ void session_dispose(Session *session)
 	}
 }
 
-Session *session_set_handler(Session *session, FsmHandler handler, void *target)
+void session_set_handler(Session *session, FsmHandler handler, void *target)
 {
 	session->handler = handler;
 	session->target = target;
@@ -69,7 +69,6 @@ Session *session_set_handler(Session *session, FsmHandler handler, void *target)
 Action *session_test(Session *session, Token *token)
 {
 	Action *action;
-	Action *prev;
 
 	action = radix_tree_get_int(&session->current->actions, token->symbol);
 	if(action == NULL) {
