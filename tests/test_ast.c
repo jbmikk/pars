@@ -80,6 +80,8 @@ void ast_nested_nodes(){
 	grand_child = ast_cursor_depth_next(&cursor);
 	last = ast_cursor_depth_next(&cursor);
 
+	t_assert(root != NULL);
+
 	//First opened symbol
 	t_assert(outer_node != NULL);
 	t_assert(outer_node->index == 1);
@@ -132,6 +134,8 @@ void ast_sibling_nodes(){
 	sibling2_child = ast_cursor_depth_next(&cursor);
 	last = ast_cursor_depth_next(&cursor);
 
+	t_assert(root != NULL);
+
 	t_assert(outer != NULL);
 	t_assert(outer->index == 1);
 	t_assert(outer->length == 5);
@@ -183,6 +187,8 @@ void ast_same_index_nodes(){
 	inner = ast_cursor_depth_next(&cursor);
 	inner_child = ast_cursor_depth_next(&cursor);
 	last = ast_cursor_depth_next(&cursor);
+
+	t_assert(root != NULL);
 
 	t_assert(outer != NULL);
 	t_assert(outer->index == 1);
