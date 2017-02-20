@@ -65,12 +65,12 @@ typedef struct _Fsm {
 void fsm_init(Fsm *fsm, SymbolTable *table);
 void fsm_dispose(Fsm *fsm);
 
-Nonterminal *fsm_get_nonterminal(Fsm *fsm, unsigned char *name, int length);
-Symbol *fsm_create_nonterminal(Fsm *fsm, unsigned char *name, int length);
+Nonterminal *fsm_get_nonterminal(Fsm *fsm, char *name, int length);
+Symbol *fsm_create_nonterminal(Fsm *fsm, char *name, int length);
 
-State *fsm_get_state(Fsm *fsm, unsigned char *name, int length);
+State *fsm_get_state(Fsm *fsm, char *name, int length);
 void fsm_get_states(Node *states, State *state);
-int fsm_get_symbol(Fsm *fsm, unsigned char *name, int length);
+int fsm_get_symbol(Fsm *fsm, char *name, int length);
 
 //# State functions
 

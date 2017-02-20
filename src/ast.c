@@ -34,7 +34,7 @@ void ast_node_dispose(AstNode *node)
 	Iterator it;
 
 	radix_tree_iterator_init(&it, &node->children);
-	while(an = (AstNode *)radix_tree_iterator_next(&it)) {
+	while((an = (AstNode *)radix_tree_iterator_next(&it))) {
 		ast_node_dispose(an);
 		c_delete(an);
 	}
@@ -209,9 +209,9 @@ AstNode *ast_cursor_next_sibling_symbol(AstCursor *cursor, int symbol)
 	return node;
 }
 
-void ast_cursor_get_string(AstCursor *cursor, unsigned char **str, int *length)
+void ast_cursor_get_string(AstCursor *cursor, char **str, int *length)
 {
-	*str = cursor->ast->input->buffer + cursor->current->index;
+	*str = (char *)cursor->ast->input->buffer + cursor->current->index;
 	*length = cursor->current->length;
 }
 
@@ -233,7 +233,7 @@ void ast_print_node(Ast *ast, AstNode *node, int level) {
 	}
 
 	do {
-		unsigned char *src = ast->input->buffer + next->index;
+		char *src = ast->input->buffer + next->index;
 		int index = next->index;
 		int length = next->length;
 
@@ -268,10 +268,10 @@ void ast_print_node(Ast *ast, AstNode *node, int level) {
 
 		ast_print_node(ast, next, level+1);
 
-	} while(next = ast_get_next_sibling(next));
+	} while((next = ast_get_next_sibling(next)));
 }
 
-int ast_get_symbol(AstCursor *cur, unsigned char *name, unsigned int length) {
+int ast_get_symbol(AstCursor *cur, char *name, unsigned int length) {
 	return symbol_table_get(cur->ast->table, name, length)->id;
 }
 

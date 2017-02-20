@@ -211,7 +211,7 @@ void fsm_cursor_or(FsmCursor *cur)
 	_reset(cur);
 }
 
-void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length)
+void fsm_cursor_define(FsmCursor *cur, char *name, int length)
 {
 	Symbol *symbol = fsm_create_nonterminal(cur->fsm, name, length);
 	cur->last_symbol = symbol;
@@ -245,7 +245,7 @@ void fsm_cursor_end(FsmCursor *cursor)
 /**
  * Creates a reference to a Nonterminal and shifts the associated symbol.
  */
-void fsm_cursor_nonterminal(FsmCursor *cur, unsigned char *name, int length)
+void fsm_cursor_nonterminal(FsmCursor *cur, char *name, int length)
 {
 	//Get or create symbol and associated non terminal
 	Symbol *sb = fsm_create_nonterminal(cur->fsm, name, length);

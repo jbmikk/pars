@@ -1,7 +1,7 @@
 #include "input.h"
 #include "cmemory.h"
 
-void input_init_buffer(Input *input, unsigned char *data, unsigned int length)
+void input_init_buffer(Input *input, char *data, unsigned int length)
 {
 	input->file = NULL;
 	input->eof = 0;
@@ -13,7 +13,7 @@ void input_init_buffer(Input *input, unsigned char *data, unsigned int length)
 void input_init(Input *input, char *pathname)
 {
 	FILE *file;
-	unsigned char *buffer;
+	char *buffer;
 	unsigned int length;
 
 	file = fopen(pathname, "rb");
@@ -24,7 +24,7 @@ void input_init(Input *input, char *pathname)
 		length = ftell(file);
 		fseek(file, 0, SEEK_SET);
 		if(length > 0) {
-			buffer = c_new(unsigned char, length);
+			buffer = c_new(char, length);
 			length = fread(buffer, 1, length, file);
 		} else {
 			buffer = NULL;

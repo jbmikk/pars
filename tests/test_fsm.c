@@ -7,6 +7,8 @@
 #include "fsmcursor.h"
 #include "test.h"
 
+#define nzs(S) (S), (strlen(S))
+
 #define MATCH(S, Y) session_match(&(S), &(struct _Token){ 0, 0, (Y)});
 #define MATCH_AT(S, Y, I) session_match(&(S), &(struct _Token){ (I), 0, (Y)});
 

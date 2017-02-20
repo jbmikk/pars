@@ -6,6 +6,8 @@
 
 #include <setjmp.h>
 
+#define nzs(S) (S), (strlen(S))
+
 jmp_buf on_error;
 
 void parse_error(Input *input, unsigned int index)
@@ -140,7 +142,7 @@ void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur);
 void ebnf_build_syntactic_primary(FsmCursor *f_cur, AstCursor *a_cur)
 {
 	AstNode *node = ast_cursor_depth_next(a_cur);
-	unsigned char *string;
+	char *string;
 	int length, i;
 
 	int E_DEFINITIONS_LIST = ast_get_symbol(a_cur, nzs("definitions_list"));
@@ -244,7 +246,7 @@ void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur)
 
 void ebnf_build_syntax_rule(FsmCursor *f_cur, AstCursor *a_cur)
 {
-	unsigned char *string;
+	char *string;
 	int length;
 
 	//TODO: maybe we should use more precise cursor functions.

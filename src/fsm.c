@@ -45,7 +45,7 @@ void fsm_get_states(Node *states, State *state)
 			//Jump to other states
 			Action *ac;
 			radix_tree_iterator_init(&it, &(state->actions));
-			while(ac = (Action *)radix_tree_iterator_next(&it)) {
+			while((ac = (Action *)radix_tree_iterator_next(&it))) {
 				fsm_get_states(states, ac->state);
 			}
 			radix_tree_iterator_dispose(&it);
@@ -53,7 +53,7 @@ void fsm_get_states(Node *states, State *state)
 			//Jump to references
 			Reference *ref;
 			radix_tree_iterator_init(&it, &state->refs);
-			while(ref = (Reference *)radix_tree_iterator_next(&it)) {
+			while((ref = (Reference *)radix_tree_iterator_next(&it))) {
 				fsm_get_states(states, ref->to_state);
 			}
 			radix_tree_iterator_dispose(&it);
@@ -76,7 +76,7 @@ void fsm_dispose(Fsm *fsm)
 	fsm_get_states(&all_states, fsm->start);
 
 	radix_tree_iterator_init(&it, &fsm->table->symbols);
-	while(symbol = (Symbol *)radix_tree_iterator_next(&it)) {
+	while((symbol = (Symbol *)radix_tree_iterator_next(&it))) {
 		//Get all actions reachable through other rules
 		nt = (Nonterminal *)symbol->data;
 
@@ -104,7 +104,7 @@ void fsm_dispose(Fsm *fsm)
 	//Delete all states
 	State *st;
 	radix_tree_iterator_init(&it, &all_states);
-	while(st = (State *)radix_tree_iterator_next(&it)) {
+	while((st = (State *)radix_tree_iterator_next(&it))) {
 		state_dispose(st);
 		c_delete(st);
 	}
@@ -118,13 +118,13 @@ void fsm_dispose(Fsm *fsm)
 	fsm->table = NULL;
 }
 
-Nonterminal *fsm_get_nonterminal(Fsm *fsm, unsigned char *name, int length)
+Nonterminal *fsm_get_nonterminal(Fsm *fsm, char *name, int length)
 {
 	Symbol *symbol = symbol_table_get(fsm->table, name, length);
 	return symbol? (Nonterminal *)symbol->data: NULL;
 }
 
-Symbol *fsm_create_nonterminal(Fsm *fsm, unsigned char *name, int length)
+Symbol *fsm_create_nonterminal(Fsm *fsm, char *name, int length)
 {
 	Symbol *symbol = symbol_table_add(fsm->table, name, length);
 	Nonterminal *nonterminal;
@@ -140,12 +140,12 @@ Symbol *fsm_create_nonterminal(Fsm *fsm, unsigned char *name, int length)
 	return symbol;
 }
 
-State *fsm_get_state(Fsm *fsm, unsigned char *name, int length)
+State *fsm_get_state(Fsm *fsm, char *name, int length)
 {
 	return fsm_get_nonterminal(fsm, name, length)->start;
 }
 
-int fsm_get_symbol(Fsm *fsm, unsigned char *name, int length)
+int fsm_get_symbol(Fsm *fsm, char *name, int length)
 {
 	Symbol *symbol = symbol_table_get(fsm->table, name, length);
 	return symbol? symbol->id: 0;

@@ -4,6 +4,8 @@
 #include "cmemory.h"
 #include "dbg.h"
 
+#define nzs(S) (S), (strlen(S))
+
 void atl_init_fsm(Fsm *fsm)
 {
 	FsmCursor cur;

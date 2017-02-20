@@ -8,6 +8,8 @@
 #define MATCH(S, Y) session_match(&(S), &(struct _Token){ 0, 0, (Y)});
 #define TEST(S, Y) session_test(&(S), &(struct _Token){ 0, 0, (Y)});
 
+#define nzs(S) (S), (strlen(S))
+
 typedef struct {
 	SymbolTable table;
 	Fsm fsm;

@@ -24,7 +24,7 @@ void fsm_cursor_dispose(FsmCursor *cur);
 
 // Rule declaration functions
 
-void fsm_cursor_define(FsmCursor *cur, unsigned char *name, int length);
+void fsm_cursor_define(FsmCursor *cur, char *name, int length);
 void fsm_cursor_end(FsmCursor *cur);
 void fsm_cursor_group_start(FsmCursor *cur);
 void fsm_cursor_group_end(FsmCursor *cur);
@@ -34,7 +34,7 @@ void fsm_cursor_option_group_start(FsmCursor *cur);
 void fsm_cursor_option_group_end(FsmCursor *cur);
 void fsm_cursor_or(FsmCursor *cur);
 void fsm_cursor_terminal(FsmCursor *cur, int symbol);
-void fsm_cursor_nonterminal(FsmCursor *cur, unsigned char *name, int length);
+void fsm_cursor_nonterminal(FsmCursor *cur, char *name, int length);
 void fsm_cursor_done(FsmCursor *cur, int eof_symbol);
 
 #endif //FSMCURSOR_H
