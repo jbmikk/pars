@@ -11,7 +11,7 @@ void symbol_table_init(SymbolTable *table)
 
 Symbol *symbol_table_add(SymbolTable *table, char *name, unsigned int length)
 {
-	Symbol *symbol = radix_tree_get(&table->symbols, name, length);
+	Symbol *symbol = radix_tree_get(&table->symbols, (unsigned char*)name, length);
 	if(!symbol) {
 		symbol = c_new(Symbol, 1);
 		symbol->id = table->id_base--;
@@ -19,11 +19,11 @@ Symbol *symbol_table_add(SymbolTable *table, char *name, unsigned int length)
 		symbol->name = c_new(char, length+1); 
 		symbol->data = NULL;
 		int i = 0;
-		for(i; i < length; i++) {
+		for(; i < length; i++) {
 			symbol->name[i] = name[i];
 		}
 		symbol->name[i] = '\0';
-		radix_tree_set(&table->symbols, name, length, symbol);
+		radix_tree_set(&table->symbols, (unsigned char*)name, length, symbol);
 		radix_tree_set_int(&table->symbols_by_id, symbol->id, symbol);
 	}
 	return symbol;
@@ -31,7 +31,7 @@ Symbol *symbol_table_add(SymbolTable *table, char *name, unsigned int length)
 
 Symbol *symbol_table_get(SymbolTable *table, char *name, unsigned int length)
 {
-	return radix_tree_get(&table->symbols, name, length);
+	return radix_tree_get(&table->symbols, (unsigned char*)name, length);
 }
 
 Symbol *symbol_table_get_by_id(SymbolTable *table, int id)
@@ -45,7 +45,7 @@ void symbol_table_dispose(SymbolTable *table)
 	Symbol *symbol;
 
 	radix_tree_iterator_init(&it, &table->symbols);
-	while(symbol = (Symbol *)radix_tree_iterator_next(&it)) {
+	while((symbol = (Symbol *)radix_tree_iterator_next(&it))) {
 		c_delete(symbol->name);
 		c_delete(symbol);
 	}
