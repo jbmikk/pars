@@ -52,7 +52,7 @@ void state_dispose(State *state)
 	//Delete all actions
 	Action *ac;
 	radix_tree_iterator_init(&it, &state->actions);
-	while(ac = (Action *)radix_tree_iterator_next(&it)) {
+	while((ac = (Action *)radix_tree_iterator_next(&it))) {
 		c_delete(ac);
 	}
 	radix_tree_iterator_dispose(&it);
@@ -62,7 +62,7 @@ void state_dispose(State *state)
 	//Delete all references
 	Reference *ref;
 	radix_tree_iterator_init(&it, &state->refs);
-	while(ref = (Reference *)radix_tree_iterator_next(&it)) {
+	while((ref = (Reference *)radix_tree_iterator_next(&it))) {
 		c_delete(ref);
 	}
 	radix_tree_iterator_dispose(&it);
@@ -109,7 +109,6 @@ Action *state_add(State *state, int symbol, int type, int reduction)
 	action_init(action, type, reduction, NULL);
 
 	unsigned char buffer[sizeof(int)];
-	unsigned int size;
 	int_to_padded_array(buffer, symbol);
 
 	action = _state_add_buffer(state, buffer, sizeof(int), action);
@@ -150,7 +149,7 @@ void state_add_first_set(State *state, State* source, Symbol *symbol)
 	Action *action, *clone;
 	Iterator it;
 	radix_tree_iterator_init(&it, &(source->actions));
-	while(action = (Action *)radix_tree_iterator_next(&it)) {
+	while((action = (Action *)radix_tree_iterator_next(&it))) {
 		//TODO: Make type for clone a parameter, do not override by
 		// default.
 		clone = c_new(Action, 1);
@@ -193,7 +192,7 @@ void state_add_reduce_follow_set(State *from, State *to, int symbol)
 	// They should be followed recursively to get the whole follow set,
 	// otherwise me might loose reductions.
 	radix_tree_iterator_init(&it, &(to->actions));
-	while(ac = (Action *)radix_tree_iterator_next(&it)) {
+	while((ac = (Action *)radix_tree_iterator_next(&it))) {
 		Action *reduce = c_new(Action, 1);
 		action_init(reduce, ACTION_REDUCE, symbol, NULL);
 
@@ -250,7 +249,7 @@ void nonterminal_dispose(Nonterminal *nonterminal)
 	Iterator it;
 
 	radix_tree_iterator_init(&it, &nonterminal->refs);
-	while(ref = (Reference *)radix_tree_iterator_next(&it)) {
+	while((ref = (Reference *)radix_tree_iterator_next(&it))) {
 		c_delete(ref);
 	}
 	radix_tree_iterator_dispose(&it);
