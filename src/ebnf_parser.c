@@ -121,16 +121,18 @@ int ebnf_init_parser(Parser *parser)
 	ebnf_init_fsm(&parser->fsm);
 
 	return 0;
-error:
+//error:
 	//TODO: free
 
-	return -1;
+	//return -1;
 }
 
 int ebnf_dispose_parser(Parser *parser)
 {
 	fsm_dispose(&parser->fsm);
 	symbol_table_dispose(&parser->table);
+	//TODO: handle errors?
+	return 0;
 }
 
 void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur);

@@ -34,7 +34,7 @@ void ast_open(void *ast_p, unsigned int index, unsigned int length, int symbol);
 void ast_close(void *ast_p, unsigned int index, unsigned int length, int symbol);
 void ast_done(Ast *ast);
 void ast_print(Ast *ast);
-int ast_get_symbol(AstCursor *cur, char *name, unsigned int length);
+int ast_get_symbol(AstCursor *cur, unsigned char *name, unsigned int length);
 void ast_cursor_init(AstCursor *cursor, Ast *ast);
 void ast_cursor_push(AstCursor *cursor);
 void ast_cursor_pop(AstCursor *cursor);

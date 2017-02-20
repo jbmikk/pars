@@ -271,7 +271,7 @@ void ast_print_node(Ast *ast, AstNode *node, int level) {
 	} while(next = ast_get_next_sibling(next));
 }
 
-int ast_get_symbol(AstCursor *cur, char *name, unsigned int length) {
+int ast_get_symbol(AstCursor *cur, unsigned char *name, unsigned int length) {
 	return symbol_table_get(cur->ast->table, name, length)->id;
 }
 
