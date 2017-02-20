@@ -6,7 +6,7 @@
 #include "ast.h"
 #include "test.h"
 
-unsigned char *buffer = "this is a test";
+char *buffer = "this is a test";
 
 typedef struct {
 	SymbolTable table;
@@ -17,7 +17,7 @@ typedef struct {
 Fixture fix;
 
 void t_setup(){
-	input_init_buffer(&fix.input, buffer, strlen(buffer));
+	input_init_buffer(&fix.input, (unsigned char*)buffer, strlen(buffer));
 	symbol_table_init(&fix.table);
 	ast_init(&fix.ast, &fix.input, &fix.table);
 }
