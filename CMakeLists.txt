@@ -28,15 +28,19 @@ if(PROFILE)
 endif(PROFILE)
 
 
-# Depend on dbg
-# -------------
+# Include external dbg
+# -----------------------
 
-add_custom_target(
-        dependencies ALL sh install.sh
-        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+include_directories("${CMAKE_BINARY_DIR}/dbg-prefix/src/dbg")
+
+externalproject_add(
+        dbg
+        GIT_REPOSITORY git@github.com:jbmikk/dbg.git
+        DOWNLOAD_NAME dbg
+        DOWNLOAD_DIR dbg
+        INSTALL_COMMAND ""
+        UPDATE_DISCONNECTED 1
 )
-
-include_directories("${PROJECT_SOURCE_DIR}/vendor/dbg")
 
 
 # Include external dstlib 
@@ -105,8 +109,8 @@ target_link_libraries(pars dstlib)
 
 # Force download before compiling otherwise can't find headers (why?)
 # This was not necessary when including subdirectories.
-add_dependencies(parslib xdstlib)
-add_dependencies(pars xdstlib)
+add_dependencies(parslib xdstlib dbg)
+add_dependencies(pars xdstlib dbg)
 
 set_target_properties(parslib PROPERTIES COMPILE_FLAGS "-DLIBRARY ${PARS_FLAGS}")
 set_target_properties(pars PROPERTIES COMPILE_FLAGS "${PARS_FLAGS}")
