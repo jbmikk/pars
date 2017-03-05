@@ -34,6 +34,10 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_cursor_terminal(&cur, E_SPECIAL_SEQUENCE);
 	fsm_cursor_or(&cur);
 
+	fsm_cursor_terminal(&cur, E_CHARACTER_SET);
+	fsm_cursor_or(&cur);
+
+
 	fsm_cursor_terminal(&cur, E_START_GROUP_SYMBOL);
 	fsm_cursor_nonterminal(&cur,  nzs("definitions_list"));
 	fsm_cursor_terminal(&cur, E_END_GROUP_SYMBOL);
@@ -161,6 +165,10 @@ void ebnf_build_syntactic_primary(FsmCursor *f_cur, AstCursor *a_cur)
 	case E_SPECIAL_SEQUENCE:
 		//TODO: define special sequences behaviour
 		log_warn("Special sequence is not defined");
+		break;
+	case E_CHARACTER_SET:
+		//TODO: define character set behaviour
+		log_warn("Character set is not supported");
 		break;
 	case '(':
 		ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);

@@ -3,5 +3,6 @@
  * Simple grammar used to test rules with terminals and nonterminals.
  *)
 cc = ?testing sequence syntax?;
+dd = ?[abcd]?;
 aa = 'A';
 bb = aa, "B";

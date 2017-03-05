@@ -82,6 +82,20 @@ next_token:
 			}
 		}
 		symbol = E_TERMINAL_STRING;
+	} else if (c == '?' && !END(1) && LOOKAHEAD(1) == '[') {
+		while(1) {
+			unsigned char prev;
+			prev = c;
+			NEXT;
+			if(END(0))
+				break;
+			c = CURRENT;
+			if(c == '?' && prev == ']') {
+				NEXT;
+				break;
+			}
+		}
+		symbol = E_CHARACTER_SET;
 	} else if (c == '?') {
 		while(1) {
 			unsigned char prev;
