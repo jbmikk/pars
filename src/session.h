@@ -18,7 +18,7 @@ typedef struct _Stack {
 } Stack;
 
 typedef struct _FsmHandler {
-	void (*context_shift)(void *target, unsigned int index, unsigned int length, int symbol);
+	void (*shift)(void *target, unsigned int index, unsigned int length, int symbol);
 	void (*reduce)(void *target, unsigned int index, unsigned int length, int symbol);
 } FsmHandler;
 

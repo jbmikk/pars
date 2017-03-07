@@ -28,7 +28,7 @@ void session_init(Session *session, Fsm *fsm)
 	session->last_action = NULL;
 	session->stack.top = NULL;
 	session->index = 0;
-	session->handler.context_shift = NULL;
+	session->handler.shift = NULL;
 	session->handler.reduce = NULL;
 	session->target = NULL;
 	//TODO: Avoid calling push in init
@@ -81,14 +81,14 @@ Action *session_test(Session *session, Token *token)
 	}
 
 	switch(action->type) {
-	case ACTION_CONTEXT_SHIFT:
-		trace("test", session->current, action, token, "context shift", 0);
+	case ACTION_SHIFT:
+		trace("test", session->current, action, token, "shift", 0);
 		break;
 	case ACTION_ACCEPT:
 		trace("test", session->current, action, token, "accept", 0);
 		break;
-	case ACTION_SHIFT:
-		trace("test", session->current, action, token, "shift", 0);
+	case ACTION_DROP:
+		trace("test", session->current, action, token, "drop", 0);
 		break;
 	case ACTION_REDUCE:
 		trace("test", session->current, action, token, "reduce", action->reduction);
@@ -129,10 +129,10 @@ rematch:
 	session->last_action = action;
 
 	switch(action->type) {
-	case ACTION_CONTEXT_SHIFT:
-		trace("match", session->current, action, token, "context shift", 0);
-		if(session->handler.context_shift) {
-			session->handler.context_shift(session->target, session->index, session->length, token->symbol);
+	case ACTION_SHIFT:
+		trace("match", session->current, action, token, "shift", 0);
+		if(session->handler.shift) {
+			session->handler.shift(session->target, session->index, session->length, token->symbol);
 		}
 		session_push(session);
 		session->current = action->state;
@@ -141,8 +141,8 @@ rematch:
 		trace("match", session->current, action, token, "accept", 0);
 		session->current = action->state;
 		break;
-	case ACTION_SHIFT:
-		trace("match", session->current, action, token, "shift", 0);
+	case ACTION_DROP:
+		trace("match", session->current, action, token, "drop", 0);
 		session->current = action->state;
 		break;
 	case ACTION_REDUCE:

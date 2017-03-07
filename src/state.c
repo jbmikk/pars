@@ -129,10 +129,10 @@ Action *state_add(State *state, int symbol, int type, int reduction)
 	// in this case we are going to have a REDUCE/REDUCE conflict that 
 	// cannot be avoided.
 	if(action) {
-		if(type == ACTION_CONTEXT_SHIFT) {
-			trace("add", state, action, symbol, "context-shift", 0);
-		} else if(type == ACTION_SHIFT) {
+		if(type == ACTION_SHIFT) {
 			trace("add", state, action, symbol, "shift", 0);
+		} else if(type == ACTION_DROP) {
+			trace("add", state, action, symbol, "drop", 0);
 		} else if(type == ACTION_REDUCE) {
 			trace("add", state, action, symbol, "reduce", 0);
 		} else if(type == ACTION_ACCEPT) {
@@ -170,8 +170,8 @@ void state_add_first_set(State *state, State* source, Symbol *symbol)
 				);
 				 continue;
 			}
-			clone->type = ACTION_CONTEXT_SHIFT;
-			trace("add", state, action, array_to_int(it.key, it.size), "context-shift", 0);
+			clone->type = ACTION_SHIFT;
+			trace("add", state, action, array_to_int(it.key, it.size), "shift", 0);
 		} else {
 			// It could happen when merging loops in final states
 			// that action->type == ACTION_REDUCE

@@ -118,7 +118,7 @@ void ebnf_init_fsm(Fsm *fsm)
 
 int ebnf_init_parser(Parser *parser)
 {
-	parser->handler.context_shift = ast_open;
+	parser->handler.shift = ast_open;
 	parser->handler.reduce = ast_close;
 	parser->lexer_handler = ebnf_lexer;
 

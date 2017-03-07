@@ -72,9 +72,9 @@ void session_match__shift(){
 	Session session;
 	session_init(&session, &fix.fsm);
 	MATCH(session, 'a');
-	t_assert(session.last_action->type == ACTION_CONTEXT_SHIFT);
-	MATCH(session, 'b');
 	t_assert(session.last_action->type == ACTION_SHIFT);
+	MATCH(session, 'b');
+	t_assert(session.last_action->type == ACTION_DROP);
 	session_dispose(&session);
 }
 
@@ -161,7 +161,7 @@ void session_match__reduce_handler(){
 	Session session;
 	session_init(&session, &fix.fsm);
 	FsmHandler handler;
-	handler.context_shift = NULL;
+	handler.shift = NULL;
 	handler.reduce = reduce_handler;
 	session_set_handler(&session, handler, NULL);
 	MATCH_AT(session, '1', 0);

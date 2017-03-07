@@ -58,7 +58,7 @@ int cli_parse_source(char *pathname, Fsm *fsm, Ast *ast)
 
 	//TODO: Maybe the fsm should be a pointer.
 	parser.fsm = *fsm;
-	parser.handler.context_shift = ast_open;
+	parser.handler.shift = ast_open;
 	parser.handler.reduce = ast_close;
 	parser.lexer_handler = identity_lexer;
 	//TODO: Please kill me

@@ -255,7 +255,7 @@ void fsm_cursor_nonterminal(FsmCursor *cur, char *name, int length)
 
 	State *prev = cur->state;
 
-	Action *action = state_add(cur->state, sb->id, ACTION_SHIFT, NONE);
+	Action *action = state_add(cur->state, sb->id, ACTION_DROP, NONE);
 	_transition(cur, action);
 
 	//Create reference from last non terminal to the named non terminal
@@ -484,7 +484,7 @@ void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
 
 void fsm_cursor_terminal(FsmCursor *cur, int symbol)
 {
-	int type = ACTION_SHIFT;
+	int type = ACTION_DROP;
 
 	_ensure_state(cur);
 	Action *action = state_add(cur->state, symbol, type, NONE);

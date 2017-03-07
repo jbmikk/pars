@@ -5,9 +5,9 @@
 #include "symbols.h"
 
 #define ACTION_START 0
-#define ACTION_SHIFT 1
+#define ACTION_DROP 1
 #define ACTION_REDUCE 2
-#define ACTION_CONTEXT_SHIFT 3
+#define ACTION_SHIFT 3
 #define ACTION_ACCEPT 4
 #define ACTION_ERROR 5
 #define ACTION_EMPTY 6
