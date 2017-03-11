@@ -44,12 +44,12 @@ void t_teardown(){
 }
 
 void ebnf_start_parsing__identifier(){
-	FsmCursor cur;
+	FsmBuilder builder;
 
 	//Fake main nonterminal
-	fsm_cursor_init(&cur, &fix.fsm);
-	fsm_cursor_define(&cur, nzs("syntactic_primary"));
-	fsm_cursor_done(&cur, '\0');
+	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_define(&builder, nzs("syntactic_primary"));
+	fsm_builder_done(&builder, '\0');
 
 	Action *action;
 	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
@@ -74,16 +74,16 @@ void ebnf_start_parsing__identifier(){
 	t_assert(session.last_action->type != ACTION_ERROR);
 	session_dispose(&session);
 
-	fsm_cursor_dispose(&cur);
+	fsm_builder_dispose(&builder);
 }
 
 void ebnf_start_parsing__terminal(){
-	FsmCursor cur;
+	FsmBuilder builder;
 
 	//Fake main nonterminal
-	fsm_cursor_init(&cur, &fix.fsm);
-	fsm_cursor_define(&cur, nzs("syntactic_primary"));
-	fsm_cursor_done(&cur, '\0');
+	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_define(&builder, nzs("syntactic_primary"));
+	fsm_builder_done(&builder, '\0');
 
 	Action *action;
 	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
@@ -108,16 +108,16 @@ void ebnf_start_parsing__terminal(){
 	t_assert(session.last_action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
-	fsm_cursor_dispose(&cur);
+	fsm_builder_dispose(&builder);
 }
 
 void ebnf_start_parsing__concatenate(){
-	FsmCursor cur;
+	FsmBuilder builder;
 
 	//Fake main nonterminal
-	fsm_cursor_init(&cur, &fix.fsm);
-	fsm_cursor_define(&cur, nzs("single_definition"));
-	fsm_cursor_done(&cur, '\0');
+	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_define(&builder, nzs("single_definition"));
+	fsm_builder_done(&builder, '\0');
 
 	Action *action;
 	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
@@ -140,16 +140,16 @@ void ebnf_start_parsing__concatenate(){
 	t_assert(session.last_action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
-	fsm_cursor_dispose(&cur);
+	fsm_builder_dispose(&builder);
 }
 
 void ebnf_start_parsing__separator(){
-	FsmCursor cur;
+	FsmBuilder builder;
 
 	//Fake main nonterminal
-	fsm_cursor_init(&cur, &fix.fsm);
-	fsm_cursor_define(&cur, nzs("definitions_list"));
-	fsm_cursor_done(&cur, '\0');
+	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_define(&builder, nzs("definitions_list"));
+	fsm_builder_done(&builder, '\0');
 
 	Action *action;
 	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
@@ -168,15 +168,15 @@ void ebnf_start_parsing__separator(){
 	t_assert(session.last_action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
-	fsm_cursor_dispose(&cur);
+	fsm_builder_dispose(&builder);
 }
 
 void ebnf_start_parsing__syntactic_term(){
-	FsmCursor cur;
+	FsmBuilder builder;
 
-	fsm_cursor_init(&cur, &fix.fsm);
-	fsm_cursor_define(&cur, nzs("syntactic_term"));
-	fsm_cursor_done(&cur, '\0');
+	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_define(&builder, nzs("syntactic_term"));
+	fsm_builder_done(&builder, '\0');
 
 	Action *action;
 	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
@@ -200,16 +200,16 @@ void ebnf_start_parsing__syntactic_term(){
 	t_assert(session.last_action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
-	fsm_cursor_dispose(&cur);
+	fsm_builder_dispose(&builder);
 }
 
 void ebnf_start_parsing__syntax_rule(){
-	FsmCursor cur;
+	FsmBuilder builder;
 
 	//Fake main nonterminal
-	fsm_cursor_init(&cur, &fix.fsm);
-	fsm_cursor_define(&cur, nzs("syntax_rule"));
-	fsm_cursor_done(&cur, '\0');
+	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_define(&builder, nzs("syntax_rule"));
+	fsm_builder_done(&builder, '\0');
 
 	Action *action;
 	int E_SYNTAX_RULE = fsm_get_symbol(&fix.fsm, nzs("syntax_rule"));
@@ -231,16 +231,16 @@ void ebnf_start_parsing__syntax_rule(){
 	t_assert(session.last_action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
-	fsm_cursor_dispose(&cur);
+	fsm_builder_dispose(&builder);
 }
 
 void ebnf_start_parsing__group(){
-	FsmCursor cur;
+	FsmBuilder builder;
 
 	//Fake main nonterminal
-	fsm_cursor_init(&cur, &fix.fsm);
-	fsm_cursor_define(&cur, nzs("syntactic_primary"));
-	fsm_cursor_done(&cur, '\0');
+	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_define(&builder, nzs("syntactic_primary"));
+	fsm_builder_done(&builder, '\0');
 
 	Action *action;
 	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
@@ -259,7 +259,7 @@ void ebnf_start_parsing__group(){
 	t_assert(session.last_action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
-	fsm_cursor_dispose(&cur);
+	fsm_builder_dispose(&builder);
 }
 
 void ebnf_start_parsing__syntax(){

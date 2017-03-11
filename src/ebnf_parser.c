@@ -17,103 +17,103 @@ void parse_error(Input *input, unsigned int index)
 
 void ebnf_init_fsm(Fsm *fsm)
 {
-	FsmCursor cur;
+	FsmBuilder builder;
 
-	fsm_cursor_init(&cur, fsm);
+	fsm_builder_init(&builder, fsm);
 
 	//Syntactic Primary
-	fsm_cursor_define(&cur, nzs("syntactic_primary"));
-	fsm_cursor_group_start(&cur);
+	fsm_builder_define(&builder, nzs("syntactic_primary"));
+	fsm_builder_group_start(&builder);
 
-	fsm_cursor_terminal(&cur, E_META_IDENTIFIER);
-	fsm_cursor_or(&cur);
+	fsm_builder_terminal(&builder, E_META_IDENTIFIER);
+	fsm_builder_or(&builder);
 
-	fsm_cursor_terminal(&cur, E_TERMINAL_STRING);
-	fsm_cursor_or(&cur);
+	fsm_builder_terminal(&builder, E_TERMINAL_STRING);
+	fsm_builder_or(&builder);
 
-	fsm_cursor_terminal(&cur, E_SPECIAL_SEQUENCE);
-	fsm_cursor_or(&cur);
+	fsm_builder_terminal(&builder, E_SPECIAL_SEQUENCE);
+	fsm_builder_or(&builder);
 
-	fsm_cursor_terminal(&cur, E_CHARACTER_SET);
-	fsm_cursor_or(&cur);
+	fsm_builder_terminal(&builder, E_CHARACTER_SET);
+	fsm_builder_or(&builder);
 
 
-	fsm_cursor_terminal(&cur, E_START_GROUP_SYMBOL);
-	fsm_cursor_nonterminal(&cur,  nzs("definitions_list"));
-	fsm_cursor_terminal(&cur, E_END_GROUP_SYMBOL);
-	fsm_cursor_or(&cur);
+	fsm_builder_terminal(&builder, E_START_GROUP_SYMBOL);
+	fsm_builder_nonterminal(&builder,  nzs("definitions_list"));
+	fsm_builder_terminal(&builder, E_END_GROUP_SYMBOL);
+	fsm_builder_or(&builder);
 
-	fsm_cursor_terminal(&cur, E_START_OPTION_SYMBOL);
-	fsm_cursor_nonterminal(&cur,  nzs("definitions_list"));
-	fsm_cursor_terminal(&cur, E_END_OPTION_SYMBOL);
-	fsm_cursor_or(&cur);
+	fsm_builder_terminal(&builder, E_START_OPTION_SYMBOL);
+	fsm_builder_nonterminal(&builder,  nzs("definitions_list"));
+	fsm_builder_terminal(&builder, E_END_OPTION_SYMBOL);
+	fsm_builder_or(&builder);
 
-	fsm_cursor_terminal(&cur, E_START_REPETITION_SYMBOL);
-	fsm_cursor_nonterminal(&cur,  nzs("definitions_list"));
-	fsm_cursor_terminal(&cur, E_END_REPETITION_SYMBOL);
-	fsm_cursor_group_end(&cur);
-	fsm_cursor_end(&cur);
+	fsm_builder_terminal(&builder, E_START_REPETITION_SYMBOL);
+	fsm_builder_nonterminal(&builder,  nzs("definitions_list"));
+	fsm_builder_terminal(&builder, E_END_REPETITION_SYMBOL);
+	fsm_builder_group_end(&builder);
+	fsm_builder_end(&builder);
 
 	//Syntactic Factor
-	fsm_cursor_define(&cur, nzs("syntactic_factor"));
-	fsm_cursor_option_group_start(&cur);
-	fsm_cursor_terminal(&cur, E_INTEGER);
-	fsm_cursor_terminal(&cur, E_REPETITION_SYMBOL);
-	fsm_cursor_option_group_end(&cur);
-	fsm_cursor_nonterminal(&cur,  nzs("syntactic_primary"));
-	fsm_cursor_end(&cur);
+	fsm_builder_define(&builder, nzs("syntactic_factor"));
+	fsm_builder_option_group_start(&builder);
+	fsm_builder_terminal(&builder, E_INTEGER);
+	fsm_builder_terminal(&builder, E_REPETITION_SYMBOL);
+	fsm_builder_option_group_end(&builder);
+	fsm_builder_nonterminal(&builder,  nzs("syntactic_primary"));
+	fsm_builder_end(&builder);
 
 	//Syntactic Exception
-	fsm_cursor_define(&cur, nzs("syntactic_exception"));
-	fsm_cursor_nonterminal(&cur,  nzs("syntactic_factor"));
-	fsm_cursor_end(&cur);
+	fsm_builder_define(&builder, nzs("syntactic_exception"));
+	fsm_builder_nonterminal(&builder,  nzs("syntactic_factor"));
+	fsm_builder_end(&builder);
 
 	//Syntactic Term
-	fsm_cursor_define(&cur, nzs("syntactic_term"));
-	fsm_cursor_nonterminal(&cur,  nzs("syntactic_factor"));
-	fsm_cursor_option_group_start(&cur);
-	fsm_cursor_terminal(&cur, E_EXCEPT_SYMBOL);
-	fsm_cursor_nonterminal(&cur,  nzs("syntactic_exception"));
-	fsm_cursor_option_group_end(&cur);
-	fsm_cursor_end(&cur);
+	fsm_builder_define(&builder, nzs("syntactic_term"));
+	fsm_builder_nonterminal(&builder,  nzs("syntactic_factor"));
+	fsm_builder_option_group_start(&builder);
+	fsm_builder_terminal(&builder, E_EXCEPT_SYMBOL);
+	fsm_builder_nonterminal(&builder,  nzs("syntactic_exception"));
+	fsm_builder_option_group_end(&builder);
+	fsm_builder_end(&builder);
 
 	//Single Definition
-	fsm_cursor_define(&cur, nzs("single_definition"));
-	fsm_cursor_nonterminal(&cur,  nzs("syntactic_term"));
-	fsm_cursor_loop_group_start(&cur);
-	fsm_cursor_terminal(&cur, E_CONCATENATE_SYMBOL);
-	fsm_cursor_nonterminal(&cur,  nzs("syntactic_term"));
-	fsm_cursor_loop_group_end(&cur);
-	fsm_cursor_end(&cur);
+	fsm_builder_define(&builder, nzs("single_definition"));
+	fsm_builder_nonterminal(&builder,  nzs("syntactic_term"));
+	fsm_builder_loop_group_start(&builder);
+	fsm_builder_terminal(&builder, E_CONCATENATE_SYMBOL);
+	fsm_builder_nonterminal(&builder,  nzs("syntactic_term"));
+	fsm_builder_loop_group_end(&builder);
+	fsm_builder_end(&builder);
 
 	//Definitions List
-	fsm_cursor_define(&cur, nzs("definitions_list"));
-	fsm_cursor_nonterminal(&cur,  nzs("single_definition"));
-	fsm_cursor_loop_group_start(&cur);
-	fsm_cursor_terminal(&cur, E_DEFINITION_SEPARATOR_SYMBOL);
-	fsm_cursor_nonterminal(&cur,  nzs("single_definition"));
-	fsm_cursor_loop_group_end(&cur);
-	fsm_cursor_end(&cur);
+	fsm_builder_define(&builder, nzs("definitions_list"));
+	fsm_builder_nonterminal(&builder,  nzs("single_definition"));
+	fsm_builder_loop_group_start(&builder);
+	fsm_builder_terminal(&builder, E_DEFINITION_SEPARATOR_SYMBOL);
+	fsm_builder_nonterminal(&builder,  nzs("single_definition"));
+	fsm_builder_loop_group_end(&builder);
+	fsm_builder_end(&builder);
 
 	//Syntax Rule
-	fsm_cursor_define(&cur, nzs("syntax_rule"));
-	fsm_cursor_terminal(&cur, E_META_IDENTIFIER);
-	fsm_cursor_terminal(&cur, E_DEFINING_SYMBOL);
-	fsm_cursor_nonterminal(&cur,  nzs("definitions_list"));
-	fsm_cursor_terminal(&cur, E_TERMINATOR_SYMBOL);
-	fsm_cursor_end(&cur);
+	fsm_builder_define(&builder, nzs("syntax_rule"));
+	fsm_builder_terminal(&builder, E_META_IDENTIFIER);
+	fsm_builder_terminal(&builder, E_DEFINING_SYMBOL);
+	fsm_builder_nonterminal(&builder,  nzs("definitions_list"));
+	fsm_builder_terminal(&builder, E_TERMINATOR_SYMBOL);
+	fsm_builder_end(&builder);
 
 	//Syntax
-	fsm_cursor_define(&cur, nzs("syntax"));
-	fsm_cursor_nonterminal(&cur,  nzs("syntax_rule"));
-	fsm_cursor_loop_group_start(&cur);
-	fsm_cursor_nonterminal(&cur,  nzs("syntax_rule"));
-	fsm_cursor_loop_group_end(&cur);
-	fsm_cursor_end(&cur);
+	fsm_builder_define(&builder, nzs("syntax"));
+	fsm_builder_nonterminal(&builder,  nzs("syntax_rule"));
+	fsm_builder_loop_group_start(&builder);
+	fsm_builder_nonterminal(&builder,  nzs("syntax_rule"));
+	fsm_builder_loop_group_end(&builder);
+	fsm_builder_end(&builder);
 
-	fsm_cursor_done(&cur, L_EOF);
+	fsm_builder_done(&builder, L_EOF);
 
-	fsm_cursor_dispose(&cur);
+	fsm_builder_dispose(&builder);
 }
 
 int ebnf_init_parser(Parser *parser)
@@ -141,9 +141,9 @@ int ebnf_dispose_parser(Parser *parser)
 	return 0;
 }
 
-void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur);
+void ebnf_build_definitions_list(FsmBuilder *builder, AstCursor *a_cur);
 
-void ebnf_build_syntactic_primary(FsmCursor *f_cur, AstCursor *a_cur)
+void ebnf_build_syntactic_primary(FsmBuilder *builder, AstCursor *a_cur)
 {
 	AstNode *node = ast_cursor_depth_next(a_cur);
 	char *string;
@@ -153,13 +153,13 @@ void ebnf_build_syntactic_primary(FsmCursor *f_cur, AstCursor *a_cur)
 	switch(node->symbol) {
 	case E_META_IDENTIFIER:
 		ast_cursor_get_string(a_cur, &string, &length);
-		fsm_cursor_nonterminal(f_cur, string, length);
+		fsm_builder_nonterminal(builder, string, length);
 		break;
 	case E_TERMINAL_STRING:
 		ast_cursor_get_string(a_cur, &string, &length);
 		for(i = 1; i < length-1; i++) {
 			//TODO: literal strings should be tokenized into simbols (utf8)
-			fsm_cursor_terminal(f_cur, string[i]);
+			fsm_builder_terminal(builder, string[i]);
 		}
 		break;
 	case E_SPECIAL_SEQUENCE:
@@ -172,21 +172,21 @@ void ebnf_build_syntactic_primary(FsmCursor *f_cur, AstCursor *a_cur)
 		break;
 	case '(':
 		ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);
-		fsm_cursor_group_start(f_cur);
-		ebnf_build_definitions_list(f_cur, a_cur);
-		fsm_cursor_group_end(f_cur);
+		fsm_builder_group_start(builder);
+		ebnf_build_definitions_list(builder, a_cur);
+		fsm_builder_group_end(builder);
 		break;
 	case '{':
 		ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);
-		fsm_cursor_loop_group_start(f_cur);
-		ebnf_build_definitions_list(f_cur, a_cur);
-		fsm_cursor_loop_group_end(f_cur);
+		fsm_builder_loop_group_start(builder);
+		ebnf_build_definitions_list(builder, a_cur);
+		fsm_builder_loop_group_end(builder);
 		break;
 	case '[':
 		ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);
-		fsm_cursor_option_group_start(f_cur);
-		ebnf_build_definitions_list(f_cur, a_cur);
-		fsm_cursor_option_group_end(f_cur);
+		fsm_builder_option_group_start(builder);
+		ebnf_build_definitions_list(builder, a_cur);
+		fsm_builder_option_group_end(builder);
 		break;
 	default:
 		//TODO:sentinel??
@@ -194,7 +194,7 @@ void ebnf_build_syntactic_primary(FsmCursor *f_cur, AstCursor *a_cur)
 	}
 }
 
-void ebnf_build_syntactic_factor(FsmCursor *f_cur, AstCursor *a_cur)
+void ebnf_build_syntactic_factor(FsmBuilder *builder, AstCursor *a_cur)
 {
 	int E_SYNTACTIC_PRIMARY = ast_get_symbol(a_cur, nzs("syntactic_primary"));
 
@@ -207,35 +207,35 @@ void ebnf_build_syntactic_factor(FsmCursor *f_cur, AstCursor *a_cur)
 	*/
 
 	ast_cursor_depth_next_symbol(a_cur, E_SYNTACTIC_PRIMARY);
-	ebnf_build_syntactic_primary(f_cur, a_cur);
+	ebnf_build_syntactic_primary(builder, a_cur);
 }
 
-void ebnf_build_syntactic_term(FsmCursor *f_cur, AstCursor *a_cur)
+void ebnf_build_syntactic_term(FsmBuilder *builder, AstCursor *a_cur)
 {
 	int E_SYNTACTIC_FACTOR = ast_get_symbol(a_cur, nzs("syntactic_factor"));
 	int E_SYNTACTIC_EXCEPTION = ast_get_symbol(a_cur, nzs("syntactic_exception"));
 
 	ast_cursor_depth_next_symbol(a_cur, E_SYNTACTIC_FACTOR);
 	ast_cursor_push(a_cur);
-	ebnf_build_syntactic_factor(f_cur, a_cur);
+	ebnf_build_syntactic_factor(builder, a_cur);
 	ast_cursor_pop(a_cur);
 	if(ast_cursor_next_sibling_symbol(a_cur, E_SYNTACTIC_EXCEPTION)) {
 		log_warn("Syntactic exceptions are not supported");
 	}
 }
 
-void ebnf_build_single_definition(FsmCursor *f_cur, AstCursor *a_cur)
+void ebnf_build_single_definition(FsmBuilder *builder, AstCursor *a_cur)
 {
 	int E_SYNTACTIC_TERM = ast_get_symbol(a_cur, nzs("syntactic_term"));
 	ast_cursor_depth_next_symbol(a_cur, E_SYNTACTIC_TERM);
 	do {
 		ast_cursor_push(a_cur);
-		ebnf_build_syntactic_term(f_cur, a_cur);
+		ebnf_build_syntactic_term(builder, a_cur);
 		ast_cursor_pop(a_cur);
 	} while(ast_cursor_next_sibling_symbol(a_cur, E_SYNTACTIC_TERM));
 }
 
-void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur)
+void ebnf_build_definitions_list(FsmBuilder *builder, AstCursor *a_cur)
 {
 	int first = 1;
 	int E_SINGLE_DEFINITION = ast_get_symbol(a_cur, nzs("single_definition"));
@@ -245,14 +245,14 @@ void ebnf_build_definitions_list(FsmCursor *f_cur, AstCursor *a_cur)
 		if(first) {
 			first = 0;
 		} else {
-			fsm_cursor_or(f_cur);
+			fsm_builder_or(builder);
 		}
-		ebnf_build_single_definition(f_cur, a_cur);
+		ebnf_build_single_definition(builder, a_cur);
 		ast_cursor_pop(a_cur);
 	} while(ast_cursor_next_sibling_symbol(a_cur, E_SINGLE_DEFINITION));
 }
 
-void ebnf_build_syntax_rule(FsmCursor *f_cur, AstCursor *a_cur)
+void ebnf_build_syntax_rule(FsmBuilder *builder, AstCursor *a_cur)
 {
 	char *string;
 	int length;
@@ -263,35 +263,35 @@ void ebnf_build_syntax_rule(FsmCursor *f_cur, AstCursor *a_cur)
 	// Maybe an error could be thrown or a sentinel could be placed.
 	ast_cursor_depth_next_symbol(a_cur, E_META_IDENTIFIER);
 	ast_cursor_get_string(a_cur, &string, &length);
-	fsm_cursor_define(f_cur, string, length);
+	fsm_builder_define(builder, string, length);
 
 	int E_DEFINITIONS_LIST = ast_get_symbol(a_cur, nzs("definitions_list"));
 	ast_cursor_next_sibling_symbol(a_cur, E_DEFINITIONS_LIST);
-	fsm_cursor_group_start(f_cur);
-	ebnf_build_definitions_list(f_cur, a_cur);
-	fsm_cursor_group_end(f_cur);
-	fsm_cursor_end(f_cur);
+	fsm_builder_group_start(builder);
+	ebnf_build_definitions_list(builder, a_cur);
+	fsm_builder_group_end(builder);
+	fsm_builder_end(builder);
 }	
 
 void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
 {
 	AstCursor a_cur;
-	FsmCursor f_cur;
+	FsmBuilder builder;
 
 	ast_cursor_init(&a_cur, ast);
-	fsm_cursor_init(&f_cur, fsm);
+	fsm_builder_init(&builder, fsm);
 
 	int E_SYNTAX_RULE = ast_get_symbol(&a_cur, nzs("syntax_rule"));
 	while(ast_cursor_depth_next_symbol(&a_cur, E_SYNTAX_RULE)) {
 		ast_cursor_push(&a_cur);
-		ebnf_build_syntax_rule(&f_cur, &a_cur);
+		ebnf_build_syntax_rule(&builder, &a_cur);
 		ast_cursor_pop(&a_cur);
 	}
 
-	fsm_cursor_done(&f_cur, L_EOF);
+	fsm_builder_done(&builder, L_EOF);
 	//ast_done?
 
-	fsm_cursor_dispose(&f_cur);
+	fsm_builder_dispose(&builder);
 	ast_cursor_dispose(&a_cur);
 	
 }

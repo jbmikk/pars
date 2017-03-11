@@ -8,28 +8,28 @@
 
 void atl_init_fsm(Fsm *fsm)
 {
-	FsmCursor cur;
+	FsmBuilder builder;
 
-	fsm_cursor_init(&cur, fsm);
+	fsm_builder_init(&builder, fsm);
 
 	//Atl Rule
-	fsm_cursor_define(&cur, nzs("atl_rule"));
-	fsm_cursor_terminal(&cur, ATL_IDENTIFIER);
-	fsm_cursor_terminal(&cur, ATL_START_BLOCK_SYMBOL);
-	fsm_cursor_terminal(&cur, ATL_END_BLOCK_SYMBOL);
-	fsm_cursor_end(&cur);
+	fsm_builder_define(&builder, nzs("atl_rule"));
+	fsm_builder_terminal(&builder, ATL_IDENTIFIER);
+	fsm_builder_terminal(&builder, ATL_START_BLOCK_SYMBOL);
+	fsm_builder_terminal(&builder, ATL_END_BLOCK_SYMBOL);
+	fsm_builder_end(&builder);
 
 	//Syntax
-	fsm_cursor_define(&cur, nzs("syntax"));
-	fsm_cursor_nonterminal(&cur,  nzs("atl_rule"));
-	fsm_cursor_loop_group_start(&cur);
-	fsm_cursor_nonterminal(&cur,  nzs("atl_rule"));
-	fsm_cursor_loop_group_end(&cur);
-	fsm_cursor_end(&cur);
+	fsm_builder_define(&builder, nzs("syntax"));
+	fsm_builder_nonterminal(&builder,  nzs("atl_rule"));
+	fsm_builder_loop_group_start(&builder);
+	fsm_builder_nonterminal(&builder,  nzs("atl_rule"));
+	fsm_builder_loop_group_end(&builder);
+	fsm_builder_end(&builder);
 
-	fsm_cursor_done(&cur, L_EOF);
+	fsm_builder_done(&builder, L_EOF);
 
-	fsm_cursor_dispose(&cur);
+	fsm_builder_dispose(&builder);
 }
 
 int atl_init_parser(Parser *parser)

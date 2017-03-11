@@ -4,7 +4,7 @@
 #include "lexer.h"
 #include "ebnf_lexer.h"
 #include "fsm.h"
-#include "fsmcursor.h"
+#include "fsmbuilder.h"
 #include "ast.h"
 #include "parser.h"
 

@@ -4,7 +4,7 @@
 
 #include "fsm.h"
 #include "session.h"
-#include "fsmcursor.h"
+#include "fsmbuilder.h"
 #include "test.h"
 
 #define nzs(S) (S), (strlen(S))
@@ -30,25 +30,25 @@ void t_teardown(){
 	symbol_table_dispose(&fix.table);
 }
 
-void fsm_cursor_define__single_get(){
-	FsmCursor cur;
-	fsm_cursor_init(&cur, &fix.fsm);
-	fsm_cursor_define(&cur, nzs("name"));
-	t_assert(cur.state != NULL);
-	fsm_cursor_dispose(&cur);
+void fsm_builder_define__single_get(){
+	FsmBuilder builder;
+	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_define(&builder, nzs("name"));
+	t_assert(builder.state != NULL);
+	fsm_builder_dispose(&builder);
 }
 
-void fsm_cursor_define__two_gets(){
-	FsmCursor cur;
-	fsm_cursor_init(&cur, &fix.fsm);
+void fsm_builder_define__two_gets(){
+	FsmBuilder builder;
+	fsm_builder_init(&builder, &fix.fsm);
 
-	fsm_cursor_define(&cur, nzs("rule1"));
-	State *state1 = cur.state;
-	fsm_cursor_define(&cur, nzs("rule2"));
-	State *state2 = cur.state;
-	fsm_cursor_define(&cur, nzs("rule1"));
-	State *state3 = cur.state;
-	fsm_cursor_dispose(&cur);
+	fsm_builder_define(&builder, nzs("rule1"));
+	State *state1 = builder.state;
+	fsm_builder_define(&builder, nzs("rule2"));
+	State *state2 = builder.state;
+	fsm_builder_define(&builder, nzs("rule1"));
+	State *state3 = builder.state;
+	fsm_builder_dispose(&builder);
 
 	t_assert(state1 != NULL);
 	t_assert(state2 != NULL);
@@ -57,17 +57,17 @@ void fsm_cursor_define__two_gets(){
 }
 
 void session_match__shift(){
-	FsmCursor cur;
-	fsm_cursor_init(&cur, &fix.fsm);
+	FsmBuilder builder;
+	fsm_builder_init(&builder, &fix.fsm);
 
-	fsm_cursor_define(&cur, nzs("name"));
-	fsm_cursor_terminal(&cur, 'a');
-	fsm_cursor_terminal(&cur, 'b');
-	fsm_cursor_end(&cur);
+	fsm_builder_define(&builder, nzs("name"));
+	fsm_builder_terminal(&builder, 'a');
+	fsm_builder_terminal(&builder, 'b');
+	fsm_builder_end(&builder);
 
-	fsm_cursor_done(&cur, '\0');
+	fsm_builder_done(&builder, '\0');
 
-	fsm_cursor_dispose(&cur);
+	fsm_builder_dispose(&builder);
 
 	Session session;
 	session_init(&session, &fix.fsm);
@@ -79,16 +79,16 @@ void session_match__shift(){
 }
 
 void session_match__reduce(){
-	FsmCursor cur;
-	fsm_cursor_init(&cur, &fix.fsm);
+	FsmBuilder builder;
+	fsm_builder_init(&builder, &fix.fsm);
 
-	fsm_cursor_define(&cur, nzs("number"));
-	fsm_cursor_terminal(&cur, '1');
-	fsm_cursor_end(&cur);
+	fsm_builder_define(&builder, nzs("number"));
+	fsm_builder_terminal(&builder, '1');
+	fsm_builder_end(&builder);
 
-	fsm_cursor_done(&cur, '\0');
+	fsm_builder_done(&builder, '\0');
 
-	fsm_cursor_dispose(&cur);
+	fsm_builder_dispose(&builder);
 
 	Session session;
 	session_init(&session, &fix.fsm);
@@ -99,22 +99,22 @@ void session_match__reduce(){
 }
 
 void session_match__reduce_shift(){
-	FsmCursor cur;
-	fsm_cursor_init(&cur, &fix.fsm);
+	FsmBuilder builder;
+	fsm_builder_init(&builder, &fix.fsm);
 
-	fsm_cursor_define(&cur, nzs("number"));
-	fsm_cursor_terminal(&cur, '1');
-	fsm_cursor_end(&cur);
+	fsm_builder_define(&builder, nzs("number"));
+	fsm_builder_terminal(&builder, '1');
+	fsm_builder_end(&builder);
 
-	fsm_cursor_define(&cur, "sum", 3);
-	fsm_cursor_nonterminal(&cur,  nzs("number"));
-	fsm_cursor_terminal(&cur, '+');
-	fsm_cursor_terminal(&cur, '2');
-	fsm_cursor_end(&cur);
+	fsm_builder_define(&builder, "sum", 3);
+	fsm_builder_nonterminal(&builder,  nzs("number"));
+	fsm_builder_terminal(&builder, '+');
+	fsm_builder_terminal(&builder, '2');
+	fsm_builder_end(&builder);
 
-	fsm_cursor_done(&cur, '\0');
+	fsm_builder_done(&builder, '\0');
 
-	fsm_cursor_dispose(&cur);
+	fsm_builder_dispose(&builder);
 
 	Session session;
 	session_init(&session, &fix.fsm);
@@ -134,29 +134,29 @@ void reduce_handler(void *target, unsigned int index, unsigned int length, int s
 }
 
 void session_match__reduce_handler(){
-	FsmCursor cur;
-	fsm_cursor_init(&cur, &fix.fsm);
+	FsmBuilder builder;
+	fsm_builder_init(&builder, &fix.fsm);
 
-	fsm_cursor_define(&cur, nzs("number"));
-	fsm_cursor_terminal(&cur, '1');
-	fsm_cursor_end(&cur);
+	fsm_builder_define(&builder, nzs("number"));
+	fsm_builder_terminal(&builder, '1');
+	fsm_builder_end(&builder);
 
-	fsm_cursor_define(&cur, nzs("word"));
-	fsm_cursor_terminal(&cur, 'w');
-	fsm_cursor_terminal(&cur, 'o');
-	fsm_cursor_terminal(&cur, 'r');
-	fsm_cursor_terminal(&cur, 'd');
-	fsm_cursor_end(&cur);
+	fsm_builder_define(&builder, nzs("word"));
+	fsm_builder_terminal(&builder, 'w');
+	fsm_builder_terminal(&builder, 'o');
+	fsm_builder_terminal(&builder, 'r');
+	fsm_builder_terminal(&builder, 'd');
+	fsm_builder_end(&builder);
 
-	fsm_cursor_define(&cur, nzs("sum"));
-	fsm_cursor_nonterminal(&cur,  nzs("number"));
-	fsm_cursor_terminal(&cur, '+');
-	fsm_cursor_nonterminal(&cur,  nzs("word"));
-	fsm_cursor_end(&cur);
+	fsm_builder_define(&builder, nzs("sum"));
+	fsm_builder_nonterminal(&builder,  nzs("number"));
+	fsm_builder_terminal(&builder, '+');
+	fsm_builder_nonterminal(&builder,  nzs("word"));
+	fsm_builder_end(&builder);
 
-	fsm_cursor_done(&cur, '\0');
+	fsm_builder_done(&builder, '\0');
 
-	fsm_cursor_dispose(&cur);
+	fsm_builder_dispose(&builder);
 
 	Session session;
 	session_init(&session, &fix.fsm);
@@ -184,8 +184,8 @@ void session_match__reduce_handler(){
 
 int main(int argc, char** argv){
 	t_init();
-	t_test(fsm_cursor_define__single_get);
-	t_test(fsm_cursor_define__two_gets);
+	t_test(fsm_builder_define__single_get);
+	t_test(fsm_builder_define__two_gets);
 	t_test(session_match__shift);
 	t_test(session_match__reduce);
 	t_test(session_match__reduce_shift);

@@ -1,4 +1,4 @@
-#include "fsmcursor.h"
+#include "fsmbuilder.h"
 
 #include "cmemory.h"
 #include "arrays.h"
@@ -21,99 +21,99 @@
 #define trace_symbol(M, S)
 #endif
 
-void fsm_cursor_init(FsmCursor *cur, Fsm *fsm)
+void fsm_builder_init(FsmBuilder *builder, Fsm *fsm)
 {
-	cur->fsm = fsm;
-	cur->action = NULL;
-	cur->state = NULL;
-	cur->stack = NULL;
-	cur->last_symbol = NULL;
-	cur->last_nonterminal = NULL;
+	builder->fsm = fsm;
+	builder->action = NULL;
+	builder->state = NULL;
+	builder->stack = NULL;
+	builder->last_symbol = NULL;
+	builder->last_nonterminal = NULL;
 }
 
-void fsm_cursor_dispose(FsmCursor *cur)
+void fsm_builder_dispose(FsmBuilder *builder)
 {
 	//TODO: In case of interrupted fsm construction some states in the
 	// stack should be deleted too.
 	//TODO: write test for stack disposal
-	while(cur->stack) {
-		FsmFrame *frame = cur->stack;
-		cur->stack = frame->next;
+	while(builder->stack) {
+		FsmFrame *frame = builder->stack;
+		builder->stack = frame->next;
 		c_delete(frame);
 	}
-	cur->stack = NULL;
-	cur->action = NULL;
-	cur->state = NULL;
-	cur->fsm = NULL;
+	builder->stack = NULL;
+	builder->action = NULL;
+	builder->state = NULL;
+	builder->fsm = NULL;
 }
 
-static void _push_frame(FsmCursor *cursor, State *start, State *cont) 
+static void _push_frame(FsmBuilder *builder, State *start, State *cont) 
 {
 	FsmFrame *frame = c_new(FsmFrame, 1);
 	frame->start = start;
 	frame->continuation = cont;
-	frame->next = cursor->stack;
-	cursor->stack = frame;
+	frame->next = builder->stack;
+	builder->stack = frame;
 }
 
-static void _pop_frame(FsmCursor *cursor) 
+static void _pop_frame(FsmBuilder *builder) 
 {
 
-	FsmFrame *frame = cursor->stack;
-	cursor->stack = frame->next;
+	FsmFrame *frame = builder->stack;
+	builder->stack = frame->next;
 	c_delete(frame);
 }
 
-static void _append_state(FsmCursor *cursor, State *state)
+static void _append_state(FsmBuilder *builder, State *state)
 {
-	if(cursor->action) {
-		cursor->action->state = state;
+	if(builder->action) {
+		builder->action->state = state;
 	}
-	cursor->state = state;
+	builder->state = state;
 }
 
-static void _move_to(FsmCursor *cursor, State *state)
+static void _move_to(FsmBuilder *builder, State *state)
 {
-	cursor->action = NULL;
-	cursor->state = state;
+	builder->action = NULL;
+	builder->state = state;
 }
 
-static void _transition(FsmCursor *cursor, Action *action)
+static void _transition(FsmBuilder *builder, Action *action)
 {
-	cursor->action = action;
-	cursor->state = NULL;
+	builder->action = action;
+	builder->state = NULL;
 }
 
-static void _ensure_state(FsmCursor *cursor)
+static void _ensure_state(FsmBuilder *builder)
 {
-	if(!cursor->state) {
+	if(!builder->state) {
 		State *state = c_new(State, 1);
 		state_init(state);
-		_append_state(cursor, state);
+		_append_state(builder, state);
 	}
 }
 
-static void _add_empty(FsmCursor *cursor)
+static void _add_empty(FsmBuilder *builder)
 {
-	Fsm *fsm = cursor->fsm;
+	Fsm *fsm = builder->fsm;
 	Symbol *symbol = symbol_table_get(fsm->table, "__empty", 7);
 
-	_ensure_state(cursor);
-	Action *action = state_add(cursor->state, symbol->id, ACTION_EMPTY, NONE);
-	_transition(cursor, action);
+	_ensure_state(builder);
+	Action *action = state_add(builder->state, symbol->id, ACTION_EMPTY, NONE);
+	_transition(builder, action);
 }
 
-static void _reset(FsmCursor *cursor) 
+static void _reset(FsmBuilder *builder) 
 {
-	FsmFrame *frame = cursor->stack;
-	_move_to(cursor, frame->start);
+	FsmFrame *frame = builder->stack;
+	_move_to(builder, frame->start);
 }
 
-static void _join_continuation(FsmCursor *cursor)
+static void _join_continuation(FsmBuilder *builder)
 {
-	FsmFrame *frame = cursor->stack;
+	FsmFrame *frame = builder->stack;
 
-	if (cursor->state) {
+	if (builder->state) {
 		// The action is already pointing to a state.
 		// We can't point it to another one without losing the current
 		// state.
@@ -128,72 +128,72 @@ static void _join_continuation(FsmCursor *cursor)
 		//   First the loop ends and is joined with its continuation.
 		//   Then when the outer group tries to join we already have
 		//   a state in place, and we must merge the states.
-		_add_empty(cursor);
-		trace_state("add", cursor->state, "empty-action");
+		_add_empty(builder);
+		trace_state("add", builder->state, "empty-action");
 	}
-	_append_state(cursor, frame->continuation);
+	_append_state(builder, frame->continuation);
 
 	//TODO: Add trace for other types of operations or move to actions?
-	//trace("add", NULL, cursor->current, 0, "join", 0);
+	//trace("add", NULL, builder->current, 0, "join", 0);
 }
 
-void fsm_cursor_group_start(FsmCursor *cursor)
+void fsm_builder_group_start(FsmBuilder *builder)
 {
-	_ensure_state(cursor);
+	_ensure_state(builder);
 
-	State *start = cursor->state;
+	State *start = builder->state;
 	State *cont = c_new(State, 1);
 	state_init(cont);
 
 	trace_state("add", cont, "continuation");
-	_push_frame(cursor, start, cont);
+	_push_frame(builder, start, cont);
 }
 
-void fsm_cursor_group_end(FsmCursor *cursor)
+void fsm_builder_group_end(FsmBuilder *builder)
 {
-	_join_continuation(cursor);
-	_pop_frame(cursor);
+	_join_continuation(builder);
+	_pop_frame(builder);
 }
 
-void fsm_cursor_loop_group_start(FsmCursor *cursor)
+void fsm_builder_loop_group_start(FsmBuilder *builder)
 {
-	_ensure_state(cursor);
+	_ensure_state(builder);
 
 	State *start = c_new(State, 1);
 	state_init(start);
 
 	State *cont = start;
 
-	state_add_reference(cursor->state, NULL, start);
+	state_add_reference(builder->state, NULL, start);
 
 	trace_state("push", cont, "continuation");
-	_push_frame(cursor, start, cont);
+	_push_frame(builder, start, cont);
 
-	_move_to(cursor, start);
+	_move_to(builder, start);
 }
 
-void fsm_cursor_loop_group_end(FsmCursor *cursor)
+void fsm_builder_loop_group_end(FsmBuilder *builder)
 {
-	_join_continuation(cursor);
-	_reset(cursor);
-	_pop_frame(cursor);
+	_join_continuation(builder);
+	_reset(builder);
+	_pop_frame(builder);
 }
 
-void fsm_cursor_option_group_start(FsmCursor *cursor)
+void fsm_builder_option_group_start(FsmBuilder *builder)
 {
-	_ensure_state(cursor);
+	_ensure_state(builder);
 
-	State *start = cursor->state;
+	State *start = builder->state;
 	State *cont = c_new(State, 1);
 	state_init(cont);
 
 	state_add_reference(start, NULL, cont);
 
 	trace_state("add", cont, "continuation");
-	_push_frame(cursor, start, cont);
+	_push_frame(builder, start, cont);
 }
 
-void fsm_cursor_option_group_end(FsmCursor *cursor)
+void fsm_builder_option_group_end(FsmBuilder *builder)
 {
 	//TODO: if we join the continuations of multiple nested groups we
 	// the end state of some groups we will have redundant states.
@@ -201,43 +201,43 @@ void fsm_cursor_option_group_end(FsmCursor *cursor)
 	// start using references (first sets) we may produce memory leaks.
 	// The end state of the outer group will not be referenced by any 
 	// state, only by the references themselves.
-	_join_continuation(cursor);
-	_pop_frame(cursor);
+	_join_continuation(builder);
+	_pop_frame(builder);
 }
 
-void fsm_cursor_or(FsmCursor *cur)
+void fsm_builder_or(FsmBuilder *builder)
 {
-	_join_continuation(cur);
-	_reset(cur);
+	_join_continuation(builder);
+	_reset(builder);
 }
 
-void fsm_cursor_define(FsmCursor *cur, char *name, int length)
+void fsm_builder_define(FsmBuilder *builder, char *name, int length)
 {
-	Symbol *symbol = fsm_create_nonterminal(cur->fsm, name, length);
-	cur->last_symbol = symbol;
-	cur->last_nonterminal = (Nonterminal *)symbol->data;
-	_move_to(cur, cur->last_nonterminal->start);
+	Symbol *symbol = fsm_create_nonterminal(builder->fsm, name, length);
+	builder->last_symbol = symbol;
+	builder->last_nonterminal = (Nonterminal *)symbol->data;
+	_move_to(builder, builder->last_nonterminal->start);
 	trace_symbol("set", symbol);
 
-	//TODO: implicit fsm_cursor_group_start(cur); ??
+	//TODO: implicit fsm_builder_group_start(builder); ??
 }
 
-void fsm_cursor_end(FsmCursor *cursor)
+void fsm_builder_end(FsmBuilder *builder)
 {
-	//TODO: implicit fsm_cursor_group_end(cur); ??
+	//TODO: implicit fsm_builder_group_end(builder); ??
 	// If that was the case, we wouldn't need to ensure state the exists
-	_ensure_state(cursor);
-	cursor->last_nonterminal->end = cursor->state;
-	//trace("end", cursor->current, 0, 0, "set");
+	_ensure_state(builder);
+	builder->last_nonterminal->end = builder->state;
+	//trace("end", builder->current, 0, 0, "set");
 
 	// Add proper status to the end state to solve references later
-	if(cursor->last_nonterminal->status & NONTERMINAL_RETURN_REF) {
+	if(builder->last_nonterminal->status & NONTERMINAL_RETURN_REF) {
 		trace_state(
 			"end state pending follow-set",
-			cursor->last_nonterminal->end,
+			builder->last_nonterminal->end,
 			""
 		);
-		cursor->last_nonterminal->end->status |= STATE_RETURN_REF;
+		builder->last_nonterminal->end->status |= STATE_RETURN_REF;
 	}
 }
 
@@ -245,62 +245,62 @@ void fsm_cursor_end(FsmCursor *cursor)
 /**
  * Creates a reference to a Nonterminal and shifts the associated symbol.
  */
-void fsm_cursor_nonterminal(FsmCursor *cur, char *name, int length)
+void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length)
 {
 	//Get or create symbol and associated non terminal
-	Symbol *sb = fsm_create_nonterminal(cur->fsm, name, length);
+	Symbol *sb = fsm_create_nonterminal(builder->fsm, name, length);
 	Nonterminal *nt = (Nonterminal *)sb->data;
 
-	_ensure_state(cur);
+	_ensure_state(builder);
 
-	State *prev = cur->state;
+	State *prev = builder->state;
 
-	Action *action = state_add(cur->state, sb->id, ACTION_DROP, NONE);
-	_transition(cur, action);
+	Action *action = state_add(builder->state, sb->id, ACTION_DROP, NONE);
+	_transition(builder, action);
 
 	//Create reference from last non terminal to the named non terminal
 	//State exists because we already added the terminal
 	state_add_reference(prev, sb, nt->start);
 
 	//Create reference to return from the non terminal to the caller
-	//TODO: Should be cur->current->state?
+	//TODO: Should be builder->current->state?
 	nonterminal_add_reference(nt, prev, sb);
 }
 
-static void _set_start(FsmCursor *cur, char *name, int length)
+static void _set_start(FsmBuilder *builder, char *name, int length)
 {
-	Symbol *sb = symbol_table_get(cur->fsm->table, name, length);
+	Symbol *sb = symbol_table_get(builder->fsm->table, name, length);
 	Nonterminal *nt = (Nonterminal *)sb->data;
 
 	//If start already defined, delete it. Only one start allowed.
-	if(cur->fsm->start) {
+	if(builder->fsm->start) {
 		//Delete state
-		state_dispose(cur->fsm->start);
-		c_delete(cur->fsm->start);
+		state_dispose(builder->fsm->start);
+		c_delete(builder->fsm->start);
 	}
 
 	State *initial_state = c_new(State, 1);
 	state_init(initial_state);
-	cur->fsm->start = initial_state;
+	builder->fsm->start = initial_state;
 	trace_state("add", initial_state, "start state");
 
-	state_add_first_set(cur->fsm->start, nt->start, sb);
+	state_add_first_set(builder->fsm->start, nt->start, sb);
 
-	_move_to(cur, cur->fsm->start);
+	_move_to(builder, builder->fsm->start);
 
 	//TODO: Should check whether current->state is not null?
 	//TODO: Is there a test that checks whether this even works?
-	if(!radix_tree_contains_int(&cur->state->actions, sb->id)) {
-		_ensure_state(cur);
-		Action *action = state_add(cur->state, sb->id, ACTION_ACCEPT, NONE);
-		_transition(cur, action);
-		_append_state(cur, cur->fsm->accept);
+	if(!radix_tree_contains_int(&builder->state->actions, sb->id)) {
+		_ensure_state(builder);
+		Action *action = state_add(builder->state, sb->id, ACTION_ACCEPT, NONE);
+		_transition(builder, action);
+		_append_state(builder, builder->fsm->accept);
 	} else {
 		//TODO: issue warning or sentinel??
 	}
 }
 
-int _solve_return_references(FsmCursor *cur, Nonterminal *nt) {
+int _solve_return_references(FsmBuilder *builder, Nonterminal *nt) {
 	int unsolved = 0;
         Iterator it;
 	Reference *ref;
@@ -364,7 +364,7 @@ end:
 	return unsolved;
 }
 
-int _solve_invoke_references(FsmCursor *cur, State *state) {
+int _solve_invoke_references(FsmBuilder *builder, State *state) {
 	int unsolved = 0;
         Iterator it;
 	Reference *ref;
@@ -417,8 +417,8 @@ end:
 	return unsolved;
 }
 
-void _solve_references(FsmCursor *cur) {
-	Node *symbols = &cur->fsm->table->symbols;
+void _solve_references(FsmBuilder *builder) {
+	Node *symbols = &builder->fsm->table->symbols;
         Iterator it;
 	Symbol *sb;
 	Nonterminal *nt;
@@ -428,7 +428,7 @@ void _solve_references(FsmCursor *cur) {
 	//TODO: Do all states exist this point and are connected?
 	Node all_states;
 	radix_tree_init(&all_states);
-	fsm_get_states(&all_states, cur->fsm->start);
+	fsm_get_states(&all_states, builder->fsm->start);
 
 retry:
 	some_unsolved = 0;
@@ -438,7 +438,7 @@ retry:
 
 		nt = (Nonterminal *)sb->data;
 		if(nt) {
-			some_unsolved |= _solve_return_references(cur, nt);
+			some_unsolved |= _solve_return_references(builder, nt);
 
 			//TODO: Should avoid collecting states multiple times
 			fsm_get_states(&all_states, nt->start);
@@ -450,7 +450,7 @@ retry:
 	State *state;
 	radix_tree_iterator_init(&it, &all_states);
 	while((state = (State *)radix_tree_iterator_next(&it))) {
-		some_unsolved |= _solve_invoke_references(cur, state);
+		some_unsolved |= _solve_invoke_references(builder, state);
 	}
 	radix_tree_iterator_dispose(&it);
 
@@ -462,31 +462,31 @@ retry:
 	radix_tree_dispose(&all_states);
 }
 
-void fsm_cursor_done(FsmCursor *cur, int eof_symbol) {
-	Symbol *sb = cur->last_symbol;
-	Nonterminal *nt = cur->last_nonterminal;
+void fsm_builder_done(FsmBuilder *builder, int eof_symbol) {
+	Symbol *sb = builder->last_symbol;
+	Nonterminal *nt = builder->last_nonterminal;
 	if(nt) {
 		trace_symbol("main", sb);
 		//TODO: Factor out action function to test this
 		if(!radix_tree_contains_int(&nt->end->actions, eof_symbol)) {
-			_move_to(cur, nt->end);
-			state_add(cur->state, eof_symbol, ACTION_REDUCE, sb->id);
+			_move_to(builder, nt->end);
+			state_add(builder->state, eof_symbol, ACTION_REDUCE, sb->id);
 		} else {
 			//TODO: issue warning or sentinel??
 		}
-		_solve_references(cur);
+		_solve_references(builder);
 		trace_symbol("set initial state", sb);
-		_set_start(cur, sb->name, sb->length);
+		_set_start(builder, sb->name, sb->length);
 	} else {
 		//TODO: issue warning or sentinel??
 	}
 }
 
-void fsm_cursor_terminal(FsmCursor *cur, int symbol)
+void fsm_builder_terminal(FsmBuilder *builder, int symbol)
 {
 	int type = ACTION_DROP;
 
-	_ensure_state(cur);
-	Action *action = state_add(cur->state, symbol, type, NONE);
-	_transition(cur, action);
+	_ensure_state(builder);
+	Action *action = state_add(builder->state, symbol, type, NONE);
+	_transition(builder, action);
 }
