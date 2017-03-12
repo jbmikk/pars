@@ -22,7 +22,7 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 		session_match(&session, &token);
 		check(
 			session.status != SESSION_ERROR,
-			"Error parsing grammar at index: %i with symbol: %i, length: %i",
+			"Error parsing input at index: %i with symbol: %i, length: %i",
 			session.index, token.symbol, token.length
 		);
 	}
