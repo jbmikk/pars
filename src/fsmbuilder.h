@@ -1,5 +1,5 @@
-#ifndef FSMCURSOR_H
-#define FSMCURSOR_H
+#ifndef FSMBUILDER_H
+#define FSMBUILDER_H
 
 #include "fsm.h"
 
@@ -37,4 +37,4 @@ void fsm_builder_terminal(FsmBuilder *builder, int symbol);
 void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length);
 void fsm_builder_done(FsmBuilder *builder, int eof_symbol);
 
-#endif //FSMCURSOR_H
+#endif //FSMBUILDER_H
