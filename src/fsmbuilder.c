@@ -241,6 +241,14 @@ void fsm_builder_end(FsmBuilder *builder)
 	}
 }
 
+void fsm_builder_terminal(FsmBuilder *builder, int symbol)
+{
+	int type = ACTION_DROP;
+
+	_ensure_state(builder);
+	Action *action = state_add(builder->state, symbol, type, NONE);
+	_transition(builder, action);
+}
 
 /**
  * Creates a reference to a Nonterminal and shifts the associated symbol.
@@ -480,13 +488,4 @@ void fsm_builder_done(FsmBuilder *builder, int eof_symbol) {
 	} else {
 		//TODO: issue warning or sentinel??
 	}
-}
-
-void fsm_builder_terminal(FsmBuilder *builder, int symbol)
-{
-	int type = ACTION_DROP;
-
-	_ensure_state(builder);
-	Action *action = state_add(builder->state, symbol, type, NONE);
-	_transition(builder, action);
 }
