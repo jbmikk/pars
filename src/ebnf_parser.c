@@ -141,6 +141,24 @@ int ebnf_dispose_parser(Parser *parser)
 	return 0;
 }
 
+void ebnf_build_character_set(FsmBuilder *builder, AstCursor *a_cur)
+{
+	char *string;
+	int length, i;
+	int first = 1;
+
+	ast_cursor_get_string(a_cur, &string, &length);
+
+	for(i = 2; i < length-2; i++) {
+		if(first) {
+			first = 0;
+		} else {
+			fsm_builder_or(builder);
+		}
+		fsm_builder_terminal(builder, string[i]);
+	}
+}
+
 void ebnf_build_definitions_list(FsmBuilder *builder, AstCursor *a_cur);
 
 void ebnf_build_syntactic_primary(FsmBuilder *builder, AstCursor *a_cur)
@@ -167,16 +185,9 @@ void ebnf_build_syntactic_primary(FsmBuilder *builder, AstCursor *a_cur)
 		log_warn("Special sequence is not defined");
 		break;
 	case E_CHARACTER_SET:
-		ast_cursor_get_string(a_cur, &string, &length);
-		int first = 1;
-		for(i = 2; i < length-2; i++) {
-			if(first) {
-				first = 0;
-			} else {
-				fsm_builder_or(builder);
-			}
-			fsm_builder_terminal(builder, string[i]);
-		}
+		fsm_builder_group_start(builder);
+		ebnf_build_character_set(builder, a_cur);
+		fsm_builder_group_end(builder);
 		break;
 	case '(':
 		ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);
