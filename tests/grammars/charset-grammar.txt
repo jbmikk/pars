@@ -1,0 +1,3 @@
+(* * Character set test grammar *)
+set = ?[abcd]?;
+sequence = '1', set, '2';

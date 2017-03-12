@@ -167,8 +167,16 @@ void ebnf_build_syntactic_primary(FsmBuilder *builder, AstCursor *a_cur)
 		log_warn("Special sequence is not defined");
 		break;
 	case E_CHARACTER_SET:
-		//TODO: define character set behaviour
-		log_warn("Character set is not supported");
+		ast_cursor_get_string(a_cur, &string, &length);
+		int first = 1;
+		for(i = 2; i < length-2; i++) {
+			if(first) {
+				first = 0;
+			} else {
+				fsm_builder_or(builder);
+			}
+			fsm_builder_terminal(builder, string[i]);
+		}
 		break;
 	case '(':
 		ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);
