@@ -152,10 +152,9 @@ void state_add_first_set(State *state, State* source, Symbol *symbol)
 	while((action = (Action *)radix_tree_iterator_next(&it))) {
 		//TODO: Make type for clone a parameter, do not override by
 		// default.
-		clone = c_new(Action, 1);
-		clone->reduction = action->reduction;
-		clone->state = action->state;
+
 		// When a symbol is present, assume nonterminal invocation
+		int clone_type;
 		if(symbol) {
 			if (action->type == ACTION_REDUCE) {
 				// This could happen when the start state of a
@@ -170,14 +169,17 @@ void state_add_first_set(State *state, State* source, Symbol *symbol)
 				);
 				 continue;
 			}
-			clone->type = ACTION_SHIFT;
+			clone_type = ACTION_SHIFT;
 			trace("add", state, action, array_to_int(it.key, it.size), "shift", 0);
 		} else {
 			// It could happen when merging loops in final states
 			// that action->type == ACTION_REDUCE
-			clone->type = action->type;
+			clone_type = action->type;
 			trace("add", state, action, array_to_int(it.key, it.size), "first-set", 0);
 		}
+
+		clone = c_new(Action, 1);
+		action_init(clone, clone_type, action->reduction, action->state);
 		_state_add_buffer(state, it.key, it.size, clone);
 	}
 	radix_tree_iterator_dispose(&it);
