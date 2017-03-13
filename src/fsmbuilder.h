@@ -34,6 +34,7 @@ void fsm_builder_option_group_start(FsmBuilder *builder);
 void fsm_builder_option_group_end(FsmBuilder *builder);
 void fsm_builder_or(FsmBuilder *builder);
 void fsm_builder_terminal(FsmBuilder *builder, int symbol);
+void fsm_builder_terminal_range(FsmBuilder *builder, int from, int to);
 void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length);
 void fsm_builder_done(FsmBuilder *builder, int eof_symbol);
 

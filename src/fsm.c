@@ -17,7 +17,7 @@ void fsm_init(Fsm *fsm, SymbolTable *table)
 
 	symbol_table_add(fsm->table, "__empty", 7);
 
-	action_init(&fsm->error, ACTION_ERROR, NULL_SYMBOL, NULL);
+	action_init(&fsm->error, ACTION_ERROR, NULL_SYMBOL, NULL, 0, 0);
 	fsm->error.state = c_new(State, 1);
 	state_init(fsm->error.state);
 

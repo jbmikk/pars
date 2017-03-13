@@ -70,13 +70,33 @@ void state_dispose(State *state)
 	radix_tree_dispose(&state->refs);
 }
 
+static Action *_state_get_transition(State *state, unsigned char *buffer, unsigned int size)
+{
+	Action *action;
+	Action *range;
+	
+	action = (Action *)radix_tree_get(&state->actions, buffer, size);
+
+	if(!action) {
+		range = (Action *)radix_tree_get_prev(&state->actions, buffer, size);
+		if(range && (range->flags & ACTION_FLAG_RANGE)) {
+			int symbol = array_to_int(buffer, size);
+			if(symbol <= range->end_symbol) {
+				action = range;
+			}
+		}
+	} 
+	return action;
+}
+
 static Action *_state_add_buffer(State *state, unsigned char *buffer, unsigned int size, Action *action)
 {
-	Action *prev = (Action *)radix_tree_try_set(&state->actions, buffer, size, action);
-	if(prev) {
+	Action *collision = _state_get_transition(state, buffer, size);
+	
+	if(collision) {
 		if(
-			prev->type == action->type &&
-			prev->reduction == action->reduction
+			collision->type == action->type &&
+			collision->reduction == action->reduction
 		) {
 			trace(
 				"dup",
@@ -99,6 +119,8 @@ static Action *_state_add_buffer(State *state, unsigned char *buffer, unsigned i
 		}
 		c_delete(action);
 		action = NULL;
+	} else {
+		radix_tree_set(&state->actions, buffer, size, action);
 	}
 	return action;
 }
@@ -106,7 +128,7 @@ static Action *_state_add_buffer(State *state, unsigned char *buffer, unsigned i
 Action *state_add(State *state, int symbol, int type, int reduction)
 {
 	Action * action = c_new(Action, 1);
-	action_init(action, type, reduction, NULL);
+	action_init(action, type, reduction, NULL, 0, 0);
 
 	unsigned char buffer[sizeof(int)];
 	int_to_padded_array(buffer, symbol);
@@ -144,6 +166,37 @@ Action *state_add(State *state, int symbol, int type, int reduction)
 	return action;
 }
 
+Action *state_add_range(State *state, int symbol1, int symbol2, int type, int reduction)
+{
+	Action *action = c_new(Action, 1);
+	Action *cont;
+
+	unsigned char buffer[sizeof(int)];
+
+	action_init(action, type, reduction, NULL, ACTION_FLAG_RANGE, symbol2);
+
+	int_to_padded_array(buffer, symbol1);
+	cont = _state_add_buffer(state, buffer, sizeof(int), action);
+
+	if(cont) {
+		if(type == ACTION_SHIFT) {
+			trace("add", state, action, symbol1, "range-shift", 0);
+		} else if(type == ACTION_DROP) {
+			trace("add", state, action, symbol1, "range-drop", 0);
+		} else if(type == ACTION_REDUCE) {
+			trace("add", state, action, symbol1, "range-reduce", 0);
+		} else if(type == ACTION_ACCEPT) {
+			trace("add", state, action, symbol1, "range-accept", 0);
+		} else {
+			trace("add", state, action, symbol1, "range-action", 0);
+		}
+	} else {
+		c_delete(action);
+	}
+	return cont;
+}
+
+
 void state_add_first_set(State *state, State* source, Symbol *symbol)
 {
 	Action *action, *clone;
@@ -179,7 +232,7 @@ void state_add_first_set(State *state, State* source, Symbol *symbol)
 		}
 
 		clone = c_new(Action, 1);
-		action_init(clone, clone_type, action->reduction, action->state);
+		action_init(clone, clone_type, action->reduction, action->state, action->flags, action->end_symbol);
 		_state_add_buffer(state, it.key, it.size, clone);
 	}
 	radix_tree_iterator_dispose(&it);
@@ -196,7 +249,7 @@ void state_add_reduce_follow_set(State *from, State *to, int symbol)
 	radix_tree_iterator_init(&it, &(to->actions));
 	while((ac = (Action *)radix_tree_iterator_next(&it))) {
 		Action *reduce = c_new(Action, 1);
-		action_init(reduce, ACTION_REDUCE, symbol, NULL);
+		action_init(reduce, ACTION_REDUCE, symbol, NULL, ac->flags, ac->end_symbol);
 
 		_state_add_buffer(from, it.key, it.size, reduce);
 		trace("add", from, reduce, array_to_int(it.key, it.size), "reduce-follow", symbol);
@@ -204,15 +257,23 @@ void state_add_reduce_follow_set(State *from, State *to, int symbol)
 	radix_tree_iterator_dispose(&it);
 }
 
+Action *state_get_transition(State *state, int symbol)
+{
+	unsigned char buffer[sizeof(int)];
+	int_to_padded_array(buffer, symbol);
+	return _state_get_transition(state, buffer, sizeof(int));
+}
 
 
 //# Action functions
 
-void action_init(Action *action, char type, int reduction, State *state)
+void action_init(Action *action, char type, int reduction, State *state, char flags, int end_symbol)
 {
 	action->type = type;
 	action->reduction = reduction;
 	action->state = state;
+	action->flags = flags;
+	action->end_symbol = end_symbol;
 }
 
 

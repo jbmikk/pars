@@ -11,6 +11,7 @@
 
 #define MATCH(S, Y) session_match(&(S), &(struct _Token){ 0, 0, (Y)});
 #define MATCH_AT(S, Y, I) session_match(&(S), &(struct _Token){ (I), 0, (Y)});
+#define TEST(S, Y) session_test(&(S), &(struct _Token){ 0, 0, (Y)});
 
 typedef struct {
 	SymbolTable table;
@@ -75,6 +76,36 @@ void session_match__shift(){
 	t_assert(session.last_action->type == ACTION_SHIFT);
 	MATCH(session, 'b');
 	t_assert(session.last_action->type == ACTION_DROP);
+	session_dispose(&session);
+}
+
+void session_match__shift_range(){
+	FsmBuilder builder;
+	Action *action;
+	fsm_builder_init(&builder, &fix.fsm);
+
+	fsm_builder_define(&builder, nzs("name"));
+	fsm_builder_terminal_range(&builder, 'a', 'p');
+	fsm_builder_end(&builder);
+
+	fsm_builder_done(&builder, '\0');
+
+	fsm_builder_dispose(&builder);
+
+	Session session;
+	session_init(&session, &fix.fsm);
+	action = TEST(session, 'a');
+	t_assert(action->type == ACTION_SHIFT);
+	action = TEST(session, 'b');
+	t_assert(action->type == ACTION_SHIFT);
+	action = TEST(session, 'o');
+	t_assert(action->type == ACTION_SHIFT);
+	action = TEST(session, 'p');
+	t_assert(action->type == ACTION_SHIFT);
+	action = TEST(session, 'q');
+	t_assert(action->type == ACTION_ERROR);
+
+	action = state_get_transition(fix.fsm.start, 'z');
 	session_dispose(&session);
 }
 
@@ -187,6 +218,7 @@ int main(int argc, char** argv){
 	t_test(fsm_builder_define__single_get);
 	t_test(fsm_builder_define__two_gets);
 	t_test(session_match__shift);
+	t_test(session_match__shift_range);
 	t_test(session_match__reduce);
 	t_test(session_match__reduce_shift);
 	t_test(session_match__reduce_handler);

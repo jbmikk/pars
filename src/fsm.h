@@ -12,6 +12,8 @@
 #define ACTION_ERROR 5
 #define ACTION_EMPTY 6
 
+#define ACTION_FLAG_RANGE 1
+
 #define NULL_SYMBOL 0
 
 #define REF_PENDING 0
@@ -32,7 +34,9 @@ typedef struct _State {
 
 typedef struct _Action {
 	char type;
+	char flags;
 	int reduction;
+	int end_symbol;
 	State *state;
 } Action;
 
@@ -76,15 +80,17 @@ int fsm_get_symbol(Fsm *fsm, char *name, int length);
 
 void state_init(State *state);
 void state_add_reference(State *state, Symbol *symbol, State *to_state);
+Action *state_get_transition(State *state, int symbol);
 void state_dispose(State *state);
 Action *state_add(State *from, int symbol, int type, int reduction);
+Action *state_add_range(State *state, int symbol1, int symbol2, int type, int reduction);
 void state_add_first_set(State *from, State* state, Symbol *symbol);
 void state_add_reduce_follow_set(State *from, State *to, int symbol);
 
 
 //# Action functions
 
-void action_init(Action *action, char type, int reduction, State *state);
+void action_init(Action *action, char type, int reduction, State *state, char flags, int end_symbol);
 Action *action_add(Action *from, int symbol, int type, int reduction);
 void action_add_first_set(Action *from, State* state);
 void action_add_reduce_follow_set(Action *from, Action *to, int symbol);

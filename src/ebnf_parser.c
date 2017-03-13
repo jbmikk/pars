@@ -34,7 +34,7 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_builder_terminal(&builder, E_SPECIAL_SEQUENCE);
 	fsm_builder_or(&builder);
 
-	fsm_builder_terminal(&builder, E_CHARACTER_SET);
+	fsm_builder_nonterminal(&builder,  nzs("character_set"));
 	fsm_builder_or(&builder);
 
 
@@ -52,6 +52,17 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_builder_nonterminal(&builder,  nzs("definitions_list"));
 	fsm_builder_terminal(&builder, E_END_REPETITION_SYMBOL);
 	fsm_builder_group_end(&builder);
+	fsm_builder_end(&builder);
+
+	//Character set
+	fsm_builder_define(&builder, nzs("character_set"));
+	fsm_builder_terminal(&builder, E_START_CHARACTER_SET);
+	fsm_builder_loop_group_start(&builder);
+	fsm_builder_terminal_range(&builder, 'a', 'z');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal_range(&builder, 'A', 'Z');
+	fsm_builder_loop_group_end(&builder);
+	fsm_builder_terminal(&builder, E_END_CHARACTER_SET);
 	fsm_builder_end(&builder);
 
 	//Syntactic Factor
@@ -166,7 +177,8 @@ void ebnf_build_syntactic_primary(FsmBuilder *builder, AstCursor *a_cur)
 	AstNode *node = ast_cursor_depth_next(a_cur);
 	char *string;
 	int length, i;
-
+	
+	int E_CHARACTER_SET;
 	int E_DEFINITIONS_LIST = ast_get_symbol(a_cur, nzs("definitions_list"));
 	switch(node->symbol) {
 	case E_META_IDENTIFIER:
@@ -183,11 +195,6 @@ void ebnf_build_syntactic_primary(FsmBuilder *builder, AstCursor *a_cur)
 	case E_SPECIAL_SEQUENCE:
 		//TODO: define special sequences behaviour
 		log_warn("Special sequence is not defined");
-		break;
-	case E_CHARACTER_SET:
-		fsm_builder_group_start(builder);
-		ebnf_build_character_set(builder, a_cur);
-		fsm_builder_group_end(builder);
 		break;
 	case '(':
 		ast_cursor_depth_next_symbol(a_cur, E_DEFINITIONS_LIST);
@@ -208,8 +215,14 @@ void ebnf_build_syntactic_primary(FsmBuilder *builder, AstCursor *a_cur)
 		fsm_builder_option_group_end(builder);
 		break;
 	default:
-		//TODO:sentinel??
-		break;
+		E_CHARACTER_SET = ast_get_symbol(a_cur, nzs("character_set"));
+		if(node->symbol == E_CHARACTER_SET) {
+			fsm_builder_group_start(builder);
+			ebnf_build_character_set(builder, a_cur);
+			fsm_builder_group_end(builder);
+		} else {
+			//TODO:sentinel??
+		}
 	}
 }
 

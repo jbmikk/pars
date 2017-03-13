@@ -16,6 +16,8 @@ typedef struct _Token {
 
 typedef struct _Lexer {
 	Input *input;
+	//TODO: Remove parsing state from lexer
+	char mode;
 	void (*handler)(struct _Lexer *lexer, Token *token);
 } Lexer;
 

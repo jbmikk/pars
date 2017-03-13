@@ -250,6 +250,15 @@ void fsm_builder_terminal(FsmBuilder *builder, int symbol)
 	_transition(builder, action);
 }
 
+void fsm_builder_terminal_range(FsmBuilder *builder, int from, int to)
+{
+	int type = ACTION_DROP;
+
+	_ensure_state(builder);
+	Action *action = state_add_range(builder->state, from, to, type, NONE);
+	_transition(builder, action);
+}
+
 /**
  * Creates a reference to a Nonterminal and shifts the associated symbol.
  */

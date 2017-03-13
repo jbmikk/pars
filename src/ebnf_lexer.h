@@ -22,7 +22,8 @@ typedef enum {
 	E_META_IDENTIFIER,
 	E_TERMINAL_STRING,
 	E_SPECIAL_SEQUENCE,
-	E_CHARACTER_SET
+	E_START_CHARACTER_SET,
+	E_END_CHARACTER_SET
 } EBNFToken;
 
 void ebnf_lexer(Lexer *lexer, Token *token);

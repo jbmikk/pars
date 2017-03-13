@@ -11,6 +11,7 @@ void lexer_init(Lexer *lexer, Input *input, LexerHandler handler)
 {
 	lexer->input = input;
 	lexer->handler = handler;
+	lexer->mode = 0;
 }
 
 void lexer_next(Lexer *lexer, Token *token)

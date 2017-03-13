@@ -70,7 +70,7 @@ Action *session_test(Session *session, Token *token)
 {
 	Action *action;
 
-	action = radix_tree_get_int(&session->current->actions, token->symbol);
+	action = state_get_transition(session->current, token->symbol);
 	if(action == NULL) {
 		if(!session->last_action || session->last_action->type != ACTION_ACCEPT) {
 			trace("test", session->current, action, token, "error", 0);
@@ -106,12 +106,12 @@ void session_match(Session *session, Token *token)
 rematch:
 	session->index = token->index;
 	session->length = token->length;
-	action = radix_tree_get_int(&session->current->actions, token->symbol);
+	action = state_get_transition(session->current, token->symbol);
 
 	if(action == NULL) {
 		// Attempt empty transition
 		Symbol *empty = symbol_table_get(session->fsm->table, "__empty", 7);
-		action = radix_tree_get_int(&session->current->actions, empty->id);
+		action = state_get_transition(session->current, empty->id);
 
 		if(action == NULL) {
 			// Check if accepting state
