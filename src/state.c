@@ -82,7 +82,11 @@ static Action *_state_get_transition(State *state, unsigned char *buffer, unsign
 		range = (Action *)radix_tree_get_prev(&state->actions, buffer, size);
 		if(range && (range->flags & ACTION_FLAG_RANGE)) {
 			int symbol = array_to_int(buffer, size);
-			if(symbol <= range->end_symbol) {
+			//TODO: Fix negative symbols in transitions.
+			//negative symbols are interpreted as unsigned chars
+			//when doing scans, but as signed ints when converted
+			//to ints, we ignore negative numbers for now.
+			if(symbol > 0 && symbol <= range->end_symbol) {
 				action = range;
 			}
 		}
