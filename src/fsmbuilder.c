@@ -129,7 +129,6 @@ static void _join_continuation(FsmBuilder *builder)
 		//   Then when the outer group tries to join we already have
 		//   a state in place, and we must merge the states.
 		_add_empty(builder);
-		trace_state("add", builder->state, "empty-action");
 	}
 	_append_state(builder, frame->continuation);
 
