@@ -72,7 +72,7 @@ Action *session_test(Session *session, Token *token)
 
 	action = radix_tree_get_int(&session->current->actions, token->symbol);
 	if(action == NULL) {
-		if(session->last_action->type != ACTION_ACCEPT) {
+		if(!session->last_action || session->last_action->type != ACTION_ACCEPT) {
 			trace("test", session->current, action, token, "error", 0);
 			session->last_action = &session->fsm->error;
 			session->current = session->last_action->state;
