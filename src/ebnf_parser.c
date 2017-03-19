@@ -54,13 +54,32 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_builder_group_end(&builder);
 	fsm_builder_end(&builder);
 
-	//Character set
-	fsm_builder_define(&builder, nzs("character_set"));
-	fsm_builder_terminal(&builder, E_START_CHARACTER_SET);
-	fsm_builder_loop_group_start(&builder);
+	//Character
+	fsm_builder_define(&builder, nzs("character"));
+	fsm_builder_group_start(&builder);
 	fsm_builder_terminal_range(&builder, 'a', 'z');
 	fsm_builder_or(&builder);
 	fsm_builder_terminal_range(&builder, 'A', 'Z');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal_range(&builder, '0', '9');
+	fsm_builder_group_end(&builder);
+	fsm_builder_end(&builder);
+
+	//Character primary
+	fsm_builder_define(&builder, nzs("character_primary"));
+	fsm_builder_nonterminal(&builder,  nzs("character"));
+	fsm_builder_option_group_start(&builder);
+	fsm_builder_terminal(&builder, '-');
+	fsm_builder_nonterminal(&builder,  nzs("character"));
+	fsm_builder_option_group_end(&builder);
+	fsm_builder_end(&builder);
+
+	//Character set
+	fsm_builder_define(&builder, nzs("character_set"));
+	fsm_builder_terminal(&builder, E_START_CHARACTER_SET);
+	fsm_builder_nonterminal(&builder,  nzs("character_primary"));
+	fsm_builder_loop_group_start(&builder);
+	fsm_builder_nonterminal(&builder,  nzs("character_primary"));
 	fsm_builder_loop_group_end(&builder);
 	fsm_builder_terminal(&builder, E_END_CHARACTER_SET);
 	fsm_builder_end(&builder);
@@ -152,22 +171,47 @@ int ebnf_dispose_parser(Parser *parser)
 	return 0;
 }
 
+static int parse_utf8(char *array, unsigned int size)
+{
+	//TODO properly parse utf8 point codes, for now only ascii.
+	int code = array[0];
+	return code;
+}
+
 void ebnf_build_character_set(FsmBuilder *builder, AstCursor *a_cur)
 {
 	char *string;
-	int length, i;
+	int length;
 	int first = 1;
 
-	ast_cursor_get_string(a_cur, &string, &length);
+	int E_CHARACTER_PRIMARY = ast_get_symbol(a_cur, nzs("character_primary"));
+	int E_CHARACTER = ast_get_symbol(a_cur, nzs("character"));
 
-	for(i = 2; i < length-2; i++) {
+	ast_cursor_depth_next_symbol(a_cur, E_CHARACTER_PRIMARY);
+	do {
+		ast_cursor_push(a_cur);
+
 		if(first) {
 			first = 0;
 		} else {
 			fsm_builder_or(builder);
 		}
-		fsm_builder_terminal(builder, string[i]);
-	}
+		ast_cursor_depth_next_symbol(a_cur, E_CHARACTER);
+
+		ast_cursor_get_string(a_cur, &string, &length);
+		int start = parse_utf8(string, length);
+
+		if(ast_cursor_next_sibling_symbol(a_cur, E_CHARACTER)) {
+			ast_cursor_get_string(a_cur, &string, &length);
+			int end = parse_utf8(string, length);
+			//TODO: Verify start < end
+			fsm_builder_terminal_range(builder, start, end);
+		} else {
+			fsm_builder_terminal(builder, start);
+		}
+		ast_cursor_pop(a_cur);
+
+	} while(ast_cursor_next_sibling_symbol(a_cur, E_CHARACTER_PRIMARY));
 }
 
 void ebnf_build_definitions_list(FsmBuilder *builder, AstCursor *a_cur);
