@@ -10,10 +10,11 @@
 #ifdef FSM_TRACE
 #define trace(M, T1, T2, S, A, R) \
 	printf( \
-		"%-5s: [%-9p --(%-9p)--> %-9p] %-13s %c %3i (%3i=%2c)\n", \
+		"%-5s: [%-9p --(%-9p:%i)--> %-9p] %-13s %c %3i (%3i=%2c)\n", \
 		M, \
 		T1, \
 		T2, \
+		T2? T2->flags: 0, \
 		T2? ((Action*)T2)->state: NULL, \
 		A, \
 		(R != 0)? '>': ' ', \
