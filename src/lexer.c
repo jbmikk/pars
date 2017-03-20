@@ -1,12 +1,5 @@
 #include "lexer.h"
 
-void token_init(Token *token)
-{
-	token->symbol = 0;
-	token->index = 0;
-	token->length = 0;
-}
-
 void lexer_init(Lexer *lexer, Input *input, LexerHandler handler)
 {
 	lexer->input = input;

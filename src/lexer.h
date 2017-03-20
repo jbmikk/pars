@@ -3,16 +3,8 @@
 
 #include <stdio.h>
 #include "input.h"
+#include "token.h"
 
-typedef enum {
-	L_EOF = 0
-} LToken;
-
-typedef struct _Token {
-	unsigned int index;
-	unsigned int length;
-	int symbol;
-} Token;
 
 typedef struct _Lexer {
 	Input *input;
@@ -23,8 +15,6 @@ typedef struct _Lexer {
 
 typedef void (*LexerHandler)(Lexer *lexer, Token *token);
 
-
-void token_init(Token *token);
 
 void lexer_init(Lexer *lexer, Input *input, LexerHandler handler);
 void lexer_next(Lexer *lexer, Token *token);
