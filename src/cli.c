@@ -60,7 +60,7 @@ int cli_parse_source(char *pathname, Fsm *fsm, Ast *ast)
 	parser.fsm = *fsm;
 	parser.handler.shift = ast_open;
 	parser.handler.reduce = ast_close;
-	parser.lexer_handler = identity_lexer;
+	parser.lexer_fsm = identity_lexer;
 	//TODO: Please kill me
 	parser.table = *fsm->table;
 

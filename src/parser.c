@@ -10,7 +10,7 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 	Token token;
 	token_init(&token);
 
-	lexer_init(lexer, input, parser->lexer_handler);
+	lexer_init(lexer, input, parser->lexer_fsm);
 	ast_init(ast, input, &parser->table);
 
 	Session session;
