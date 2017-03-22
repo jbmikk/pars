@@ -48,13 +48,3 @@ void input_dispose(Input *input)
 		fclose(input->file);
 	}
 }
-
-unsigned int input_get_index(Input *input)
-{
-	return input->buffer_index;
-}
-
-void input_set_index(Input *input, unsigned int index)
-{
-	input->buffer_index = index;
-}
