@@ -18,21 +18,17 @@ void identity_lexer(Lexer *lexer, Token *token)
 	unsigned int index;
 	unsigned char c;
 
-#define CURRENT (lexer->input->buffer[lexer->input->buffer_index])
-#define NEXT (++lexer->input->buffer_index)
-#define END(V) (lexer->input->buffer_index >= lexer->input->buffer_size-V)
-
 	index = lexer->input->buffer_index;
 
-	if (END(0)) {
+	if (input_end(lexer->input, 0)) {
 		symbol = L_EOF;
 		lexer->input->eof = 1;
 		goto eof;
 	}
 
-	c = CURRENT;
+	c = input_get_current(lexer->input);
 	symbol = c;
-	NEXT;
+	input_next(lexer->input);
 eof:
 	token->symbol = symbol;
 	token->index = index;
@@ -45,39 +41,35 @@ void utf8_lexer(Lexer *lexer, Token *token)
 	unsigned int index;
 	unsigned char c;
 
-#define CURRENT (lexer->input->buffer[lexer->input->buffer_index])
-#define NEXT (++lexer->input->buffer_index)
-#define END(V) (lexer->input->buffer_index >= lexer->input->buffer_size-V)
-
 	index = lexer->input->buffer_index;
 
-	if (END(0)) {
+	if (input_end(lexer->input, 0)) {
 		symbol = L_EOF;
 		lexer->input->eof = 1;
 		goto eof;
 	}
 
-	c = CURRENT;
+	c = input_get_current(lexer->input);
 	if ((c & 0xE0) == 0xC0) {
 		unsigned char prev = c;
-		NEXT;
-		c = CURRENT;
-		if (!END(0)) {
+		input_next(lexer->input);
+		c = input_get_current(lexer->input);
+		if (!input_end(lexer->input, 0)) {
 			symbol = ((prev & 0x1F) << 6) | (c & 0x3F);
-			NEXT;
+			input_next(lexer->input);
 		} else {
 			//TODO: for now we ignore incomplete sequences
 			goto eof;
 		}
 	} else if ((c & 0xF0) == 0xE0) {
 		unsigned char first = c;
-		if (!END(2)) {
-			NEXT;
-			unsigned char second = CURRENT;
-			NEXT;
-			unsigned char third = CURRENT;
+		if (!input_end(lexer->input, 2)) {
+			input_next(lexer->input);
+			unsigned char second = input_get_current(lexer->input);
+			input_next(lexer->input);
+			unsigned char third = input_get_current(lexer->input);
 			symbol = ((first & 0x0F) << 12) | ((second & 0x3F) << 6) | (third & 0x3F);
-			NEXT;
+			input_next(lexer->input);
 		} else {
 			//TODO: for now we ignore incomplete sequences
 			goto eof;

@@ -48,3 +48,24 @@ void input_dispose(Input *input)
 		fclose(input->file);
 	}
 }
+
+char input_get_current(Input *input)
+{
+	return input->buffer[input->buffer_index];
+}
+
+char input_lookahead(Input *input, int i)
+{
+	return input->buffer[input->buffer_index+i];
+}
+
+void input_next(Input *input)
+{
+	input->buffer_index++;
+}
+
+int input_end(Input *input, int i)
+{
+	return input->buffer_index >= input->buffer_size-i;
+}
+
