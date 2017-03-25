@@ -8,7 +8,7 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 	Lexer *lexer = &parser->lexer;
 	Fsm *fsm = &parser->fsm;
 	Token token;
-	token_init(&token);
+	token_init(&token, 0, 0, 0);
 
 	lexer_init(lexer, input, parser->lexer_fsm);
 	ast_init(ast, input, &parser->table);
@@ -17,7 +17,7 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 	session_init(&session, fsm);
 	session_set_handler(&session, parser->handler, ast);
 
-	while (!input->eof) {
+	do {
 		lexer_next(lexer, &token);
 		session_match(&session, &token);
 		check(
@@ -25,7 +25,7 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 			"Error parsing input at index: %i with symbol: %i, length: %i",
 			session.index, token.symbol, token.length
 		);
-	}
+	} while(token.symbol != L_EOF);
 
 	ast_done(ast);
 	session_dispose(&session);

@@ -9,75 +9,49 @@ void lexer_init(Lexer *lexer, Input *input, LexerFsm fsm)
 
 void lexer_next(Lexer *lexer, Token *token)
 {
-	lexer->lexer_fsm(lexer, token);
+	lexer->lexer_fsm(lexer, token, token);
 }
 
-void identity_lexer(Lexer *lexer, Token *token)
+void identity_lexer(Lexer *lexer, Token *t_in, Token *t_out)
 {
-	int symbol;
-	unsigned int index;
-	unsigned char c;
+	input_next_token(lexer->input, t_in, t_out);
+}
 
-	index = lexer->input->buffer_index;
+void utf8_lexer(Lexer *lexer, Token *t_in, Token *t_out)
+{
+	Token t1, t2, t3;
 
-	if (input_end(lexer->input, 0)) {
-		symbol = L_EOF;
-		lexer->input->eof = 1;
+	input_next_token(lexer->input, t_in, &t1);
+
+	if(t1.symbol == L_EOF) {
 		goto eof;
 	}
 
-	c = input_get_current(lexer->input);
-	symbol = c;
-	input_next(lexer->input);
-eof:
-	token->symbol = symbol;
-	token->index = index;
-	token->length = lexer->input->buffer_index - index;
-}
+	if ((t1.symbol & 0xE0) == 0xC0) {
+		input_next_token(lexer->input, &t1, &t2);
 
-void utf8_lexer(Lexer *lexer, Token *token)
-{
-	int symbol;
-	unsigned int index;
-	unsigned char c;
-
-	index = lexer->input->buffer_index;
-
-	if (input_end(lexer->input, 0)) {
-		symbol = L_EOF;
-		lexer->input->eof = 1;
-		goto eof;
-	}
-
-	c = input_get_current(lexer->input);
-	if ((c & 0xE0) == 0xC0) {
-		unsigned char prev = c;
-		input_next(lexer->input);
-		c = input_get_current(lexer->input);
-		if (!input_end(lexer->input, 0)) {
-			symbol = ((prev & 0x1F) << 6) | (c & 0x3F);
-			input_next(lexer->input);
+		if(t2.symbol != L_EOF) {
+			int symbol = ((t1.symbol & 0x1F) << 6) | (t2.symbol & 0x3F);
+			token_init(t_out, t1.index, 2, symbol);
 		} else {
 			//TODO: for now we ignore incomplete sequences
 			goto eof;
 		}
-	} else if ((c & 0xF0) == 0xE0) {
-		unsigned char first = c;
-		if (!input_end(lexer->input, 2)) {
-			input_next(lexer->input);
-			unsigned char second = input_get_current(lexer->input);
-			input_next(lexer->input);
-			unsigned char third = input_get_current(lexer->input);
-			symbol = ((first & 0x0F) << 12) | ((second & 0x3F) << 6) | (third & 0x3F);
-			input_next(lexer->input);
+	} else if ((t1.symbol & 0xF0) == 0xE0) {
+		input_next_token(lexer->input, &t1, &t2);
+		input_next_token(lexer->input, &t2, &t3);
+		if(t2.symbol != L_EOF && t3.symbol != L_EOF) {
+			int symbol = ((t1.symbol & 0x0F) << 12) | ((t2.symbol & 0x3F) << 6) | (t3.symbol & 0x3F);
+			token_init(t_out, t1.index, 3, symbol);
 		} else {
 			//TODO: for now we ignore incomplete sequences
 			goto eof;
 		}
 	}
+
+	return;
 eof:
-	token->symbol = symbol;
-	token->index = index;
-	token->length = lexer->input->buffer_index - index;
+	token_init(t_out, 0, 0, L_EOF);
+	return;
 }
 

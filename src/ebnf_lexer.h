@@ -26,6 +26,6 @@ typedef enum {
 	E_END_CHARACTER_SET
 } EBNFToken;
 
-void ebnf_lexer(Lexer *lexer, Token *token);
+void ebnf_lexer(Lexer *lexer, Token *t_in, Token *t_out);
 
 #endif //EBNF_LEXER_H

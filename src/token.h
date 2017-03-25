@@ -11,6 +11,6 @@ typedef struct _Token {
 	int symbol;
 } Token;
 
-void token_init(Token *token);
+void token_init(Token *token, unsigned int index, unsigned int length, int symbol);
 
 #endif //TOKEN_H

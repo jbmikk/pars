@@ -4,8 +4,6 @@
 void input_init_buffer(Input *input, char *data, unsigned int length)
 {
 	input->file = NULL;
-	input->eof = 0;
-	input->buffer_index = 0;
 	input->buffer_size = length;
 	input->buffer = data;
 }
@@ -49,23 +47,16 @@ void input_dispose(Input *input)
 	}
 }
 
-char input_get_current(Input *input)
+void input_next_token(Input *input, Token *token1, Token *token2)
 {
-	return input->buffer[input->buffer_index];
-}
-
-char input_lookahead(Input *input, int i)
-{
-	return input->buffer[input->buffer_index+i];
-}
-
-void input_next(Input *input)
-{
-	input->buffer_index++;
-}
-
-int input_end(Input *input, int i)
-{
-	return input->buffer_index >= input->buffer_size-i;
+	unsigned int index = token1->index + token1->length;
+	token2->index = index;
+	if(index < input->buffer_size) {
+		token2->length = 1;
+		token2->symbol = input->buffer[index];
+	} else {
+		token2->length = 0;
+		token2->symbol = L_EOF;
+	}
 }
 

@@ -1,9 +1,9 @@
 #include "token.h"
 
-void token_init(Token *token)
+void token_init(Token *token, unsigned int index, unsigned int length, int symbol)
 {
-	token->symbol = 0;
-	token->index = 0;
-	token->length = 0;
+	token->index = index;
+	token->length = length;
+	token->symbol = symbol;
 }
 

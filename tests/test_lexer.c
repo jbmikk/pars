@@ -39,7 +39,7 @@ Fixture fix;
 #define I_UTF8_THREE_BYTE "\xE0\xBD\xB1" //U+0F71
 
 void t_setup(){
-	token_init(&fix.token);
+	token_init(&fix.token, 0, 0, 0);
 	input_init_buffer(&fix.input_integer, I_INTEGER, strlen(I_INTEGER));
 	input_init_buffer(&fix.input_identifier, I_IDENTIFIER, strlen(I_IDENTIFIER));
 	input_init_buffer(&fix.input_terminal_string, I_TERMINAL_STRING, strlen(I_TERMINAL_STRING));

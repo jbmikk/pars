@@ -2,143 +2,129 @@
 
 #define CHARACTER_SET_MODE 1
 
-void ebnf_lexer(Lexer *lexer, Token *token)
+void ebnf_lexer(Lexer *lexer, Token *t_in, Token *t_out)
 {
-	EBNFToken symbol;
-	unsigned int index;
-	unsigned char c;
-
 #define BETWEEN(V, A, B) (V >= A && V <= B)
 #define IS_SPACE(V) (V == ' ' || V == '\t' || V == '\n' || V == '\r' || V =='\f')
 
-next_token:
-	index = lexer->input->buffer_index;
+	Token t1, t2, tn;
 
-	if (input_end(lexer->input, 0)) {
-		symbol = L_EOF;
-		lexer->input->eof = 1;
+next_token:
+	input_next_token(lexer->input, t_in, &t1);
+
+	if(t1.symbol == L_EOF) {
 		goto eof;
 	}
 
-	c = input_get_current(lexer->input);
-
 	switch(lexer->mode) {
 	case 0:
-		if (IS_SPACE(c)) {
+		if (IS_SPACE(t1.symbol)) {
+			tn = t1;
 			while(1) {
-				input_next(lexer->input);
-				if(input_end(lexer->input, 0))
-					break;
-				c = input_get_current(lexer->input);
-				if(!IS_SPACE(c))
-					break;
-			}
-			symbol = E_WHITE_SPACE;
-		} else if (BETWEEN(c, 'a', 'z') || BETWEEN(c, 'A', 'Z')) {
-			while(1) {
-				input_next(lexer->input);
-				if(input_end(lexer->input, 0))
-					break;
-				c = input_get_current(lexer->input);
-				if(!BETWEEN(c, 'a', 'z') && !BETWEEN(c, 'A', 'Z') && !BETWEEN(c, '0', '9'))
-					break;
-			}
-			symbol = E_META_IDENTIFIER;
-		} else if (BETWEEN(c, '0', '9')) {
-			while(1) {
-				input_next(lexer->input);
-				if(input_end(lexer->input, 0))
-					break;
-				c = input_get_current(lexer->input);
-				if(!BETWEEN(c, '0', '9'))
-					break;
-			}
-			symbol = E_INTEGER;
-		} else if (c == '"') {
-			while(1) {
-				unsigned char prev;
-				prev = c;
-				input_next(lexer->input);
-				if(input_end(lexer->input, 0))
-					break;
-				c = input_get_current(lexer->input);
-				if(c == '"' && prev != '\\') {
-					input_next(lexer->input);
+				input_next_token(lexer->input, &tn, &tn);
+				if(!IS_SPACE(tn.symbol)) {
 					break;
 				}
 			}
-			symbol = E_TERMINAL_STRING;
-		} else if (c == '\'') {
+			token_init(t_out, t1.index, tn.index - t1.index, E_WHITE_SPACE);
+		} else if (BETWEEN(t1.symbol, 'a', 'z') || BETWEEN(t1.symbol, 'A', 'Z')) {
+			tn = t1;
 			while(1) {
-				unsigned char prev;
-				prev = c;
-				input_next(lexer->input);
-				if(input_end(lexer->input, 0))
-					break;
-				c = input_get_current(lexer->input);
-				if(c == '\'' && prev != '\\') {
-					input_next(lexer->input);
+				input_next_token(lexer->input, &tn, &tn);
+				if(
+					!BETWEEN(tn.symbol, 'a', 'z') &&
+					!BETWEEN(tn.symbol, 'A', 'Z') &&
+					!BETWEEN(tn.symbol, '0', '9')
+				) {
 					break;
 				}
 			}
-			symbol = E_TERMINAL_STRING;
-		} else if (c == '?' && !input_end(lexer->input, 1) && input_lookahead(lexer->input, 1) == '[') {
-			input_next(lexer->input);
-			input_next(lexer->input);
-			lexer->mode = CHARACTER_SET_MODE;
-			symbol = E_START_CHARACTER_SET;
-		} else if (c == '?') {
+			token_init(t_out, t1.index, tn.index - t1.index, E_META_IDENTIFIER);
+		} else if (BETWEEN(t1.symbol, '0', '9')) {
+			tn = t1;
 			while(1) {
-				unsigned char prev;
-				prev = c;
-				input_next(lexer->input);
-				if(input_end(lexer->input, 0))
+				input_next_token(lexer->input, &tn, &tn);
+				if(!BETWEEN(tn.symbol, '0', '9'))
 					break;
-				c = input_get_current(lexer->input);
-				if(c == '?' && prev != '\\') {
-					input_next(lexer->input);
+			}
+			token_init(t_out, t1.index, tn.index - t1.index, E_INTEGER);
+		} else if (t1.symbol == '"') {
+			tn = t1;
+			while(1) {
+				int prev = tn.symbol;
+				input_next_token(lexer->input, &tn, &tn);
+				if(tn.symbol == '"' && prev != '\\') {
 					break;
 				}
 			}
-			symbol = E_SPECIAL_SEQUENCE;
-		} else if (c == '(' && !input_end(lexer->input, 1) && input_lookahead(lexer->input, 1) == '*') {
+			token_init(t_out, t1.index, tn.index - t1.index + 1, E_TERMINAL_STRING);
+		} else if (t1.symbol == '\'') {
+			tn = t1;
 			while(1) {
-				unsigned char prev;
-				prev = c;
-				input_next(lexer->input);
-				if(input_end(lexer->input, 0))
-					break;
-				c = input_get_current(lexer->input);
-				if(c == ')' && prev == '*') {
-					input_next(lexer->input);
+				int prev = tn.symbol;
+				input_next_token(lexer->input, &tn, &tn);
+				if(tn.symbol == '\'' && prev != '\\') {
 					break;
 				}
 			}
-			symbol = E_COMMENT;
+			token_init(t_out, t1.index, tn.index - t1.index + 1, E_TERMINAL_STRING);
+		} else if (t1.symbol == '?') {
+			input_next_token(lexer->input, &t1, &t2);
+			if(t2.symbol == '[') {
+				lexer->mode = CHARACTER_SET_MODE;
+				token_init(t_out, t1.index, t2.index - t1.index + 1, E_START_CHARACTER_SET);
+			} else {
+				tn = t1;
+				while(1) {
+					int prev = tn.symbol;
+					input_next_token(lexer->input, &tn, &tn);
+					if(tn.symbol == '?' && prev != '\\') {
+						break;
+					}
+				}
+				token_init(t_out, t1.index, tn.index - t1.index + 1, E_SPECIAL_SEQUENCE);
+			}
+		} else if (t1.symbol == '(') {
+			input_next_token(lexer->input, &t1, &t2);
+			if(t2.symbol == '*') {
+				tn = t2;
+				while(1) {
+					int prev = tn.symbol;
+					input_next_token(lexer->input, &tn, &tn);
+					if(tn.symbol == ')' && prev == '*') {
+						break;
+					}
+				}
+				token_init(t_out, t1.index, tn.index - t1.index + 1, E_COMMENT);
+			} else {
+				*t_out = t1;
+			}
 		} else {
-			symbol = c;
-			input_next(lexer->input);
+			*t_out = t1;
 		}
 
-		if(symbol == E_WHITE_SPACE || symbol == E_COMMENT)
+		if(t_out->symbol == E_WHITE_SPACE || t_out->symbol == E_COMMENT) {
+			*t_in = *t_out;
 			goto next_token;
+		}
 		break;
 	case CHARACTER_SET_MODE:
-		if (c == ']' && !input_end(lexer->input, 1) && input_lookahead(lexer->input, 1) == '?') {
-			input_next(lexer->input);
-			input_next(lexer->input);
-			lexer->mode = 0;
-			symbol = E_END_CHARACTER_SET;
+		if (t1.symbol == ']') {
+			input_next_token(lexer->input, &t1, &t2);
+			if (t2.symbol == '?') {
+				lexer->mode = 0;
+				token_init(t_out, t1.index, t2.index - t1.index + t2.length, E_END_CHARACTER_SET);
+			} else {
+				*t_out = t1;
+			}
 		} else {
-			symbol = c;
-			input_next(lexer->input);
+			*t_out = t1;
 		}
 		break;
 	}
 
+	return;
 eof:
-	token->symbol = symbol;
-	token->index = index;
-	token->length = lexer->input->buffer_index - index;
+	token_init(t_out, t1.index, 0, L_EOF);
 }
 

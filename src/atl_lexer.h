@@ -13,6 +13,6 @@ typedef enum {
 	ATL_STRING
 } ATLSymbol;
 
-void atl_lexer(Lexer *lexer, Token *token);
+void atl_lexer(Lexer *lexer, Token *t_in, Token *t_out);
 
 #endif //ATL_LEXER_H
