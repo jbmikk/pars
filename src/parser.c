@@ -6,7 +6,6 @@
 int parser_execute(Parser *parser, Ast *ast, Input *input)
 {
 	Lexer *lexer = &parser->lexer;
-	Fsm *fsm = &parser->fsm;
 	Token token;
 	token_init(&token, 0, 0, 0);
 
@@ -14,7 +13,7 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 	ast_init(ast, input, &parser->table);
 
 	Session session;
-	session_init(&session, fsm);
+	session_init(&session, &parser->fsm);
 	session_set_handler(&session, parser->handler, ast);
 
 	do {
