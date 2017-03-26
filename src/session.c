@@ -131,8 +131,13 @@ rematch:
 	switch(action->type) {
 	case ACTION_SHIFT:
 		trace("match", session->current, action, token, "shift", 0);
+		Token shifted = {
+			session->index,
+			session->length,
+			token->symbol
+		};
 		if(session->handler.shift) {
-			session->handler.shift(session->target, session->index, session->length, token->symbol);
+			session->handler.shift(session->target, &shifted);
 		}
 		session_push(session);
 		session->current = action->state;
@@ -149,10 +154,14 @@ rematch:
 		trace("match", session->current, action, token, "reduce", action->reduction);
 		session_pop(session);
 		session->length = token->index - session->index;
+		Token reduction = {
+			session->index,
+			session->length,
+			action->reduction
+		};
 		if(session->handler.reduce) {
-			session->handler.reduce(session->target, session->index, session->length, action->reduction);
+			session->handler.reduce(session->target, &reduction);
 		}
-		Token reduction = { session->index, session->length, action->reduction };
 		session_match(session, &reduction);
 		goto rematch; // same as session_match(session, symbol);
 		break;

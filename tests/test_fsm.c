@@ -157,11 +157,9 @@ void session_match__reduce_shift(){
 	session_dispose(&session);
 }
 
-void reduce_handler(void *target, unsigned int index, unsigned int length, int symbol)
+void reduce_handler(void *target, Token *t)
 {
-	token.index = index;
-	token.length = length;
-	token.symbol = symbol;
+	token = *t;
 }
 
 void session_match__reduce_handler(){

@@ -5,6 +5,7 @@
 #include "stack.h"
 #include "input.h"
 #include "symbols.h"
+#include "token.h"
 
 typedef struct _AstNode {
 	unsigned int index;
@@ -30,8 +31,8 @@ typedef struct _AstCursor {
 
 void ast_init(Ast *ast, Input *input, SymbolTable *table);
 void ast_dispose(Ast *ast);
-void ast_open(void *ast_p, unsigned int index, unsigned int length, int symbol);
-void ast_close(void *ast_p, unsigned int index, unsigned int length, int symbol);
+void ast_open(void *ast_p, Token *token);
+void ast_close(void *ast_p, Token *token);
 void ast_done(Ast *ast);
 void ast_print(Ast *ast);
 int ast_get_symbol(AstCursor *cur, char *name, unsigned int length);

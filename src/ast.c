@@ -47,7 +47,9 @@ void ast_dispose(Ast *ast)
 {
 	//TODO Write tests for ast disposal
 	while(ast->current && ast->current != &ast->root) {
-		ast_close(ast, 0, 0, 0);
+		Token token;
+		token_init(&token, 0, 0, 0);
+		ast_close(ast, &token);
 	}
 	ast_done(ast);
 
@@ -64,25 +66,25 @@ void ast_bind_to_parent(AstNode *node)
 	radix_tree_set_ple_int(&node->parent->children, node->index, node);
 }
 
-void ast_add(Ast *ast, unsigned int index, unsigned int length, int symbol)
+void ast_add(Ast *ast, Token *token)
 {
 	AstNode *node = c_new(AstNode, 1);
-	ast_node_init(node, ast->current, index);
+	ast_node_init(node, ast->current, token->index);
 
-	node->length = length;
-	node->symbol = symbol;
+	node->length = token->length;
+	node->symbol = token->symbol;
 	ast_bind_to_parent(node);
 
-	trace(node, "add", symbol, index, length);
+	trace(node, "add", token->symbol, token->index, token->length);
 }
 
-void ast_open(void *ast_p, unsigned int index, unsigned int length, int symbol)
+void ast_open(void *ast_p, Token *token)
 {
 	Ast *ast = (Ast *)ast_p;
 	AstNode *node = c_new(AstNode, 1);
-	ast_node_init(node, ast->current, index);
+	ast_node_init(node, ast->current, token->index);
 
-	trace(node, "open", '?', index, 0);
+	trace(node, "open", '?', token->index, 0);
 	AstNode *previous = ast->previous;
 	if(previous != NULL) {
 		ast->previous = NULL;
@@ -97,19 +99,19 @@ void ast_open(void *ast_p, unsigned int index, unsigned int length, int symbol)
 	if(previous == NULL || previous->index != node->index) {
 		//Only add shifted symbol if it's not the same
 		//that was just closed.
-		ast_add(ast, index, length, symbol);
+		ast_add(ast, token);
 	}
 }
 
-void ast_close(void *ast_p, unsigned int index, unsigned int length, int symbol)
+void ast_close(void *ast_p, Token *token)
 {
 	Ast *ast = (Ast *)ast_p;
 	AstNode *node = ast->current;
 
-	node->length = length;
-	node->symbol = symbol;
+	node->length = token->length;
+	node->symbol = token->symbol;
 
-	trace(node, "close", symbol, index, length);
+	trace(node, "close", token->symbol, token->index, token->length);
 	if(ast->previous != NULL) {
 		ast_bind_to_parent(ast->previous);
 	}
