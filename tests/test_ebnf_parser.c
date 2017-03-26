@@ -55,7 +55,7 @@ void ebnf_start_parsing__identifier(){
 	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
-	session_init(&session, &fix.fsm);
+	session_init(&session, &fix.fsm, NULL_HANDLER);
 	MATCH(session, E_META_IDENTIFIER);
 
 	action = TEST(session, E_CONCATENATE_SYMBOL);
@@ -89,7 +89,7 @@ void ebnf_start_parsing__terminal(){
 	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
-	session_init(&session, &fix.fsm);
+	session_init(&session, &fix.fsm, NULL_HANDLER);
 	MATCH(session, E_TERMINAL_STRING);
 
 	action = TEST(session, E_CONCATENATE_SYMBOL);
@@ -123,7 +123,7 @@ void ebnf_start_parsing__concatenate(){
 	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
-	session_init(&session, &fix.fsm);
+	session_init(&session, &fix.fsm, NULL_HANDLER);
 	MATCH(session, E_META_IDENTIFIER);
 	MATCH(session, E_CONCATENATE_SYMBOL);
 	MATCH(session, E_TERMINAL_STRING);
@@ -155,7 +155,7 @@ void ebnf_start_parsing__separator(){
 	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
-	session_init(&session, &fix.fsm);
+	session_init(&session, &fix.fsm, NULL_HANDLER);
 	MATCH(session, E_META_IDENTIFIER);
 	MATCH(session, E_DEFINITION_SEPARATOR_SYMBOL);
 	MATCH(session, E_TERMINAL_STRING);
@@ -182,7 +182,7 @@ void ebnf_start_parsing__syntactic_term(){
 	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
-	session_init(&session, &fix.fsm);
+	session_init(&session, &fix.fsm, NULL_HANDLER);
 	MATCH(session, E_TERMINAL_STRING);
 
 	action = TEST(session, E_TERMINATOR_SYMBOL);
@@ -215,7 +215,7 @@ void ebnf_start_parsing__syntax_rule(){
 	int E_SYNTAX_RULE = fsm_get_symbol(&fix.fsm, nzs("syntax_rule"));
 
 	Session session;
-	session_init(&session, &fix.fsm);
+	session_init(&session, &fix.fsm, NULL_HANDLER);
 	MATCH(session, E_META_IDENTIFIER);
 	MATCH(session, E_DEFINING_SYMBOL);
 	MATCH(session, E_TERMINAL_STRING);
@@ -246,7 +246,7 @@ void ebnf_start_parsing__group(){
 	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
-	session_init(&session, &fix.fsm);
+	session_init(&session, &fix.fsm, NULL_HANDLER);
 	MATCH(session, E_START_GROUP_SYMBOL);
 	MATCH(session, E_TERMINAL_STRING);
 	MATCH(session, E_END_GROUP_SYMBOL);
@@ -267,7 +267,7 @@ void ebnf_start_parsing__syntax(){
 
 	int E_SYNTAX_RULE = fsm_get_symbol(&fix.fsm, nzs("syntax_rule"));
 	Session session;
-	session_init(&session, &fix.fsm);
+	session_init(&session, &fix.fsm, NULL_HANDLER);
 	MATCH(session, E_META_IDENTIFIER);
 	MATCH(session, E_DEFINING_SYMBOL);
 	MATCH(session, E_TERMINAL_STRING);

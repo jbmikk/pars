@@ -71,7 +71,7 @@ void session_match__shift(){
 	fsm_builder_dispose(&builder);
 
 	Session session;
-	session_init(&session, &fix.fsm);
+	session_init(&session, &fix.fsm, NULL_HANDLER);
 	MATCH(session, 'a');
 	t_assert(session.last_action->type == ACTION_SHIFT);
 	MATCH(session, 'b');
@@ -93,7 +93,7 @@ void session_match__shift_range(){
 	fsm_builder_dispose(&builder);
 
 	Session session;
-	session_init(&session, &fix.fsm);
+	session_init(&session, &fix.fsm, NULL_HANDLER);
 	action = TEST(session, 'a');
 	t_assert(action->type == ACTION_SHIFT);
 	action = TEST(session, 'b');
@@ -122,7 +122,7 @@ void session_match__reduce(){
 	fsm_builder_dispose(&builder);
 
 	Session session;
-	session_init(&session, &fix.fsm);
+	session_init(&session, &fix.fsm, NULL_HANDLER);
 	MATCH(session, '1');
 	MATCH(session, '\0');
 	t_assert(session.last_action->type == ACTION_ACCEPT);
@@ -148,7 +148,7 @@ void session_match__reduce_shift(){
 	fsm_builder_dispose(&builder);
 
 	Session session;
-	session_init(&session, &fix.fsm);
+	session_init(&session, &fix.fsm, NULL_HANDLER);
 	MATCH(session, '1');
 	MATCH(session, '+');
 	MATCH(session, '2');
@@ -188,11 +188,11 @@ void session_match__reduce_handler(){
 	fsm_builder_dispose(&builder);
 
 	Session session;
-	session_init(&session, &fix.fsm);
 	FsmHandler handler;
 	handler.shift = NULL;
 	handler.reduce = reduce_handler;
-	session_set_handler(&session, handler, NULL);
+	handler.target = NULL;
+	session_init(&session, &fix.fsm, handler);
 	MATCH_AT(session, '1', 0);
 	MATCH_AT(session, '+', 1);
 	t_assert(token.symbol == fsm_get_symbol(&fix.fsm, nzs("number")));

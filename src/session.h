@@ -18,6 +18,7 @@ typedef struct _Stack {
 } Stack;
 
 typedef struct _FsmHandler {
+	void *target;
 	void (*shift)(void *target, Token *token);
 	void (*reduce)(void *target, Token *token);
 } FsmHandler;
@@ -31,13 +32,12 @@ typedef struct _Session {
 	unsigned int length;
 	Stack stack;
 	FsmHandler handler;
-	void *target;
 } Session;
 
-void session_init(Session *session, Fsm *fsm);
-void session_dispose(Session *session);
+#define NULL_HANDLER ((FsmHandler){NULL, NULL, NULL})
 
-void session_set_handler(Session *session, FsmHandler handler, void *target);
+void session_init(Session *session, Fsm *fsm, FsmHandler handler);
+void session_dispose(Session *session);
 
 void session_push(Session *session);
 void session_pop(Session *session);

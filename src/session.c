@@ -20,7 +20,7 @@
 #define trace(M, ST, T, S, A, R)
 #endif
 
-void session_init(Session *session, Fsm *fsm)
+void session_init(Session *session, Fsm *fsm, FsmHandler handler)
 {
 	session->fsm = fsm;
 	session->status = SESSION_OK;
@@ -28,9 +28,7 @@ void session_init(Session *session, Fsm *fsm)
 	session->last_action = NULL;
 	session->stack.top = NULL;
 	session->index = 0;
-	session->handler.shift = NULL;
-	session->handler.reduce = NULL;
-	session->target = NULL;
+	session->handler = handler;
 	//TODO: Avoid calling push in init
 	session_push(session);
 }
@@ -58,12 +56,6 @@ void session_dispose(Session *session)
 	while(session->stack.top) {
 		session_pop(session);
 	}
-}
-
-void session_set_handler(Session *session, FsmHandler handler, void *target)
-{
-	session->handler = handler;
-	session->target = target;
 }
 
 Action *session_test(Session *session, Token *token)
@@ -137,7 +129,7 @@ rematch:
 			token->symbol
 		};
 		if(session->handler.shift) {
-			session->handler.shift(session->target, &shifted);
+			session->handler.shift(session->handler.target, &shifted);
 		}
 		session_push(session);
 		session->current = action->state;
@@ -160,7 +152,7 @@ rematch:
 			action->reduction
 		};
 		if(session->handler.reduce) {
-			session->handler.reduce(session->target, &reduction);
+			session->handler.reduce(session->handler.target, &reduction);
 		}
 		session_match(session, &reduction);
 		goto rematch; // same as session_match(session, symbol);

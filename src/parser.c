@@ -12,9 +12,12 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 	lexer_init(lexer, input);
 	ast_init(ast, input, &parser->table);
 
+	//Copy handler prototype and set target
+	FsmHandler handler = parser->handler;
+	handler.target = ast;
+
 	Session session;
-	session_init(&session, &parser->fsm);
-	session_set_handler(&session, parser->handler, ast);
+	session_init(&session, &parser->fsm, handler);
 
 	do {
 		parser->lexer_fsm(lexer, &token, &token);
