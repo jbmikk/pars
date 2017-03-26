@@ -1,14 +1,13 @@
 #ifndef EBNF_PARSER_H
 #define EBNF_PARSER_H
 
-#include "lexer.h"
-#include "ebnf_lexer.h"
 #include "fsm.h"
 #include "fsmbuilder.h"
 #include "ast.h"
 #include "parser.h"
 
 
+void ebnf_init_lexer_fsm(Fsm *fsm);
 void ebnf_init_fsm(Fsm *fsm);
 int ebnf_fsm_ast_handler(int type, void *target, void *args);
 int ebnf_init_parser(Parser *parser);

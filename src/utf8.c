@@ -1,16 +1,6 @@
-#include "lexer.h"
+//TODO: convert to utf8 lexer fsm
 
-void lexer_init(Lexer *lexer, Input *input)
-{
-	lexer->input = input;
-	lexer->mode = 0;
-}
-
-void identity_lexer(Lexer *lexer, Token *t_in, Token *t_out)
-{
-	input_next_token(lexer->input, t_in, t_out);
-}
-
+/*
 void utf8_lexer(Lexer *lexer, Token *t_in, Token *t_out)
 {
 	Token t1, t2, t3;
@@ -48,4 +38,5 @@ eof:
 	token_init(t_out, 0, 0, L_EOF);
 	return;
 }
+*/
 

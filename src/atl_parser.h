@@ -1,8 +1,6 @@
 #ifndef ATL_PARSER_H
 #define ATL_PARSER_H
 
-#include "lexer.h"
-#include "atl_lexer.h"
 #include "fsm.h"
 #include "fsmbuilder.h"
 #include "ast.h"

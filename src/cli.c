@@ -50,6 +50,43 @@ error:
 	return -1;
 }
 
+#define nzs(S) (S), (strlen(S))
+
+void identity_init_lexer_fsm(Fsm *fsm)
+{
+	FsmBuilder builder;
+
+	fsm_builder_init(&builder, fsm);
+
+	fsm_builder_set_mode(&builder, nzs(".default"));
+
+	//Meta identifiers
+	//TODO: should add whitespace to comply with EBNF specs
+	fsm_builder_define(&builder, nzs("character"));
+	fsm_builder_group_start(&builder);
+	fsm_builder_terminal_range(&builder, 'a', 'z');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal_range(&builder, 'A', 'Z');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal_range(&builder, '0', '9');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal(&builder, ' ');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal(&builder, '\t');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal(&builder, '\n');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal(&builder, '\r');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal(&builder, '\f');
+	fsm_builder_group_end(&builder);
+	fsm_builder_end(&builder);
+
+	fsm_builder_lexer_done(&builder, L_EOF);
+
+	fsm_builder_dispose(&builder);
+}
+
 int cli_parse_source(char *pathname, Fsm *fsm, Ast *ast)
 {
 	Input input;
@@ -61,7 +98,16 @@ int cli_parse_source(char *pathname, Fsm *fsm, Ast *ast)
 	parser.handler.shift = ast_open;
 	parser.handler.reduce = ast_close;
 	parser.handler.accept = NULL;
-	parser.lexer_fsm = identity_lexer;
+
+	parser.lexer_handler.shift = NULL;
+	parser.lexer_handler.reduce = NULL;
+	parser.lexer_handler.accept = NULL;
+
+	//TODO: We don't have a lexer for the source yet
+
+	fsm_init(&parser.lexer_fsm, fsm->table);
+	identity_init_lexer_fsm(&parser.lexer_fsm);
+
 	//TODO: Please kill me
 	parser.table = *fsm->table;
 
@@ -71,12 +117,15 @@ int cli_parse_source(char *pathname, Fsm *fsm, Ast *ast)
 	error = parser_execute(&parser, ast, &input);
 	check(!error, "Could not build ast for source %s.", pathname);
 
+	fsm_dispose(&parser.lexer_fsm);
+
 	ast_print(ast);
 
 	input_dispose(&input);
 
 	return 0;
 error:
+	fsm_dispose(&parser.lexer_fsm);
 
 	input_dispose(&input);
 

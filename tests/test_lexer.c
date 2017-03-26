@@ -1,153 +1,235 @@
 #include <stddef.h>
 #include <string.h>
 
-#include "lexer.h"
-#include "ebnf_lexer.h"
+#include "ebnf_parser.h"
 #include "test.h"
+
+#define nzs(S) (S), (strlen(S))
 
 typedef struct {
 
 	Token token;
+	Token prev_token;
 
 	//Ebnf lexer tests
-	Input input_integer;
-	Input input_identifier;
-	Input input_terminal_string;
-	Input input_rule_one;
-	Input input_white;
-	Lexer lexer_integer;
-	Lexer lexer_identifier;
-	Lexer lexer_terminal_string;
-	Lexer lexer_rule_one;
-	Lexer lexer_white;
+	SymbolTable table;
+	Fsm fsm;
+	Session session;
+	FsmHandler handler;
 
 	//Utf8 lexer tests
+	/*
 	Input input_utf8_two_byte;
 	Lexer lexer_utf8_two_byte;
 	Input input_utf8_three_byte;
 	Lexer lexer_utf8_three_byte;
+	*/
 } Fixture;
 
 Fixture fix;
 
-#define I_INTEGER "1234"
-#define I_IDENTIFIER "anIdentifier"
-#define I_TERMINAL_STRING "\"terminalString\""
-#define I_RULE_ONE "one = \"1\",(\"a\"|\"b\")"
-#define I_WHITE "\n\r\t\f identifier"
+/*
 #define I_UTF8_TWO_BYTE "\xC3\xB1" //U+00F1 ñ
 #define I_UTF8_THREE_BYTE "\xE0\xBD\xB1" //U+0F71
+*/
+
+static void push_token(void *fix, const Token *token)
+{
+	Fixture *fixture = (Fixture*)fix;
+	fixture->prev_token = fixture->token;
+	fixture->token = *token;
+}
 
 void t_setup(){
 	token_init(&fix.token, 0, 0, 0);
-	input_init_buffer(&fix.input_integer, I_INTEGER, strlen(I_INTEGER));
-	input_init_buffer(&fix.input_identifier, I_IDENTIFIER, strlen(I_IDENTIFIER));
-	input_init_buffer(&fix.input_terminal_string, I_TERMINAL_STRING, strlen(I_TERMINAL_STRING));
-	input_init_buffer(&fix.input_rule_one, I_RULE_ONE, strlen(I_RULE_ONE));
-	input_init_buffer(&fix.input_white, I_WHITE, strlen(I_WHITE));
-	lexer_init(&fix.lexer_integer, &fix.input_integer);
-	lexer_init(&fix.lexer_identifier, &fix.input_identifier);
-	lexer_init(&fix.lexer_terminal_string, &fix.input_terminal_string);
-	lexer_init(&fix.lexer_rule_one, &fix.input_rule_one);
-	lexer_init(&fix.lexer_white, &fix.input_white);
+	token_init(&fix.prev_token, 0, 0, 0);
 
+	symbol_table_init(&fix.table);
+
+	fsm_init(&fix.fsm, &fix.table);
+	ebnf_init_lexer_fsm(&fix.fsm);
+
+	fix.handler.shift = NULL;
+	fix.handler.reduce = NULL;
+	fix.handler.accept = push_token;
+	fix.handler.target = &fix;
+	session_init(&fix.session, &fix.fsm, fix.handler);
 	//Utf8 tests
+	/*
 	input_init_buffer(&fix.input_utf8_two_byte, I_UTF8_TWO_BYTE, strlen(I_UTF8_TWO_BYTE));
 	lexer_init(&fix.lexer_utf8_two_byte, &fix.input_utf8_two_byte);
 	input_init_buffer(&fix.input_utf8_three_byte, I_UTF8_THREE_BYTE, strlen(I_UTF8_THREE_BYTE));
 	lexer_init(&fix.lexer_utf8_three_byte, &fix.input_utf8_three_byte);
+	*/
 }
 
 void t_teardown(){
-	input_dispose(&fix.input_integer);
-	input_dispose(&fix.input_identifier);
-	input_dispose(&fix.input_terminal_string);
-	input_dispose(&fix.input_rule_one);
-	input_dispose(&fix.input_white);
+	session_dispose(&fix.session);
+	fsm_dispose(&fix.fsm);
+	symbol_table_dispose(&fix.table);
 }
 
 void lexer_input_next__integer_token(){
-	ebnf_lexer(&fix.lexer_integer, &fix.token, &fix.token);
-	t_assert(fix.token.symbol == E_INTEGER);
+	session_match(&fix.session, &(Token) {0, 1, '1'});
+	session_match(&fix.session, &(Token) {1, 1, '2'});
+	session_match(&fix.session, &(Token) {2, 1, '3'});
+	session_match(&fix.session, &(Token) {3, 1, '4'});
+	session_match(&fix.session, &(Token) {4, 0, ' '});
+	int INTEGER = fsm_get_symbol_id(&fix.fsm, nzs("integer"));
+	t_assert(fix.token.symbol == INTEGER);
 	t_assert(fix.token.index == 0);
-	t_assert(fix.token.length == strlen(I_INTEGER));
+	t_assert(fix.token.length == 4);
 }
 
 void lexer_input_next__identifier_token(){
-	ebnf_lexer(&fix.lexer_identifier, &fix.token, &fix.token);
-	t_assert(fix.token.symbol == E_META_IDENTIFIER);
+	session_match(&fix.session, &(Token) {0, 1, 'a'});
+	session_match(&fix.session, &(Token) {1, 1, 'n'});
+	session_match(&fix.session, &(Token) {2, 1, 'I'});
+	session_match(&fix.session, &(Token) {3, 1, 'd'});
+	session_match(&fix.session, &(Token) {4, 1, 'e'});
+	session_match(&fix.session, &(Token) {5, 1, 'n'});
+	session_match(&fix.session, &(Token) {6, 1, 't'});
+	session_match(&fix.session, &(Token) {7, 1, 'i'});
+	session_match(&fix.session, &(Token) {8, 1, 'f'});
+	session_match(&fix.session, &(Token) {9, 1, 'i'});
+	session_match(&fix.session, &(Token) {10, 1, 'e'});
+	session_match(&fix.session, &(Token) {11, 1, 'r'});
+	session_match(&fix.session, &(Token) {12, 1, ' '});
+	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
+	t_assert(fix.token.symbol == META_IDENTIFIER);
 	t_assert(fix.token.index == 0);
-	t_assert(fix.token.length == strlen(I_IDENTIFIER));
+	t_assert(fix.token.length == 12);
 }
 
 void lexer_input_next__terminal_string_token(){
-	ebnf_lexer(&fix.lexer_terminal_string, &fix.token, &fix.token);
-	t_assert(fix.token.symbol == E_TERMINAL_STRING);
+	session_match(&fix.session, &(Token) {0, 1, '"'});
+	session_match(&fix.session, &(Token) {1, 1, 's'});
+	session_match(&fix.session, &(Token) {2, 1, 't'});
+	session_match(&fix.session, &(Token) {3, 1, 'r'});
+	session_match(&fix.session, &(Token) {4, 1, 'i'});
+	session_match(&fix.session, &(Token) {5, 1, 'n'});
+	session_match(&fix.session, &(Token) {6, 1, 'g'});
+	session_match(&fix.session, &(Token) {7, 1, '"'});
+	session_match(&fix.session, &(Token) {8, 1, ' '});
+	int TERMINAL_STRING = fsm_get_symbol_id(&fix.fsm, nzs("terminal_string"));
+	t_assert(fix.token.symbol == TERMINAL_STRING);
 	t_assert(fix.token.index == 0);
-	t_assert(fix.token.length == strlen(I_TERMINAL_STRING));
+	t_assert(fix.token.length == 8);
 }
 
 void lexer_input_next__skip_white_space(){
-	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
-	t_assert(fix.token.symbol == E_META_IDENTIFIER);
+	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
+	int DEFINING_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("defining_symbol"));
+
+	session_match(&fix.session, &(Token) {0, 1, 'o'});
+	session_match(&fix.session, &(Token) {1, 1, 'n'});
+	session_match(&fix.session, &(Token) {2, 1, 'e'});
+	session_match(&fix.session, &(Token) {3, 1, ' '});
+	t_assert(fix.token.symbol == META_IDENTIFIER);
 	t_assert(fix.token.index == 0);
 	t_assert(fix.token.length == 3);
-	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
-	t_assert(fix.token.symbol == E_DEFINING_SYMBOL);
+
+	session_match(&fix.session, &(Token) {4, 1, '='});
+	session_match(&fix.session, &(Token) {5, 1, ' '});
+	t_assert(fix.token.symbol == DEFINING_SYMBOL);
 	t_assert(fix.token.index == 4);
 	t_assert(fix.token.length == 1);
 }
 
 void lexer_input_next__whole_rule(){
-	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
-	t_assert(fix.token.symbol == E_META_IDENTIFIER);
+	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
+	int DEFINING_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("defining_symbol"));
+	int TERMINAL_STRING = fsm_get_symbol_id(&fix.fsm, nzs("terminal_string"));
+	int CONCATENATE_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("concatenate_symbol"));
+	int START_GROUP_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("start_group_symbol"));
+	int DEFINITION_SEPARATOR_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("definition_separator_symbol"));
+	int END_GROUP_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("end_group_symbol"));
+
+	session_match(&fix.session, &(Token) {0, 1, 'o'});
+	session_match(&fix.session, &(Token) {1, 1, 'n'});
+	session_match(&fix.session, &(Token) {2, 1, 'e'});
+	session_match(&fix.session, &(Token) {3, 1, ' '});
+	t_assert(fix.token.symbol == META_IDENTIFIER);
 	t_assert(fix.token.index == 0);
 	t_assert(fix.token.length == 3);
-	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
-	t_assert(fix.token.symbol == E_DEFINING_SYMBOL);
+
+	session_match(&fix.session, &(Token) {4, 1, '='});
+	session_match(&fix.session, &(Token) {5, 1, ' '});
+	t_assert(fix.token.symbol == DEFINING_SYMBOL);
 	t_assert(fix.token.index == 4);
 	t_assert(fix.token.length == 1);
-	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
-	t_assert(fix.token.symbol == E_TERMINAL_STRING);
+
+	session_match(&fix.session, &(Token) {6, 1, '"'});
+	session_match(&fix.session, &(Token) {7, 1, '1'});
+	session_match(&fix.session, &(Token) {8, 1, '"'});
+	session_match(&fix.session, &(Token) {9, 1, ','});
+	t_assert(fix.token.symbol == TERMINAL_STRING);
 	t_assert(fix.token.index == 6);
 	t_assert(fix.token.length == 3);
-	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
-	t_assert(fix.token.symbol == E_CONCATENATE_SYMBOL);
+
+	session_match(&fix.session, &(Token) {10, 1, '('});
+	t_assert(fix.token.symbol == CONCATENATE_SYMBOL);
 	t_assert(fix.token.index == 9);
 	t_assert(fix.token.length == 1);
-	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
-	t_assert(fix.token.symbol == E_START_GROUP_SYMBOL);
+
+	session_match(&fix.session, &(Token) {11, 1, '"'});
+	t_assert(fix.token.symbol == START_GROUP_SYMBOL);
 	t_assert(fix.token.index == 10);
 	t_assert(fix.token.length == 1);
-	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
-	t_assert(fix.token.symbol == E_TERMINAL_STRING);
+
+	session_match(&fix.session, &(Token) {12, 1, 'a'});
+	session_match(&fix.session, &(Token) {13, 1, '"'});
+	session_match(&fix.session, &(Token) {14, 1, '|'});
+
+	t_assert(fix.token.symbol == TERMINAL_STRING);
 	t_assert(fix.token.index == 11);
 	t_assert(fix.token.length == 3);
-	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
-	t_assert(fix.token.symbol == E_DEFINITION_SEPARATOR_SYMBOL);
+
+	session_match(&fix.session, &(Token) {15, 1, '"'});
+	t_assert(fix.token.symbol == DEFINITION_SEPARATOR_SYMBOL);
 	t_assert(fix.token.index == 14);
 	t_assert(fix.token.length == 1);
-	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
-	t_assert(fix.token.symbol == E_TERMINAL_STRING);
+
+	session_match(&fix.session, &(Token) {16, 1, 'b'});
+	session_match(&fix.session, &(Token) {17, 1, '"'});
+	session_match(&fix.session, &(Token) {18, 1, ')'});
+	t_assert(fix.token.symbol == TERMINAL_STRING);
 	t_assert(fix.token.index == 15);
 	t_assert(fix.token.length == 3);
-	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
-	t_assert(fix.token.symbol == E_END_GROUP_SYMBOL);
-	t_assert(fix.token.index == 18);
-	t_assert(fix.token.length == 1);
-	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
+
+	session_match(&fix.session, &(Token) {19, 0, L_EOF});
+	t_assert(fix.prev_token.symbol == END_GROUP_SYMBOL);
+	t_assert(fix.prev_token.index == 18);
+	t_assert(fix.prev_token.length == 1);
+
 	t_assert(fix.token.symbol == L_EOF);
 	t_assert(fix.token.index == 19);
 	t_assert(fix.token.length == 0);
 }
 
 void lexer_input_next__white_token(){
-	ebnf_lexer(&fix.lexer_white, &fix.token, &fix.token);
-	t_assert(fix.token.symbol == E_META_IDENTIFIER);
+	int WHITE_SPACE = fsm_get_symbol_id(&fix.fsm, nzs("white_space"));
+	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
+
+	session_match(&fix.session, &(Token) {0, 1, '\n'});
+	session_match(&fix.session, &(Token) {1, 1, '\r'});
+	session_match(&fix.session, &(Token) {2, 1, '\t'});
+	session_match(&fix.session, &(Token) {3, 1, '\f'});
+	session_match(&fix.session, &(Token) {4, 1, ' '});
+	session_match(&fix.session, &(Token) {5, 1, 'i'});
+	session_match(&fix.session, &(Token) {6, 1, 'd'});
+
+	t_assert(fix.token.symbol == WHITE_SPACE);
+	t_assert(fix.token.index == 0);
+	t_assert(fix.token.length == 5);
+
+	session_match(&fix.session, &(Token) {7, 1, ' '});
+	t_assert(fix.token.symbol == META_IDENTIFIER);
 	t_assert(fix.token.index == 5);
-	t_assert(fix.token.length == strlen("identifier"));
+	t_assert(fix.token.length == 2);
 }
 
+/*
 void lexer_input_next__utf8_two_byte(){
 	utf8_lexer(&fix.lexer_utf8_two_byte, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == 0xF1);
@@ -161,6 +243,7 @@ void lexer_input_next__utf8_three_byte(){
 	t_assert(fix.token.index == 0);
 	t_assert(fix.token.length == 3);
 }
+*/
 
 int main(int argc, char** argv){
 	t_init();
@@ -171,7 +254,9 @@ int main(int argc, char** argv){
 	t_test(lexer_input_next__whole_rule);
 	t_test(lexer_input_next__white_token);
 
+	/*
 	t_test(lexer_input_next__utf8_two_byte);
 	t_test(lexer_input_next__utf8_three_byte);
+	*/
 	return t_done();
 }

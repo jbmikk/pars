@@ -1,6 +1,6 @@
 (*
- * Repetition grammar
- * Used to test repetition operator at the beginning.
+  Repetition grammar
+  Used to test repetition operator at the beginning.
  *)
 letter = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i";
 sequence = "1", [ letter ], "2";
