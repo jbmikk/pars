@@ -13,11 +13,8 @@ typedef struct _Lexer {
 	void (*lexer_fsm)(struct _Lexer *lexer, Token *t_in, Token *t_out);
 } Lexer;
 
-typedef void (*LexerFsm)(Lexer *lexer, Token *t_in, Token *t_out);
 
-
-void lexer_init(Lexer *lexer, Input *input, LexerFsm fsm);
-void lexer_next(Lexer *lexer, Token *token);
+void lexer_init(Lexer *lexer, Input *input);
 
 void identity_lexer(Lexer *lexer, Token *t_in, Token *t_out);
 void utf8_lexer(Lexer *lexer, Token *t_in, Token *t_out);

@@ -45,17 +45,17 @@ void t_setup(){
 	input_init_buffer(&fix.input_terminal_string, I_TERMINAL_STRING, strlen(I_TERMINAL_STRING));
 	input_init_buffer(&fix.input_rule_one, I_RULE_ONE, strlen(I_RULE_ONE));
 	input_init_buffer(&fix.input_white, I_WHITE, strlen(I_WHITE));
-	lexer_init(&fix.lexer_integer, &fix.input_integer, ebnf_lexer);
-	lexer_init(&fix.lexer_identifier, &fix.input_identifier, ebnf_lexer);
-	lexer_init(&fix.lexer_terminal_string, &fix.input_terminal_string, ebnf_lexer);
-	lexer_init(&fix.lexer_rule_one, &fix.input_rule_one, ebnf_lexer);
-	lexer_init(&fix.lexer_white, &fix.input_white, ebnf_lexer);
+	lexer_init(&fix.lexer_integer, &fix.input_integer);
+	lexer_init(&fix.lexer_identifier, &fix.input_identifier);
+	lexer_init(&fix.lexer_terminal_string, &fix.input_terminal_string);
+	lexer_init(&fix.lexer_rule_one, &fix.input_rule_one);
+	lexer_init(&fix.lexer_white, &fix.input_white);
 
 	//Utf8 tests
 	input_init_buffer(&fix.input_utf8_two_byte, I_UTF8_TWO_BYTE, strlen(I_UTF8_TWO_BYTE));
-	lexer_init(&fix.lexer_utf8_two_byte, &fix.input_utf8_two_byte, utf8_lexer);
+	lexer_init(&fix.lexer_utf8_two_byte, &fix.input_utf8_two_byte);
 	input_init_buffer(&fix.input_utf8_three_byte, I_UTF8_THREE_BYTE, strlen(I_UTF8_THREE_BYTE));
-	lexer_init(&fix.lexer_utf8_three_byte, &fix.input_utf8_three_byte, utf8_lexer);
+	lexer_init(&fix.lexer_utf8_three_byte, &fix.input_utf8_three_byte);
 }
 
 void t_teardown(){
@@ -67,96 +67,96 @@ void t_teardown(){
 }
 
 void lexer_input_next__integer_token(){
-	lexer_next(&fix.lexer_integer, &fix.token);
+	ebnf_lexer(&fix.lexer_integer, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == E_INTEGER);
 	t_assert(fix.token.index == 0);
 	t_assert(fix.token.length == strlen(I_INTEGER));
 }
 
 void lexer_input_next__identifier_token(){
-	lexer_next(&fix.lexer_identifier, &fix.token);
+	ebnf_lexer(&fix.lexer_identifier, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == E_META_IDENTIFIER);
 	t_assert(fix.token.index == 0);
 	t_assert(fix.token.length == strlen(I_IDENTIFIER));
 }
 
 void lexer_input_next__terminal_string_token(){
-	lexer_next(&fix.lexer_terminal_string, &fix.token);
+	ebnf_lexer(&fix.lexer_terminal_string, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == E_TERMINAL_STRING);
 	t_assert(fix.token.index == 0);
 	t_assert(fix.token.length == strlen(I_TERMINAL_STRING));
 }
 
 void lexer_input_next__skip_white_space(){
-	lexer_next(&fix.lexer_rule_one, &fix.token);
+	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == E_META_IDENTIFIER);
 	t_assert(fix.token.index == 0);
 	t_assert(fix.token.length == 3);
-	lexer_next(&fix.lexer_rule_one, &fix.token);
+	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == E_DEFINING_SYMBOL);
 	t_assert(fix.token.index == 4);
 	t_assert(fix.token.length == 1);
 }
 
 void lexer_input_next__whole_rule(){
-	lexer_next(&fix.lexer_rule_one, &fix.token);
+	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == E_META_IDENTIFIER);
 	t_assert(fix.token.index == 0);
 	t_assert(fix.token.length == 3);
-	lexer_next(&fix.lexer_rule_one, &fix.token);
+	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == E_DEFINING_SYMBOL);
 	t_assert(fix.token.index == 4);
 	t_assert(fix.token.length == 1);
-	lexer_next(&fix.lexer_rule_one, &fix.token);
+	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == E_TERMINAL_STRING);
 	t_assert(fix.token.index == 6);
 	t_assert(fix.token.length == 3);
-	lexer_next(&fix.lexer_rule_one, &fix.token);
+	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == E_CONCATENATE_SYMBOL);
 	t_assert(fix.token.index == 9);
 	t_assert(fix.token.length == 1);
-	lexer_next(&fix.lexer_rule_one, &fix.token);
+	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == E_START_GROUP_SYMBOL);
 	t_assert(fix.token.index == 10);
 	t_assert(fix.token.length == 1);
-	lexer_next(&fix.lexer_rule_one, &fix.token);
+	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == E_TERMINAL_STRING);
 	t_assert(fix.token.index == 11);
 	t_assert(fix.token.length == 3);
-	lexer_next(&fix.lexer_rule_one, &fix.token);
+	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == E_DEFINITION_SEPARATOR_SYMBOL);
 	t_assert(fix.token.index == 14);
 	t_assert(fix.token.length == 1);
-	lexer_next(&fix.lexer_rule_one, &fix.token);
+	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == E_TERMINAL_STRING);
 	t_assert(fix.token.index == 15);
 	t_assert(fix.token.length == 3);
-	lexer_next(&fix.lexer_rule_one, &fix.token);
+	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == E_END_GROUP_SYMBOL);
 	t_assert(fix.token.index == 18);
 	t_assert(fix.token.length == 1);
-	lexer_next(&fix.lexer_rule_one, &fix.token);
+	ebnf_lexer(&fix.lexer_rule_one, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == L_EOF);
 	t_assert(fix.token.index == 19);
 	t_assert(fix.token.length == 0);
 }
 
 void lexer_input_next__white_token(){
-	lexer_next(&fix.lexer_white, &fix.token);
+	ebnf_lexer(&fix.lexer_white, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == E_META_IDENTIFIER);
 	t_assert(fix.token.index == 5);
 	t_assert(fix.token.length == strlen("identifier"));
 }
 
 void lexer_input_next__utf8_two_byte(){
-	lexer_next(&fix.lexer_utf8_two_byte, &fix.token);
+	utf8_lexer(&fix.lexer_utf8_two_byte, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == 0xF1);
 	t_assert(fix.token.index == 0);
 	t_assert(fix.token.length == 2);
 }
 
 void lexer_input_next__utf8_three_byte(){
-	lexer_next(&fix.lexer_utf8_three_byte, &fix.token);
+	utf8_lexer(&fix.lexer_utf8_three_byte, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == 0xF71);
 	t_assert(fix.token.index == 0);
 	t_assert(fix.token.length == 3);

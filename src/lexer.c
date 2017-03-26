@@ -1,15 +1,9 @@
 #include "lexer.h"
 
-void lexer_init(Lexer *lexer, Input *input, LexerFsm fsm)
+void lexer_init(Lexer *lexer, Input *input)
 {
 	lexer->input = input;
-	lexer->lexer_fsm = fsm;
 	lexer->mode = 0;
-}
-
-void lexer_next(Lexer *lexer, Token *token)
-{
-	lexer->lexer_fsm(lexer, token, token);
 }
 
 void identity_lexer(Lexer *lexer, Token *t_in, Token *t_out)

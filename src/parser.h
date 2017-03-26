@@ -7,6 +7,8 @@
 #include "ast.h"
 #include "session.h"
 
+typedef void (*LexerFsm)(Lexer *lexer, Token *t_in, Token *t_out);
+
 typedef struct _Parser {
 	Lexer lexer;
 	SymbolTable table;

@@ -9,7 +9,7 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 	Token token;
 	token_init(&token, 0, 0, 0);
 
-	lexer_init(lexer, input, parser->lexer_fsm);
+	lexer_init(lexer, input);
 	ast_init(ast, input, &parser->table);
 
 	Session session;
@@ -17,7 +17,7 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 	session_set_handler(&session, parser->handler, ast);
 
 	do {
-		lexer_next(lexer, &token);
+		parser->lexer_fsm(lexer, &token, &token);
 		session_match(&session, &token);
 		check(
 			session.status != SESSION_ERROR,
