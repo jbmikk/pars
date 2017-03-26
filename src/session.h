@@ -2,7 +2,7 @@
 #define SESSION_H
 
 #include "fsm.h"
-#include "lexer.h"
+#include "token.h"
 
 #define SESSION_OK 0
 #define SESSION_ERROR 1
