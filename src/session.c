@@ -97,7 +97,6 @@ void session_match(Session *session, Token *token)
 
 rematch:
 	session->index = token->index;
-	session->length = token->length;
 	action = state_get_transition(session->current, token->symbol);
 
 	if(action == NULL) {
@@ -124,8 +123,8 @@ rematch:
 	case ACTION_SHIFT:
 		trace("match", session->current, action, token, "shift", 0);
 		Token shifted = {
-			session->index,
-			session->length,
+			token->index,
+			token->length,
 			token->symbol
 		};
 		if(session->handler.shift) {
@@ -145,10 +144,9 @@ rematch:
 	case ACTION_REDUCE:
 		trace("match", session->current, action, token, "reduce", action->reduction);
 		session_pop(session);
-		session->length = token->index - session->index;
 		Token reduction = {
 			session->index,
-			session->length,
+			token->index - session->index,
 			action->reduction
 		};
 		if(session->handler.reduce) {

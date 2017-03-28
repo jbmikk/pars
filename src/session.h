@@ -29,7 +29,6 @@ typedef struct _Session {
 	State *current;
 	Action *last_action;
 	unsigned int index;
-	unsigned int length;
 	Stack stack;
 	FsmHandler handler;
 } Session;
