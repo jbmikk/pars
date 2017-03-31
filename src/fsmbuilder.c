@@ -283,11 +283,8 @@ void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length)
 	nonterminal_add_reference(nt, prev, sb);
 }
 
-static void _set_start(FsmBuilder *builder, char *name, int length)
+static void _set_start(FsmBuilder *builder, char *name, int length, int eof_symbol)
 {
-	Symbol *sb = symbol_table_get(builder->fsm->table, name, length);
-	Nonterminal *nt = (Nonterminal *)sb->data;
-
 	//If start already defined, delete it. Only one start allowed.
 	if(builder->fsm->start) {
 		//Delete state
@@ -300,20 +297,14 @@ static void _set_start(FsmBuilder *builder, char *name, int length)
 	builder->fsm->start = initial_state;
 	trace_state("add", initial_state, "start state");
 
-	state_add_first_set(builder->fsm->start, nt->start, sb);
-
 	_move_to(builder, builder->fsm->start);
+	//TODO: what happens when set start is called multiple times?
+	fsm_builder_nonterminal(builder, name, length);
 
-	//TODO: Should check whether current->state is not null?
-	//TODO: Is there a test that checks whether this even works?
-	if(!radix_tree_contains_int(&builder->state->actions, sb->id)) {
-		_ensure_state(builder);
-		Action *action = state_add(builder->state, sb->id, ACTION_ACCEPT, NONE);
-		_transition(builder, action);
-		_append_state(builder, builder->fsm->accept);
-	} else {
-		//TODO: issue warning or sentinel??
-	}
+	_ensure_state(builder);
+	Action *action = state_add(builder->state, eof_symbol, ACTION_ACCEPT, NONE);
+	_transition(builder, action);
+	_append_state(builder, builder->fsm->accept);
 }
 
 int _solve_return_references(FsmBuilder *builder, Nonterminal *nt) {
@@ -482,17 +473,9 @@ void fsm_builder_done(FsmBuilder *builder, int eof_symbol) {
 	Symbol *sb = builder->last_symbol;
 	Nonterminal *nt = builder->last_nonterminal;
 	if(nt) {
-		trace_symbol("main", sb);
-		//TODO: Factor out action function to test this
-		if(!radix_tree_contains_int(&nt->end->actions, eof_symbol)) {
-			_move_to(builder, nt->end);
-			state_add(builder->state, eof_symbol, ACTION_REDUCE, sb->id);
-		} else {
-			//TODO: issue warning or sentinel??
-		}
-		_solve_references(builder);
 		trace_symbol("set initial state", sb);
-		_set_start(builder, sb->name, sb->length);
+		_set_start(builder, sb->name, sb->length, eof_symbol);
+		_solve_references(builder);
 	} else {
 		//TODO: issue warning or sentinel??
 	}

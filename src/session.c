@@ -105,14 +105,10 @@ rematch:
 		action = state_get_transition(session->current, empty->id);
 
 		if(action == NULL) {
-			// Check if accepting state
-			if(!session->last_action || session->last_action->type != ACTION_ACCEPT) {
-				trace("match", session->current, action, token, "error", 0);
-				session->last_action = &session->fsm->error;
-				session->current = session->last_action->state;
-				session->status = SESSION_ERROR;
-			}
-			return;
+			trace("match", session->current, action, token, "error", 0);
+			session->last_action = &session->fsm->error;
+			session->current = session->last_action->state;
+			session->status = SESSION_ERROR;
 		} else {
 			trace("match", session->current, action, token, "fback", 0);
 		}
