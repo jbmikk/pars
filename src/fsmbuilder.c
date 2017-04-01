@@ -283,15 +283,17 @@ void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length)
 	nonterminal_add_reference(nt, prev, sb);
 }
 
-static void _set_start(FsmBuilder *builder, char *name, int length, int eof_symbol)
+static void _set_start(FsmBuilder *builder, int eof_symbol)
 {
+	Symbol *sb = builder->last_symbol;
+
 	State *initial_state = c_new(State, 1);
 	state_init(initial_state);
 	builder->fsm->start = initial_state;
 	trace_state("add", initial_state, "start state");
 
 	_move_to(builder, builder->fsm->start);
-       fsm_builder_nonterminal(builder, name, length);
+       fsm_builder_nonterminal(builder, sb->name, sb->length);
  
 	_ensure_state(builder);
        Action *action = state_add(builder->state, eof_symbol, ACTION_ACCEPT, NONE);
@@ -463,11 +465,10 @@ retry:
 }
 
 void fsm_builder_done(FsmBuilder *builder, int eof_symbol) {
-	Symbol *sb = builder->last_symbol;
 	Nonterminal *nt = builder->last_nonterminal;
 	if(nt && !builder->fsm->start) {
 		trace_symbol("set initial state", sb);
-		_set_start(builder, sb->name, sb->length, eof_symbol);
+		_set_start(builder, eof_symbol);
 		_solve_references(builder);
 	} else {
 		//TODO: issue warning or sentinel??
