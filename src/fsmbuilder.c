@@ -285,26 +285,19 @@ void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length)
 
 static void _set_start(FsmBuilder *builder, char *name, int length, int eof_symbol)
 {
-	//If start already defined, delete it. Only one start allowed.
-	if(builder->fsm->start) {
-		//Delete state
-		state_dispose(builder->fsm->start);
-		c_delete(builder->fsm->start);
-	}
-
 	State *initial_state = c_new(State, 1);
 	state_init(initial_state);
 	builder->fsm->start = initial_state;
 	trace_state("add", initial_state, "start state");
 
 	_move_to(builder, builder->fsm->start);
-	//TODO: what happens when set start is called multiple times?
-	fsm_builder_nonterminal(builder, name, length);
-
+       fsm_builder_nonterminal(builder, name, length);
+ 
 	_ensure_state(builder);
-	Action *action = state_add(builder->state, eof_symbol, ACTION_ACCEPT, NONE);
-	_transition(builder, action);
-	_append_state(builder, builder->fsm->accept);
+       Action *action = state_add(builder->state, eof_symbol, ACTION_ACCEPT, NONE);
+
+       _transition(builder, action);
+       _append_state(builder, builder->fsm->accept);
 }
 
 int _solve_return_references(FsmBuilder *builder, Nonterminal *nt) {
@@ -472,11 +465,12 @@ retry:
 void fsm_builder_done(FsmBuilder *builder, int eof_symbol) {
 	Symbol *sb = builder->last_symbol;
 	Nonterminal *nt = builder->last_nonterminal;
-	if(nt) {
+	if(nt && !builder->fsm->start) {
 		trace_symbol("set initial state", sb);
 		_set_start(builder, sb->name, sb->length, eof_symbol);
 		_solve_references(builder);
 	} else {
 		//TODO: issue warning or sentinel??
+		printf("FSM start already defined\n");
 	}
 }

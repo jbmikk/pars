@@ -11,9 +11,7 @@ void fsm_init(Fsm *fsm, SymbolTable *table)
 {
 	//TODO: Get symbol table as parameter
 	fsm->table = table;
-
-	fsm->start = c_new(State, 1);
-	state_init(fsm->start);
+	fsm->start = NULL;
 
 	symbol_table_add(fsm->table, "__empty", 7);
 
