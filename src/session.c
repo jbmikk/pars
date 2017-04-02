@@ -138,7 +138,8 @@ rematch:
 		if(session->handler.accept) {
 			session->handler.accept(session->handler.target, &accepted);
 		}
-		session->current = action->state;
+		//Restart after accept
+		session->current = session->fsm->start;
 		break;
 	case ACTION_DROP:
 		trace("match", session->current, action, token, "drop", 0);
