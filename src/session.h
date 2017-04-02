@@ -19,9 +19,9 @@ typedef struct _Stack {
 
 typedef struct _FsmHandler {
 	void *target;
-	void (*shift)(void *target, Token *token);
-	void (*reduce)(void *target, Token *token);
-	void (*accept)(void *target, Token *token);
+	void (*shift)(void *target, const Token *token);
+	void (*reduce)(void *target, const Token *token);
+	void (*accept)(void *target, const Token *token);
 } FsmHandler;
 
 typedef struct _Session {
@@ -42,7 +42,7 @@ void session_dispose(Session *session);
 void session_push(Session *session);
 void session_pop(Session *session);
 
-void session_match(Session *session, Token *token);
-Action *session_test(Session *session, Token *token);
+void session_match(Session *session, const Token *token);
+Action *session_test(Session *session, const Token *token);
 
 #endif //SESSION_H

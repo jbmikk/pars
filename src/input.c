@@ -47,7 +47,7 @@ void input_dispose(Input *input)
 	}
 }
 
-void input_next_token(Input *input, Token *token1, Token *token2)
+void input_next_token(Input *input, const Token *token1, Token *token2)
 {
 	unsigned int index = token1->index + token1->length;
 	token2->index = index;

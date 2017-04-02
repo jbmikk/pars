@@ -157,7 +157,7 @@ void session_match__reduce_shift(){
 	session_dispose(&session);
 }
 
-void reduce_handler(void *target, Token *t)
+void reduce_handler(void *target, const Token *t)
 {
 	token = *t;
 }

@@ -58,7 +58,7 @@ void session_dispose(Session *session)
 	}
 }
 
-Action *session_test(Session *session, Token *token)
+Action *session_test(Session *session, const Token *token)
 {
 	Action *action;
 
@@ -89,7 +89,7 @@ Action *session_test(Session *session, Token *token)
 	return action;
 }
 
-void session_match(Session *session, Token *token)
+void session_match(Session *session, const Token *token)
 {
 	Action *action;
 

@@ -66,7 +66,7 @@ void ast_bind_to_parent(AstNode *node)
 	radix_tree_set_ple_int(&node->parent->children, node->index, node);
 }
 
-void ast_add(Ast *ast, Token *token)
+void ast_add(Ast *ast, const Token *token)
 {
 	AstNode *node = c_new(AstNode, 1);
 	ast_node_init(node, ast->current, token->index);
@@ -78,7 +78,7 @@ void ast_add(Ast *ast, Token *token)
 	trace(node, "add", token->symbol, token->index, token->length);
 }
 
-void ast_open(void *ast_p, Token *token)
+void ast_open(void *ast_p, const Token *token)
 {
 	Ast *ast = (Ast *)ast_p;
 	AstNode *node = c_new(AstNode, 1);
@@ -103,7 +103,7 @@ void ast_open(void *ast_p, Token *token)
 	}
 }
 
-void ast_close(void *ast_p, Token *token)
+void ast_close(void *ast_p, const Token *token)
 {
 	Ast *ast = (Ast *)ast_p;
 	AstNode *node = ast->current;
