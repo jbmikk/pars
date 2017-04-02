@@ -150,6 +150,7 @@ int ebnf_init_parser(Parser *parser)
 {
 	parser->handler.shift = ast_open;
 	parser->handler.reduce = ast_close;
+	parser->handler.accept = NULL;
 	parser->lexer_fsm = ebnf_lexer;
 
 	symbol_table_init(&parser->table);

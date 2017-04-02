@@ -191,6 +191,7 @@ void session_match__reduce_handler(){
 	FsmHandler handler;
 	handler.shift = NULL;
 	handler.reduce = reduce_handler;
+	handler.accept = NULL;
 	handler.target = NULL;
 	session_init(&session, &fix.fsm, handler);
 	MATCH_AT(session, '1', 0);

@@ -36,6 +36,7 @@ int atl_init_parser(Parser *parser)
 {
 	parser->handler.shift = ast_open;
 	parser->handler.reduce = ast_close;
+	parser->handler.accept = NULL;
 	parser->lexer_fsm = atl_lexer;
 
 	symbol_table_init(&parser->table);
