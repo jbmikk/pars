@@ -130,6 +130,14 @@ rematch:
 		break;
 	case ACTION_ACCEPT:
 		trace("match", session->current, action, token, "accept", 0);
+		Token accepted = {
+			token->index,
+			token->length,
+			token->symbol
+		};
+		if(session->handler.accept) {
+			session->handler.accept(session->handler.target, &accepted);
+		}
 		session->current = action->state;
 		break;
 	case ACTION_DROP:

@@ -21,6 +21,7 @@ typedef struct _FsmHandler {
 	void *target;
 	void (*shift)(void *target, Token *token);
 	void (*reduce)(void *target, Token *token);
+	void (*accept)(void *target, Token *token);
 } FsmHandler;
 
 typedef struct _Session {
