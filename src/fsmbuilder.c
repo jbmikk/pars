@@ -293,13 +293,13 @@ static void _set_start(FsmBuilder *builder, int eof_symbol)
 	trace_state("add", initial_state, "start state");
 
 	_move_to(builder, builder->fsm->start);
-       fsm_builder_nonterminal(builder, sb->name, sb->length);
- 
-	_ensure_state(builder);
-       Action *action = state_add(builder->state, eof_symbol, ACTION_ACCEPT, NONE);
+	fsm_builder_nonterminal(builder, sb->name, sb->length);
 
-       _transition(builder, action);
-       _append_state(builder, builder->fsm->accept);
+	_ensure_state(builder);
+	Action *action = state_add(builder->state, eof_symbol, ACTION_ACCEPT, NONE);
+
+	_transition(builder, action);
+	_append_state(builder, builder->fsm->accept);
 }
 
 int _solve_return_references(FsmBuilder *builder, Nonterminal *nt) {
