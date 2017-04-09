@@ -223,11 +223,17 @@ void fsm_builder_define(FsmBuilder *builder, char *name, int length)
 
 void fsm_builder_end(FsmBuilder *builder)
 {
-	//TODO: implicit fsm_builder_group_end(builder); ??
-	// If that was the case, we wouldn't need to ensure state the exists
-	_ensure_state(builder);
-	builder->last_nonterminal->end = builder->state;
-	//trace("end", builder->current, 0, 0, "set");
+	if (builder->last_nonterminal->end) {
+		//TODO: Leverage _join_continuation
+		if (builder->state) {
+			_add_empty(builder);
+		}
+		_append_state(builder, builder->last_nonterminal->end);
+	} else {
+		//TODO: implicit fsm_builder_group_end(builder); ??
+		_ensure_state(builder);
+		builder->last_nonterminal->end = builder->state;
+	}
 
 	// Add proper status to the end state to solve references later
 	if(builder->last_nonterminal->status & NONTERMINAL_RETURN_REF) {
