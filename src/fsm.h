@@ -92,8 +92,6 @@ void state_add_reduce_follow_set(State *from, State *to, int symbol);
 
 void action_init(Action *action, char type, int reduction, State *state, char flags, int end_symbol);
 Action *action_add(Action *from, int symbol, int type, int reduction);
-void action_add_first_set(Action *from, State* state);
-void action_add_reduce_follow_set(Action *from, Action *to, int symbol);
 
 
 //# Nonterminal functions
