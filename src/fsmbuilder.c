@@ -286,6 +286,7 @@ void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length)
 static void _set_start(FsmBuilder *builder, int eof_symbol)
 {
 	Symbol *sb = builder->last_symbol;
+	trace_symbol("set initial state", sb);
 
 	State *initial_state = c_new(State, 1);
 	state_init(initial_state);
@@ -467,7 +468,6 @@ retry:
 void fsm_builder_done(FsmBuilder *builder, int eof_symbol) {
 	Nonterminal *nt = builder->last_nonterminal;
 	if(nt && !builder->fsm->start) {
-		trace_symbol("set initial state", sb);
 		_set_start(builder, eof_symbol);
 		_solve_references(builder);
 	} else {
