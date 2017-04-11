@@ -212,9 +212,8 @@ void fsm_builder_or(FsmBuilder *builder)
 
 void fsm_builder_define(FsmBuilder *builder, char *name, int length)
 {
-	Symbol *symbol = fsm_create_nonterminal(builder->fsm, name, length);
-	builder->last_symbol = symbol;
-	builder->last_nonterminal = (Nonterminal *)symbol->data;
+	builder->last_nonterminal = fsm_create_nonterminal(builder->fsm, name, length);
+	builder->last_symbol = fsm_get_symbol(builder->fsm, name, length);
 	_move_to(builder, builder->last_nonterminal->start);
 	trace_symbol("set", symbol);
 
@@ -269,9 +268,8 @@ void fsm_builder_terminal_range(FsmBuilder *builder, int from, int to)
  */
 void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length)
 {
-	//Get or create symbol and associated non terminal
-	Symbol *sb = fsm_create_nonterminal(builder->fsm, name, length);
-	Nonterminal *nt = (Nonterminal *)sb->data;
+	Nonterminal *nt = fsm_create_nonterminal(builder->fsm, name, length);
+	Symbol *sb = fsm_get_symbol(builder->fsm, name, length);
 
 	_ensure_state(builder);
 
@@ -427,9 +425,7 @@ end:
 }
 
 void _solve_references(FsmBuilder *builder) {
-	Node *symbols = &builder->fsm->table->symbols;
         Iterator it;
-	Symbol *sb;
 	Nonterminal *nt;
 	int some_unsolved;
 
@@ -441,11 +437,10 @@ void _solve_references(FsmBuilder *builder) {
 
 retry:
 	some_unsolved = 0;
-	radix_tree_iterator_init(&it, symbols);
-	while((sb = (Symbol *)radix_tree_iterator_next(&it))) {
-		trace_symbol("solve return references from: ", sb);
+	radix_tree_iterator_init(&it, &builder->fsm->nonterminals);
+	while((nt  = (Nonterminal *)radix_tree_iterator_next(&it))) {
+		trace_symbol("solve return references from: %p", nt);
 
-		nt = (Nonterminal *)sb->data;
 		if(nt) {
 			some_unsolved |= _solve_return_references(builder, nt);
 

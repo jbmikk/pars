@@ -196,7 +196,7 @@ void session_match__reduce_handler(){
 	session_init(&session, &fix.fsm, handler);
 	MATCH_AT(session, '1', 0);
 	MATCH_AT(session, '+', 1);
-	t_assert(token.symbol == fsm_get_symbol(&fix.fsm, nzs("number")));
+	t_assert(token.symbol == fsm_get_symbol_id(&fix.fsm, nzs("number")));
 	t_assert(token.index == 0);
 	t_assert(token.length == 1);
 	t_assert(session.index == 1);
@@ -205,7 +205,7 @@ void session_match__reduce_handler(){
 	MATCH_AT(session, 'r', 4);
 	MATCH_AT(session, 'd', 5);
 	MATCH_AT(session, '\0', 6);
-	t_assert(token.symbol == fsm_get_symbol(&fix.fsm, nzs("sum")));
+	t_assert(token.symbol == fsm_get_symbol_id(&fix.fsm, nzs("sum")));
 	t_assert(token.index == 0);
 	t_assert(token.length == 6);
 	t_assert(session.last_action->type == ACTION_ACCEPT);

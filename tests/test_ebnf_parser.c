@@ -46,7 +46,7 @@ void t_teardown(){
 void ebnf_start_parsing__identifier(){
 
 	Action *action;
-	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
+	int E_SYNTACTIC_PRIMARY = fsm_get_symbol_id(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
 	session_init(&session, &fix.fsm, NULL_HANDLER);
@@ -73,7 +73,7 @@ void ebnf_start_parsing__identifier(){
 void ebnf_start_parsing__terminal(){
 
 	Action *action;
-	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
+	int E_SYNTACTIC_PRIMARY = fsm_get_symbol_id(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
 	session_init(&session, &fix.fsm, NULL_HANDLER);
@@ -100,7 +100,7 @@ void ebnf_start_parsing__terminal(){
 
 void ebnf_start_parsing__concatenate(){
 	Action *action;
-	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
+	int E_SYNTACTIC_PRIMARY = fsm_get_symbol_id(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
 	session_init(&session, &fix.fsm, NULL_HANDLER);
@@ -125,7 +125,7 @@ void ebnf_start_parsing__concatenate(){
 
 void ebnf_start_parsing__separator(){
 	Action *action;
-	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
+	int E_SYNTACTIC_PRIMARY = fsm_get_symbol_id(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
 	session_init(&session, &fix.fsm, NULL_HANDLER);
@@ -146,7 +146,7 @@ void ebnf_start_parsing__separator(){
 
 void ebnf_start_parsing__syntactic_term(){
 	Action *action;
-	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
+	int E_SYNTACTIC_PRIMARY = fsm_get_symbol_id(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
 	session_init(&session, &fix.fsm, NULL_HANDLER);
@@ -172,7 +172,7 @@ void ebnf_start_parsing__syntactic_term(){
 
 void ebnf_start_parsing__syntax_rule(){
 	Action *action;
-	int E_SYNTAX_RULE = fsm_get_symbol(&fix.fsm, nzs("syntax_rule"));
+	int E_SYNTAX_RULE = fsm_get_symbol_id(&fix.fsm, nzs("syntax_rule"));
 
 	Session session;
 	session_init(&session, &fix.fsm, NULL_HANDLER);
@@ -196,7 +196,7 @@ void ebnf_start_parsing__syntax_rule(){
 
 void ebnf_start_parsing__group(){
 	Action *action;
-	int E_SYNTACTIC_PRIMARY = fsm_get_symbol(&fix.fsm, nzs("syntactic_primary"));
+	int E_SYNTACTIC_PRIMARY = fsm_get_symbol_id(&fix.fsm, nzs("syntactic_primary"));
 
 	Session session;
 	session_init(&session, &fix.fsm, NULL_HANDLER);
@@ -218,7 +218,7 @@ void ebnf_start_parsing__group(){
 void ebnf_start_parsing__syntax(){
 	Action *action;
 
-	int E_SYNTAX_RULE = fsm_get_symbol(&fix.fsm, nzs("syntax_rule"));
+	int E_SYNTAX_RULE = fsm_get_symbol_id(&fix.fsm, nzs("syntax_rule"));
 	Session session;
 	session_init(&session, &fix.fsm, NULL_HANDLER);
 	MATCH(session, E_META_IDENTIFIER);

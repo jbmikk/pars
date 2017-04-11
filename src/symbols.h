@@ -7,7 +7,6 @@ typedef struct _Symbol {
 	int id;
 	char *name;
 	int length;
-	void *data;
 } Symbol;
 
 typedef struct _SymbolTable {
