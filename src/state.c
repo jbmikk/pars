@@ -236,9 +236,40 @@ void state_add_first_set(State *state, State* source, Symbol *symbol)
 			trace("add", state, action, array_to_int(it.key, it.size), "first-set", 0);
 		}
 
-		clone = c_new(Action, 1);
-		action_init(clone, clone_type, action->reduction, action->state, action->flags, action->end_symbol);
-		_state_add_buffer(state, it.key, it.size, clone);
+		fflush(stdin);
+		Action *col = _state_get_transition(state, it.key, it.size);
+
+		if(col) {
+			trace(
+				"collision",
+				state,
+				col,
+				array_to_int(it.key, it.size),
+				"sf",
+				0
+			);
+
+			//Collision detected, redefine existing action to
+			//point to new merge state in order to disambiguate.
+			//TODO: should only merge if actions are identical
+			//TODO: Make this work with ranges.
+			//TODO: Write tests for this.
+			State *merge = c_new(State, 1);
+			state_init(merge);
+
+			//Merge first set for the actions continuations.
+			state_add_reference(merge, NULL, col->state);
+			state_add_reference(merge, NULL, action->state);
+
+			//Create unified action pointing to merged state.
+			action_init(col, clone_type, col->reduction, merge, col->flags, col->end_symbol);
+		} else {
+			//No collision detected, clone the action an add it.
+			clone = c_new(Action, 1);
+			action_init(clone, clone_type, action->reduction, action->state, action->flags, action->end_symbol);
+
+			_state_add_buffer(state, it.key, it.size, clone);
+		}
 	}
 	radix_tree_iterator_dispose(&it);
 }
