@@ -228,12 +228,10 @@ void state_add_first_set(State *state, State* source, Symbol *symbol)
 				 continue;
 			}
 			clone_type = ACTION_SHIFT;
-			trace("add", state, action, array_to_int(it.key, it.size), "shift", 0);
 		} else {
 			// It could happen when merging loops in final states
 			// that action->type == ACTION_REDUCE
 			clone_type = action->type;
-			trace("add", state, action, array_to_int(it.key, it.size), "first-set", 0);
 		}
 
 		fflush(stdin);
@@ -264,9 +262,19 @@ void state_add_first_set(State *state, State* source, Symbol *symbol)
 			//Create unified action pointing to merged state.
 			action_init(col, clone_type, col->reduction, merge, col->flags, col->end_symbol);
 		} else {
+
 			//No collision detected, clone the action an add it.
 			clone = c_new(Action, 1);
 			action_init(clone, clone_type, action->reduction, action->state, action->flags, action->end_symbol);
+
+			trace(
+				"add",
+				state,
+				clone,
+				array_to_int(it.key, it.size),
+				"first-set",
+				0
+			);
 
 			_state_add_buffer(state, it.key, it.size, clone);
 		}
