@@ -239,17 +239,46 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 		Action *col = _state_get_transition(ref->state, it.key, it.size);
 
 		if(col) {
+			if(
+				col->type == action->type &&
+				col->state == action->state &&
+				col->reduction == action->reduction &&
+				col->end_symbol == action->end_symbol &&
+				col->flags == action->flags
+			) {
+				trace(
+					"collision",
+					ref->state,
+					action,
+					array_to_int(it.key, it.size),
+					"skip duplicate",
+					0
+				);
+				continue;
+			}
+
+			if(col->state == NULL || action->state == NULL) {
+				trace(
+					"collision",
+					ref->state,
+					action,
+					array_to_int(it.key, it.size),
+					"unhandled",
+					0
+				);
+				continue;
+			}
+
+			//Collision: redefine actions in order to disambiguate.
 			trace(
 				"collision",
 				ref->state,
 				col,
 				array_to_int(it.key, it.size),
-				"sf",
+				"deambiguate state",
 				0
 			);
 
-			//Collision detected, redefine existing action to
-			//point to new merge state in order to disambiguate.
 			//TODO: should only merge if actions are identical
 			//TODO: Make this work with ranges.
 			State *merge = c_new(State, 1);
