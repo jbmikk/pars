@@ -212,6 +212,44 @@ void session_match__reduce_handler(){
 	session_dispose(&session);
 }
 
+void session_match__first_set_collision(){
+	FsmBuilder builder;
+	fsm_builder_init(&builder, &fix.fsm);
+
+	fsm_builder_define(&builder, nzs("A"));
+	fsm_builder_terminal(&builder, '1');
+	fsm_builder_terminal(&builder, '2');
+	fsm_builder_terminal(&builder, '3');
+	fsm_builder_end(&builder);
+
+	fsm_builder_define(&builder, nzs("B"));
+	fsm_builder_terminal(&builder, '1');
+	fsm_builder_terminal(&builder, '3');
+	fsm_builder_terminal(&builder, '4');
+	fsm_builder_end(&builder);
+
+	fsm_builder_define(&builder, nzs("sequence"));
+	fsm_builder_group_start(&builder);
+	fsm_builder_nonterminal(&builder,  nzs("A"));
+	fsm_builder_or(&builder);
+	fsm_builder_nonterminal(&builder,  nzs("B"));
+	fsm_builder_group_end(&builder);
+	fsm_builder_end(&builder);
+
+	fsm_builder_done(&builder, '\0');
+
+	fsm_builder_dispose(&builder);
+
+	Session session;
+	session_init(&session, &fix.fsm, NULL_HANDLER);
+	MATCH(session, '1');
+	MATCH(session, '2');
+	MATCH(session, '3');
+	MATCH(session, '\0');
+	t_assert(session.last_action->type == ACTION_ACCEPT);
+	session_dispose(&session);
+}
+
 int main(int argc, char** argv){
 	t_init();
 	t_test(fsm_builder_define__single_get);
@@ -221,6 +259,7 @@ int main(int argc, char** argv){
 	t_test(session_match__reduce);
 	t_test(session_match__reduce_shift);
 	t_test(session_match__reduce_handler);
+	t_test(session_match__first_set_collision);
 	return t_done();
 }
 

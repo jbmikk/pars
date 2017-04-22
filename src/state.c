@@ -202,24 +202,25 @@ Action *state_add_range(State *state, int symbol1, int symbol2, int type, int re
 }
 
 
-void state_add_first_set(State *state, State* source, Symbol *symbol)
+void reference_solve_first_set(Reference *ref, int *unsolved)
 {
 	Action *action, *clone;
 	Iterator it;
-	radix_tree_iterator_init(&it, &(source->actions));
+	radix_tree_iterator_init(&it, &(ref->to_state->actions));
+
 	while((action = (Action *)radix_tree_iterator_next(&it))) {
 		//TODO: Make type for clone a parameter, do not override by
 		// default.
 
 		// When a symbol is present, assume nonterminal invocation
 		int clone_type;
-		if(symbol) {
+		if(ref->symbol) {
 			if (action->type == ACTION_REDUCE) {
 				// This could happen when the start state of a
 				// nonterminal is also an end state.
 				trace(
 					"skip",
-					state,
+					ref->state,
 					action,
 					array_to_int(it.key, it.size),
 					"reduction on first-set",
@@ -235,12 +236,12 @@ void state_add_first_set(State *state, State* source, Symbol *symbol)
 		}
 
 		fflush(stdin);
-		Action *col = _state_get_transition(state, it.key, it.size);
+		Action *col = _state_get_transition(ref->state, it.key, it.size);
 
 		if(col) {
 			trace(
 				"collision",
-				state,
+				ref->state,
 				col,
 				array_to_int(it.key, it.size),
 				"sf",
@@ -251,7 +252,6 @@ void state_add_first_set(State *state, State* source, Symbol *symbol)
 			//point to new merge state in order to disambiguate.
 			//TODO: should only merge if actions are identical
 			//TODO: Make this work with ranges.
-			//TODO: Write tests for this.
 			State *merge = c_new(State, 1);
 			state_init(merge);
 
@@ -261,6 +261,8 @@ void state_add_first_set(State *state, State* source, Symbol *symbol)
 
 			//Create unified action pointing to merged state.
 			action_init(col, clone_type, col->reduction, merge, col->flags, col->end_symbol);
+
+			*unsolved = 1;
 		} else {
 
 			//No collision detected, clone the action an add it.
@@ -269,15 +271,16 @@ void state_add_first_set(State *state, State* source, Symbol *symbol)
 
 			trace(
 				"add",
-				state,
+				ref->state,
 				clone,
 				array_to_int(it.key, it.size),
 				"first-set",
 				0
 			);
 
-			_state_add_buffer(state, it.key, it.size, clone);
+			_state_add_buffer(ref->state, it.key, it.size, clone);
 		}
+		ref->status = REF_SOLVED;
 	}
 	radix_tree_iterator_dispose(&it);
 }

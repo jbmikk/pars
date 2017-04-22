@@ -406,8 +406,7 @@ int _solve_invoke_references(FsmBuilder *builder, State *state) {
 			ref->to_state,
 			""
 		);
-		state_add_first_set(ref->state, ref->to_state, ref->symbol);
-		ref->status = REF_SOLVED;
+		reference_solve_first_set(ref, &unsolved);
 	}
 	radix_tree_iterator_dispose(&it);
 
@@ -432,10 +431,11 @@ void _solve_references(FsmBuilder *builder) {
 	//TODO: Are all states reachable through start?
 	//TODO: Do all states exist this point and are connected?
 	Node all_states;
+
+retry:
 	radix_tree_init(&all_states);
 	fsm_get_states(&all_states, builder->fsm->start);
 
-retry:
 	some_unsolved = 0;
 	radix_tree_iterator_init(&it, &builder->fsm->nonterminals);
 	while((nt  = (Nonterminal *)radix_tree_iterator_next(&it))) {
@@ -458,12 +458,13 @@ retry:
 	}
 	radix_tree_iterator_dispose(&it);
 
+	radix_tree_dispose(&all_states);
+
 	if(some_unsolved) {
 		//Keep trying until no refs pending.
 		//TODO: Detect infinite loops
 		goto retry;
 	}
-	radix_tree_dispose(&all_states);
 }
 
 void fsm_builder_done(FsmBuilder *builder, int eof_symbol) {
