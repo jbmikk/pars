@@ -16,12 +16,9 @@
 	)
 #define trace_symbol(M, S) \
 	printf("trace: %-5s: %.*s [id:%i]\n", M, (S)->length, (S)->name, (S)->id);
-#define trace_nonterminal(M, N) \
-	printf("nonterminal: %-5s: %p\n", M, N);
 #else
 #define trace_state(M, S, A)
 #define trace_symbol(M, S)
-#define trace_nonterminal(M, N)
 #endif
 
 void fsm_builder_init(FsmBuilder *builder, Fsm *fsm)
@@ -442,7 +439,10 @@ retry:
 	some_unsolved = 0;
 	radix_tree_iterator_init(&it, &builder->fsm->nonterminals);
 	while((nt  = (Nonterminal *)radix_tree_iterator_next(&it))) {
-		trace_nonterminal("solve return references", nt);
+		trace_symbol(
+			"solve return references", 
+			fsm_get_symbol(builder->fsm, (char *)it.key, it.size)
+		);
 
 		if(nt) {
 			some_unsolved |= _solve_return_references(builder, nt);
