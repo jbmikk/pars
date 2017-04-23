@@ -17,6 +17,8 @@
 #define ACTION_EMPTY 6
 
 #define ACTION_FLAG_RANGE 1
+#define ACTION_FLAG_MODE_PUSH 2
+#define ACTION_FLAG_MODE_POP 4
 
 #define NULL_SYMBOL 0
 
@@ -40,6 +42,7 @@ typedef struct _Action {
 	char type;
 	char flags;
 	int reduction;
+	int mode;
 	int end_symbol;
 	State *state;
 } Action;

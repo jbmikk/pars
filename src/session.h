@@ -17,6 +17,15 @@ typedef struct _Stack {
 	SessionNode *top;
 } Stack;
 
+typedef struct _ModeNode {
+	State *state;
+	struct _ModeNode *next;
+} ModeNode;
+
+typedef struct _ModeStack {
+	ModeNode *top;
+} ModeStack;
+
 typedef struct _FsmHandler {
 	void *target;
 	void (*shift)(void *target, const Token *token);
@@ -31,6 +40,7 @@ typedef struct _Session {
 	Action *last_action;
 	unsigned int index;
 	Stack stack;
+	ModeStack mode_stack;
 	FsmHandler handler;
 } Session;
 

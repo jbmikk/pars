@@ -20,16 +20,38 @@
 #define trace(M, ST, T, S, A, R)
 #endif
 
+static void _mode_push(Session *session, int symbol)
+{
+	ModeNode *node = c_new(ModeNode, 1);
+	node->state = fsm_get_state_by_id(session->fsm, symbol);
+	node->next = session->mode_stack.top;
+	session->mode_stack.top = node;
+}
+
+static void _mode_pop(Session *session)
+{
+	ModeNode *top = session->mode_stack.top;
+	session->mode_stack.top = top->next;
+	c_delete(top);
+}
+
+static void _mode_reset(Session *session)
+{
+	session->current = session->mode_stack.top->state;
+}
+
 void session_init(Session *session, Fsm *fsm, FsmHandler handler)
 {
 	session->fsm = fsm;
 	session->status = SESSION_OK;
-	session->current = fsm_get_state(fsm, nzs(".default"));
 	session->last_action = NULL;
 	session->stack.top = NULL;
+	session->mode_stack.top = NULL;
 	session->index = 0;
 	session->handler = handler;
-	//TODO: Avoid calling push in init
+	//TODO: Should avoid pushing state in init?
+	_mode_push(session, fsm_get_symbol_id(fsm, nzs(".default")));
+	_mode_reset(session);
 	session_push(session);
 }
 
@@ -55,6 +77,9 @@ void session_dispose(Session *session)
 {
 	while(session->stack.top) {
 		session_pop(session);
+	}
+	while(session->mode_stack.top) {
+		_mode_pop(session);
 	}
 }
 
@@ -138,8 +163,12 @@ rematch:
 		if(session->handler.accept) {
 			session->handler.accept(session->handler.target, &accepted);
 		}
-		//Restart after accept
-		session->current = fsm_get_state(session->fsm, nzs(".default"));
+		if(action->flags && ACTION_FLAG_MODE_PUSH) {
+			_mode_push(session, action->mode);
+		} else if(action->flags && ACTION_FLAG_MODE_POP) {
+			_mode_pop(session);
+		}
+		_mode_reset(session);
 		break;
 	case ACTION_DROP:
 		trace("match", session->current, action, token, "drop", 0);
