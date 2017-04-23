@@ -11,7 +11,6 @@ void fsm_init(Fsm *fsm, SymbolTable *table)
 {
 	//TODO: Get symbol table as parameter
 	fsm->table = table;
-	fsm->start = NULL;
 
 	symbol_table_add(fsm->table, "__empty", 7);
 	
@@ -70,9 +69,6 @@ void fsm_dispose(Fsm *fsm)
 	Iterator it;
 
 	radix_tree_init(&all_states);
-
-	//Get all actions reachable through the starting state
-	fsm_get_states(&all_states, fsm->start);
 
 	radix_tree_iterator_init(&it, &fsm->nonterminals);
 	while((nt = (Nonterminal *)radix_tree_iterator_next(&it))) {

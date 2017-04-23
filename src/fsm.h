@@ -4,6 +4,10 @@
 #include "structs.h"
 #include "symbols.h"
 
+#include <string.h>
+
+#define nzs(S) (S), (strlen(S))
+
 #define ACTION_START 0
 #define ACTION_DROP 1
 #define ACTION_REDUCE 2
@@ -59,7 +63,6 @@ typedef struct _Reference {
 } Reference;
 
 typedef struct _Fsm {
-	State *start;
 	Action error;
 	State *accept;
 	SymbolTable *table;

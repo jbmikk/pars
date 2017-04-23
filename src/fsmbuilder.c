@@ -292,19 +292,19 @@ static void _set_start(FsmBuilder *builder, int eof_symbol)
 	Symbol *sb = builder->last_symbol;
 	trace_symbol("set initial state", sb);
 
-	State *initial_state = c_new(State, 1);
-	state_init(initial_state);
-	builder->fsm->start = initial_state;
-	trace_state("add", initial_state, "start state");
-
-	_move_to(builder, builder->fsm->start);
+	fsm_builder_define(builder, nzs(".default"));
 	fsm_builder_nonterminal(builder, sb->name, sb->length);
 
 	_ensure_state(builder);
 	Action *action = state_add(builder->state, eof_symbol, ACTION_ACCEPT, NONE);
 
+	//Is the final accept state necessary? The accept action already 
+	//resets to the initial state.
 	_transition(builder, action);
 	_append_state(builder, builder->fsm->accept);
+
+	//TODO: Possible replaces the accept state
+	fsm_builder_end(builder);
 }
 
 int _solve_return_references(FsmBuilder *builder, Nonterminal *nt) {
@@ -434,7 +434,7 @@ void _solve_references(FsmBuilder *builder) {
 
 retry:
 	radix_tree_init(&all_states);
-	fsm_get_states(&all_states, builder->fsm->start);
+	fsm_get_states(&all_states, fsm_get_state(builder->fsm, nzs(".default")));
 
 	some_unsolved = 0;
 	radix_tree_iterator_init(&it, &builder->fsm->nonterminals);
@@ -472,7 +472,8 @@ retry:
 
 void fsm_builder_done(FsmBuilder *builder, int eof_symbol) {
 	Nonterminal *nt = builder->last_nonterminal;
-	if(nt && !builder->fsm->start) {
+
+	if(nt && !fsm_get_nonterminal(builder->fsm, nzs(".default"))) {
 		_set_start(builder, eof_symbol);
 		_solve_references(builder);
 	} else {

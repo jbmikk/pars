@@ -105,7 +105,11 @@ void session_match__shift_range(){
 	action = TEST(session, 'q');
 	t_assert(action->type == ACTION_ERROR);
 
-	action = state_get_transition(fix.fsm.start, 'z');
+	action = state_get_transition(
+		fsm_get_state(&fix.fsm, nzs(".default")),
+		'z'
+	);
+
 	session_dispose(&session);
 }
 

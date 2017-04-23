@@ -24,7 +24,7 @@ void session_init(Session *session, Fsm *fsm, FsmHandler handler)
 {
 	session->fsm = fsm;
 	session->status = SESSION_OK;
-	session->current = fsm->start;
+	session->current = fsm_get_state(fsm, nzs(".default"));
 	session->last_action = NULL;
 	session->stack.top = NULL;
 	session->index = 0;
@@ -139,7 +139,7 @@ rematch:
 			session->handler.accept(session->handler.target, &accepted);
 		}
 		//Restart after accept
-		session->current = session->fsm->start;
+		session->current = fsm_get_state(session->fsm, nzs(".default"));
 		break;
 	case ACTION_DROP:
 		trace("match", session->current, action, token, "drop", 0);
