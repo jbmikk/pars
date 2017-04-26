@@ -131,6 +131,11 @@ Nonterminal *fsm_create_nonterminal(Fsm *fsm, char *name, int length)
 	return nonterminal;
 }
 
+State *fsm_get_state_by_id(Fsm *fsm, int symbol)
+{
+	return fsm_get_nonterminal_by_id(fsm, symbol)->start;
+}
+
 State *fsm_get_state(Fsm *fsm, char *name, int length)
 {
 	return fsm_get_nonterminal(fsm, name, length)->start;

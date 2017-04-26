@@ -77,6 +77,7 @@ Nonterminal *fsm_get_nonterminal(Fsm *fsm, char *name, int length);
 Nonterminal *fsm_create_nonterminal(Fsm *fsm, char *name, int length);
 
 State *fsm_get_state(Fsm *fsm, char *name, int length);
+State *fsm_get_state_by_id(Fsm *fsm, int symbol);
 void fsm_get_states(Node *states, State *state);
 Symbol *fsm_get_symbol(Fsm *fsm, char *name, int length);
 int fsm_get_symbol_id(Fsm *fsm, char *name, int length);
