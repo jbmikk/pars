@@ -104,21 +104,27 @@ void fsm_dispose(Fsm *fsm)
 	fsm->table = NULL;
 }
 
+Nonterminal *fsm_get_nonterminal_by_id(Fsm *fsm, int symbol)
+{
+	return (Nonterminal *)radix_tree_get_int(&fsm->nonterminals, symbol);
+}
+
 Nonterminal *fsm_get_nonterminal(Fsm *fsm, char *name, int length)
 {
-	return (Nonterminal *)radix_tree_get(&fsm->nonterminals, (unsigned char*)name, length);
+	Symbol *symbol = symbol_table_get(fsm->table, name, length);
+	return symbol? fsm_get_nonterminal_by_id(fsm, symbol->id): NULL;
 }
 
 Nonterminal *fsm_create_nonterminal(Fsm *fsm, char *name, int length)
 {
-	Nonterminal *nonterminal = radix_tree_get(&fsm->nonterminals, (unsigned char*)name, length);
+	Nonterminal *nonterminal = fsm_get_nonterminal(fsm, name, length);
 	if(!nonterminal) {
-		symbol_table_add(fsm->table, name, length);
+		Symbol *symbol = symbol_table_add(fsm->table, name, length);
 		nonterminal = c_new(Nonterminal, 1);
 		nonterminal_init(nonterminal);
 		nonterminal->start = c_new(State, 1);
 		state_init(nonterminal->start);
-		radix_tree_set(&fsm->nonterminals, (unsigned char*)name, length, nonterminal);
+		radix_tree_set_int(&fsm->nonterminals, symbol->id, nonterminal);
 		//TODO: Add to nonterminal struct: 
 		// * detect circular references.
 	}
