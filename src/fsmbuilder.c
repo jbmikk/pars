@@ -444,12 +444,10 @@ retry:
 			fsm_get_symbol(builder->fsm, (char *)it.key, it.size)
 		);
 
-		if(nt) {
-			some_unsolved |= _solve_return_references(builder, nt);
+		some_unsolved |= _solve_return_references(builder, nt);
 
-			//TODO: Should avoid collecting states multiple times
-			fsm_get_states(&all_states, nt->start);
-		}
+		//TODO: Should avoid collecting states multiple times
+		fsm_get_states(&all_states, nt->start);
 	}
 	radix_tree_iterator_dispose(&it);
 
