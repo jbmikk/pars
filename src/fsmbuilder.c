@@ -439,10 +439,11 @@ retry:
 	some_unsolved = 0;
 	radix_tree_iterator_init(&it, &builder->fsm->nonterminals);
 	while((nt  = (Nonterminal *)radix_tree_iterator_next(&it))) {
+		/* keys are symbol ids, not strings.
 		trace_symbol(
 			"solve return references", 
 			fsm_get_symbol(builder->fsm, (char *)it.key, it.size)
-		);
+		);*/
 
 		some_unsolved |= _solve_return_references(builder, nt);
 
