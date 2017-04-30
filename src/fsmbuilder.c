@@ -257,26 +257,28 @@ void fsm_builder_mode_pop(FsmBuilder *builder)
 
 void fsm_builder_end(FsmBuilder *builder)
 {
-	if (builder->last_nonterminal->end) {
-		//TODO: Leverage _join_continuation
-		if (builder->state) {
-			_add_empty(builder, ACTION_EMPTY, NONE);
+	if (builder->last_nonterminal) {
+		if (builder->last_nonterminal->end) {
+			//TODO: Leverage _join_continuation
+			if (builder->state) {
+				_add_empty(builder, ACTION_EMPTY, NONE);
+			}
+			_append_state(builder, builder->last_nonterminal->end);
+		} else {
+			//TODO: implicit fsm_builder_group_end(builder); ??
+			_ensure_state(builder);
+			builder->last_nonterminal->end = builder->state;
 		}
-		_append_state(builder, builder->last_nonterminal->end);
-	} else {
-		//TODO: implicit fsm_builder_group_end(builder); ??
-		_ensure_state(builder);
-		builder->last_nonterminal->end = builder->state;
-	}
 
-	// Add proper status to the end state to solve references later
-	if(builder->last_nonterminal->status & NONTERMINAL_RETURN_REF) {
-		trace_state(
-			"end state pending follow-set",
-			builder->last_nonterminal->end,
-			""
-		);
-		builder->last_nonterminal->end->status |= STATE_RETURN_REF;
+		// Add proper status to the end state to solve references later
+		if(builder->last_nonterminal->status & NONTERMINAL_RETURN_REF) {
+			trace_state(
+				"end state pending follow-set",
+				builder->last_nonterminal->end,
+				""
+			);
+			builder->last_nonterminal->end->status |= STATE_RETURN_REF;
+		}
 	}
 }
 
@@ -584,4 +586,13 @@ void fsm_builder_lexer_done(FsmBuilder *builder, int eof_symbol) {
 
 	_set_lexer_start(builder, eof_symbol);
 	_solve_references(builder);
+}
+
+void fsm_builder_lexer_default_input(FsmBuilder *builder)
+{
+	State *start = fsm_get_state(builder->fsm, nzs(".default"));
+
+	//Accept any character
+	_move_to(builder, start);
+	_add_empty(builder, ACTION_ACCEPT, NONE);
 }

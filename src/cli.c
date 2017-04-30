@@ -60,29 +60,8 @@ void identity_init_lexer_fsm(Fsm *fsm)
 
 	fsm_builder_set_mode(&builder, nzs(".default"));
 
-	//Meta identifiers
-	//TODO: should add whitespace to comply with EBNF specs
-	fsm_builder_define(&builder, nzs("character"));
-	fsm_builder_group_start(&builder);
-	fsm_builder_terminal_range(&builder, 'a', 'z');
-	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'A', 'Z');
-	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, '0', '9');
-	fsm_builder_or(&builder);
-	fsm_builder_terminal(&builder, ' ');
-	fsm_builder_or(&builder);
-	fsm_builder_terminal(&builder, '\t');
-	fsm_builder_or(&builder);
-	fsm_builder_terminal(&builder, '\n');
-	fsm_builder_or(&builder);
-	fsm_builder_terminal(&builder, '\r');
-	fsm_builder_or(&builder);
-	fsm_builder_terminal(&builder, '\f');
-	fsm_builder_group_end(&builder);
-	fsm_builder_end(&builder);
-
 	fsm_builder_lexer_done(&builder, L_EOF);
+	fsm_builder_lexer_default_input(&builder);
 
 	fsm_builder_dispose(&builder);
 }

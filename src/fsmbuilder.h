@@ -44,5 +44,6 @@ void fsm_builder_terminal_range(FsmBuilder *builder, int from, int to);
 void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length);
 void fsm_builder_done(FsmBuilder *builder, int eof_symbol);
 void fsm_builder_lexer_done(FsmBuilder *builder, int eof_symbol);
+void fsm_builder_lexer_default_input(FsmBuilder *builder);
 
 #endif //FSMBUILDER_H
