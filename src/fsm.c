@@ -146,6 +146,11 @@ Symbol *fsm_get_symbol(Fsm *fsm, char *name, int length)
 	return symbol_table_get(fsm->table, name, length);
 }
 
+Symbol *fsm_get_symbol_by_id(Fsm *fsm, int id)
+{
+	return symbol_table_get_by_id(fsm->table, id);
+}
+
 int fsm_get_symbol_id(Fsm *fsm, char *name, int length)
 {
 	Symbol *symbol = symbol_table_get(fsm->table, name, length);
