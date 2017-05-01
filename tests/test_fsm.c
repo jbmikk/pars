@@ -254,6 +254,66 @@ void session_match__first_set_collision(){
 	session_dispose(&session);
 }
 
+void session_match__repetition(){
+	FsmBuilder builder;
+	fsm_builder_init(&builder, &fix.fsm);
+
+	fsm_builder_define(&builder, nzs("nonZeroDigit"));
+	fsm_builder_group_start(&builder);
+	fsm_builder_terminal(&builder, '1');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal(&builder, '2');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal(&builder, '3');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal(&builder, '4');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal(&builder, '5');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal(&builder, '6');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal(&builder, '7');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal(&builder, '8');
+	fsm_builder_or(&builder);
+	fsm_builder_terminal(&builder, '9');
+	fsm_builder_group_end(&builder);
+	fsm_builder_end(&builder);
+
+	fsm_builder_define(&builder, nzs("digit"));
+	fsm_builder_group_start(&builder);
+	fsm_builder_terminal(&builder, '0');
+	fsm_builder_or(&builder);
+	fsm_builder_nonterminal(&builder,  nzs("nonZeroDigit"));
+	fsm_builder_group_end(&builder);
+	fsm_builder_end(&builder);
+
+	fsm_builder_define(&builder, nzs("integer"));
+	fsm_builder_group_start(&builder);
+	fsm_builder_nonterminal(&builder,  nzs("nonZeroDigit"));
+	fsm_builder_loop_group_start(&builder);
+	fsm_builder_nonterminal(&builder,  nzs("digit"));
+	fsm_builder_loop_group_end(&builder);
+	fsm_builder_group_end(&builder);
+	fsm_builder_end(&builder);
+
+	fsm_builder_done(&builder, '\0');
+
+	fsm_builder_dispose(&builder);
+
+	Session session;
+	session_init(&session, &fix.fsm, NULL_HANDLER);
+	MATCH(session, '1');
+	t_assert(session.last_action->type == ACTION_SHIFT);
+	MATCH(session, '2');
+	t_assert(session.last_action->type == ACTION_SHIFT);
+	MATCH(session, '3');
+	t_assert(session.last_action->type == ACTION_SHIFT);
+	MATCH(session, '\0');
+	t_assert(session.last_action->type == ACTION_ACCEPT);
+	session_dispose(&session);
+}
+
 int main(int argc, char** argv){
 	t_init();
 	t_test(fsm_builder_define__single_get);
@@ -264,6 +324,7 @@ int main(int argc, char** argv){
 	t_test(session_match__reduce_shift);
 	t_test(session_match__reduce_handler);
 	t_test(session_match__first_set_collision);
+	t_test(session_match__repetition);
 	return t_done();
 }
 
