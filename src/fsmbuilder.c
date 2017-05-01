@@ -29,6 +29,7 @@ void fsm_builder_init(FsmBuilder *builder, Fsm *fsm)
 	builder->stack = NULL;
 	builder->last_symbol = NULL;
 	builder->last_nonterminal = NULL;
+	builder->current_mode = 0;
 }
 
 void fsm_builder_dispose(FsmBuilder *builder)
@@ -93,13 +94,13 @@ static void _ensure_state(FsmBuilder *builder)
 	}
 }
 
-static void _add_empty(FsmBuilder *builder)
+static void _add_empty(FsmBuilder *builder, int type, int reduction)
 {
 	Fsm *fsm = builder->fsm;
 	Symbol *symbol = symbol_table_get(fsm->table, "__empty", 7);
 
 	_ensure_state(builder);
-	Action *action = state_add(builder->state, symbol->id, ACTION_EMPTY, NONE);
+	Action *action = state_add(builder->state, symbol->id, type, reduction);
 	_transition(builder, action);
 }
 
@@ -128,7 +129,7 @@ static void _join_continuation(FsmBuilder *builder)
 		//   First the loop ends and is joined with its continuation.
 		//   Then when the outer group tries to join we already have
 		//   a state in place, and we must merge the states.
-		_add_empty(builder);
+		_add_empty(builder, ACTION_EMPTY, NONE);
 	}
 	_append_state(builder, frame->continuation);
 
@@ -214,10 +215,44 @@ void fsm_builder_define(FsmBuilder *builder, char *name, int length)
 {
 	builder->last_nonterminal = fsm_create_nonterminal(builder->fsm, name, length);
 	builder->last_symbol = fsm_get_symbol(builder->fsm, name, length);
+
+	//Parent mode set to current builder mode
+	builder->last_nonterminal->mode = builder->current_mode;
+
 	_move_to(builder, builder->last_nonterminal->start);
 	trace_symbol("set", builder->last_symbol);
 
 	//TODO: implicit fsm_builder_group_start(builder); ??
+}
+
+static void _define_mode(FsmBuilder *builder, char *name, int length)
+{
+	builder->last_nonterminal = fsm_create_nonterminal(builder->fsm, name, length);
+	builder->last_symbol = fsm_get_symbol(builder->fsm, name, length);
+
+	//Modes have no parent mode, defaults to mode = 0;
+
+	_move_to(builder, builder->last_nonterminal->start);
+	trace_symbol("set mode", builder->last_symbol);
+}
+
+void fsm_builder_set_mode(FsmBuilder *builder, char *name, int length)
+{
+	fsm_create_nonterminal(builder->fsm, name, length);
+	Symbol *symbol = fsm_get_symbol(builder->fsm, name, length);
+	builder->current_mode = symbol->id;
+}
+
+void fsm_builder_mode_push(FsmBuilder *builder, char *name, int length)
+{
+	fsm_create_nonterminal(builder->fsm, name, length);
+	Symbol *symbol = fsm_get_symbol(builder->fsm, name, length);
+	builder->last_nonterminal->pushes_mode = symbol->id;
+}
+
+void fsm_builder_mode_pop(FsmBuilder *builder)
+{
+	builder->last_nonterminal->pops_mode = 1;
 }
 
 void fsm_builder_end(FsmBuilder *builder)
@@ -225,7 +260,7 @@ void fsm_builder_end(FsmBuilder *builder)
 	if (builder->last_nonterminal->end) {
 		//TODO: Leverage _join_continuation
 		if (builder->state) {
-			_add_empty(builder);
+			_add_empty(builder, ACTION_EMPTY, NONE);
 		}
 		_append_state(builder, builder->last_nonterminal->end);
 	} else {
@@ -264,6 +299,43 @@ void fsm_builder_terminal_range(FsmBuilder *builder, int from, int to)
 }
 
 /**
+ * Creates a reference to a Nonterminal and accepts the associated symbol.
+ * Similar to fsm_builder_nonterminal, but accepts instead of dropping and
+ * doesn't have a nonterminal references (reduces on empty transition).
+ */
+void _lexer_nonterminal(FsmBuilder *builder, int symbol_id)
+{
+	Symbol *sb = fsm_get_symbol_by_id(builder->fsm, symbol_id);
+	Nonterminal *nt = fsm_create_nonterminal(builder->fsm, sb->name, sb->length);
+
+	trace_symbol("Add lexer rule for: ", sb);
+
+	_ensure_state(builder);
+
+	State *prev = builder->state;
+
+	int flags = 0;
+	if(nt->pushes_mode) {
+		flags |= ACTION_FLAG_MODE_PUSH;
+	} else if(nt->pops_mode) {
+		flags |= ACTION_FLAG_MODE_POP;
+	}
+
+	Action *action = state_add(builder->state, sb->id, ACTION_ACCEPT, NONE);
+	action->flags |= flags;
+	action->mode = nt->pushes_mode;
+
+	_transition(builder, action);
+
+	state_add_reference(prev, sb, nt->start);
+
+	//Reduce on empty transition
+	//TODO: For now assume end exists, is this ok?
+	_move_to(builder, nt->end);
+	_add_empty(builder, ACTION_REDUCE, sb->id);
+}
+
+/**
  * Creates a reference to a Nonterminal and shifts the associated symbol.
  */
 void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length)
@@ -292,10 +364,43 @@ static void _set_start(FsmBuilder *builder, int eof_symbol)
 	Symbol *sb = builder->last_symbol;
 	trace_symbol("set initial state", sb);
 
-	fsm_builder_define(builder, nzs(".default"));
+	_define_mode(builder, nzs(".default"));
 	fsm_builder_nonterminal(builder, sb->name, sb->length);
 
 	_ensure_state(builder);
+	Action *action = state_add(builder->state, eof_symbol, ACTION_ACCEPT, NONE);
+
+	//Is the final accept state necessary? The accept action already 
+	//resets to the initial state.
+	_transition(builder, action);
+	_append_state(builder, builder->fsm->accept);
+
+	//TODO: Possible replaces the accept state
+	fsm_builder_end(builder);
+}
+
+static void _set_lexer_start(FsmBuilder *builder, int eof_symbol)
+{
+        Iterator it;
+	Nonterminal *nt;
+	State *start;
+	radix_tree_iterator_init(&it, &builder->fsm->nonterminals);
+
+	while((nt = (Nonterminal *)radix_tree_iterator_next(&it))) {
+		//Skip modeless nonterminals (they are modes themselves)
+		if(!nt->mode) {
+			continue;
+		}
+	
+		start = fsm_get_state_by_id(builder->fsm, nt->mode);
+		_move_to(builder, start);
+		//Different kind of nonterminal reference
+		_lexer_nonterminal(builder, array_to_int(it.key, it.size));
+	}
+	radix_tree_iterator_dispose(&it);
+
+	start = fsm_get_state(builder->fsm, nzs(".default"));
+	_move_to(builder, start);
 	Action *action = state_add(builder->state, eof_symbol, ACTION_ACCEPT, NONE);
 
 	//Is the final accept state necessary? The accept action already 
@@ -470,13 +575,13 @@ retry:
 }
 
 void fsm_builder_done(FsmBuilder *builder, int eof_symbol) {
-	Nonterminal *nt = builder->last_nonterminal;
 
-	if(nt && !fsm_get_nonterminal(builder->fsm, nzs(".default"))) {
-		_set_start(builder, eof_symbol);
-		_solve_references(builder);
-	} else {
-		//TODO: issue warning or sentinel??
-		printf("FSM start already defined\n");
-	}
+	_set_start(builder, eof_symbol);
+	_solve_references(builder);
+}
+
+void fsm_builder_lexer_done(FsmBuilder *builder, int eof_symbol) {
+
+	_set_lexer_start(builder, eof_symbol);
+	_solve_references(builder);
 }

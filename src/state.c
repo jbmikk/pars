@@ -350,6 +350,7 @@ void action_init(Action *action, char type, int reduction, State *state, char fl
 	action->state = state;
 	action->flags = flags;
 	action->end_symbol = end_symbol;
+	action->mode = 0;
 }
 
 
@@ -361,6 +362,9 @@ void nonterminal_init(Nonterminal *nonterminal)
 	nonterminal->status = NONTERMINAL_CLEAR;
 	nonterminal->start = NULL;
 	nonterminal->end = NULL;
+	nonterminal->mode = 0;
+	nonterminal->pushes_mode = 0;
+	nonterminal->pops_mode = 0;
 }
 
 void nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *symbol)

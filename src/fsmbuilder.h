@@ -15,6 +15,7 @@ typedef struct _FsmBuilder {
 	State *state;
 	FsmFrame *stack;
 	Symbol *last_symbol;
+	int current_mode;
 	Nonterminal *last_nonterminal;
 } FsmBuilder;
 
@@ -26,6 +27,11 @@ void fsm_builder_dispose(FsmBuilder *builder);
 
 void fsm_builder_define(FsmBuilder *builder, char *name, int length);
 void fsm_builder_end(FsmBuilder *builder);
+
+void fsm_builder_set_mode(FsmBuilder *builder, char *name, int length);
+void fsm_builder_mode_push(FsmBuilder *builder, char *name, int length);
+void fsm_builder_mode_pop(FsmBuilder *builder);
+
 void fsm_builder_group_start(FsmBuilder *builder);
 void fsm_builder_group_end(FsmBuilder *builder);
 void fsm_builder_loop_group_start(FsmBuilder *builder);
@@ -37,5 +43,6 @@ void fsm_builder_terminal(FsmBuilder *builder, int symbol);
 void fsm_builder_terminal_range(FsmBuilder *builder, int from, int to);
 void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length);
 void fsm_builder_done(FsmBuilder *builder, int eof_symbol);
+void fsm_builder_lexer_done(FsmBuilder *builder, int eof_symbol);
 
 #endif //FSMBUILDER_H

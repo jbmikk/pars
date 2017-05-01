@@ -163,9 +163,10 @@ rematch:
 		if(session->handler.accept) {
 			session->handler.accept(session->handler.target, &accepted);
 		}
-		if(action->flags && ACTION_FLAG_MODE_PUSH) {
+
+		if(action->flags & ACTION_FLAG_MODE_PUSH) {
 			_mode_push(session, action->mode);
-		} else if(action->flags && ACTION_FLAG_MODE_POP) {
+		} else if(action->flags & ACTION_FLAG_MODE_POP) {
 			_mode_pop(session);
 		}
 		_mode_reset(session);

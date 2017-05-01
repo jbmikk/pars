@@ -51,6 +51,11 @@ typedef struct _Nonterminal {
 	State *start;
 	State *end;
 	Node refs;
+	//mode == 0 means no parent mode.
+	int mode;
+	//TODO: Only necessary for setting accept action flags.
+	int pushes_mode;
+	int pops_mode;
 	char status;
 } Nonterminal;
 
