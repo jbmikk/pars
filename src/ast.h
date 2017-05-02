@@ -8,9 +8,7 @@
 #include "token.h"
 
 typedef struct _AstNode {
-	unsigned int index;
-	unsigned int length;
-	int symbol;
+	Token token;
 	Node children;
 	struct _AstNode *parent;
 } AstNode;

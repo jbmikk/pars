@@ -54,9 +54,9 @@ void ast_single_node(){
 	node = ast_cursor_depth_next(&cursor);
 
 	t_assert(node != NULL);
-	t_assert(node->index == 1);
-	t_assert(node->length == 3);
-	t_assert(node->symbol == 123);
+	t_assert(node->token.index == 1);
+	t_assert(node->token.length == 3);
+	t_assert(node->token.symbol == 123);
 
 	ast_cursor_dispose(&cursor);
 }
@@ -84,27 +84,27 @@ void ast_nested_nodes(){
 
 	//First opened symbol
 	t_assert(outer_node != NULL);
-	t_assert(outer_node->index == 1);
-	t_assert(outer_node->length == 3);
-	t_assert(outer_node->symbol == 456);
+	t_assert(outer_node->token.index == 1);
+	t_assert(outer_node->token.length == 3);
+	t_assert(outer_node->token.symbol == 456);
 
 	//First opened symbol's implicit shift
 	t_assert(first_child != NULL);
-	t_assert(first_child->index == 1);
-	t_assert(first_child->length == 1);
-	t_assert(first_child->symbol == 0);
+	t_assert(first_child->token.index == 1);
+	t_assert(first_child->token.length == 1);
+	t_assert(first_child->token.symbol == 0);
 
 	//Second opened symbol
 	t_assert(second_child != NULL);
-	t_assert(second_child->index == 2);
-	t_assert(second_child->length == 1);
-	t_assert(second_child->symbol == 123);
+	t_assert(second_child->token.index == 2);
+	t_assert(second_child->token.length == 1);
+	t_assert(second_child->token.symbol == 123);
 
 	//Second opened symbol's implicit shift
 	t_assert(grand_child != NULL);
-	t_assert(grand_child->index == 2);
-	t_assert(grand_child->length == 1);
-	t_assert(grand_child->symbol == 0);
+	t_assert(grand_child->token.index == 2);
+	t_assert(grand_child->token.length == 1);
+	t_assert(grand_child->token.symbol == 0);
 
 	t_assert(last == NULL);
 
@@ -137,34 +137,34 @@ void ast_sibling_nodes(){
 	t_assert(root != NULL);
 
 	t_assert(outer != NULL);
-	t_assert(outer->index == 1);
-	t_assert(outer->length == 5);
-	t_assert(outer->symbol == 789);
+	t_assert(outer->token.index == 1);
+	t_assert(outer->token.length == 5);
+	t_assert(outer->token.symbol == 789);
 
 	t_assert(outer_child != NULL);
-	t_assert(outer_child->index == 1);
-	t_assert(outer_child->length == 1);
-	t_assert(outer_child->symbol == 0);
+	t_assert(outer_child->token.index == 1);
+	t_assert(outer_child->token.length == 1);
+	t_assert(outer_child->token.symbol == 0);
 
 	t_assert(sibling1 != NULL);
-	t_assert(sibling1->index == 2);
-	t_assert(sibling1->length == 1);
-	t_assert(sibling1->symbol == 123);
+	t_assert(sibling1->token.index == 2);
+	t_assert(sibling1->token.length == 1);
+	t_assert(sibling1->token.symbol == 123);
 
 	t_assert(sibling1_child != NULL);
-	t_assert(sibling1_child->index == 2);
-	t_assert(sibling1_child->length == 1);
-	t_assert(sibling1_child->symbol == 0);
+	t_assert(sibling1_child->token.index == 2);
+	t_assert(sibling1_child->token.length == 1);
+	t_assert(sibling1_child->token.symbol == 0);
 
 	t_assert(sibling2 != NULL);
-	t_assert(sibling2->index == 4);
-	t_assert(sibling2->length == 1);
-	t_assert(sibling2->symbol == 456);
+	t_assert(sibling2->token.index == 4);
+	t_assert(sibling2->token.length == 1);
+	t_assert(sibling2->token.symbol == 456);
 
 	t_assert(sibling2_child != NULL);
-	t_assert(sibling2_child->index == 4);
-	t_assert(sibling2_child->length == 1);
-	t_assert(sibling2_child->symbol == 0);
+	t_assert(sibling2_child->token.index == 4);
+	t_assert(sibling2_child->token.length == 1);
+	t_assert(sibling2_child->token.symbol == 0);
 
 	t_assert(last == NULL);
 
@@ -191,19 +191,19 @@ void ast_same_index_nodes(){
 	t_assert(root != NULL);
 
 	t_assert(outer != NULL);
-	t_assert(outer->index == 1);
-	t_assert(outer->length == 4);
-	t_assert(outer->symbol == 456);
+	t_assert(outer->token.index == 1);
+	t_assert(outer->token.length == 4);
+	t_assert(outer->token.symbol == 456);
 
 	t_assert(inner!= NULL);
-	t_assert(inner->index == 1);
-	t_assert(inner->length == 3);
-	t_assert(inner->symbol == 123);
+	t_assert(inner->token.index == 1);
+	t_assert(inner->token.length == 3);
+	t_assert(inner->token.symbol == 123);
 
 	t_assert(inner_child!= NULL);
-	t_assert(inner_child->index == 1);
-	t_assert(inner_child->length == 1);
-	t_assert(inner_child->symbol == 0);
+	t_assert(inner_child->token.index == 1);
+	t_assert(inner_child->token.length == 1);
+	t_assert(inner_child->token.symbol == 0);
 
 	t_assert(last == NULL);
 
@@ -229,19 +229,19 @@ void ast_next_symbol(){
 	last = ast_cursor_depth_next(&cursor);
 
 	t_assert(sibling1 != NULL);
-	t_assert(sibling1->index == 2);
-	t_assert(sibling1->length == 1);
-	t_assert(sibling1->symbol == 123);
+	t_assert(sibling1->token.index == 2);
+	t_assert(sibling1->token.length == 1);
+	t_assert(sibling1->token.symbol == 123);
 
 	t_assert(sibling2 != NULL);
-	t_assert(sibling2->index == 4);
-	t_assert(sibling2->length == 1);
-	t_assert(sibling2->symbol == 123);
+	t_assert(sibling2->token.index == 4);
+	t_assert(sibling2->token.length == 1);
+	t_assert(sibling2->token.symbol == 123);
 
 	t_assert(sibling2_child != NULL);
-	t_assert(sibling2_child->index == 4);
-	t_assert(sibling2_child->length == 1);
-	t_assert(sibling2_child->symbol == 0);
+	t_assert(sibling2_child->token.index == 4);
+	t_assert(sibling2_child->token.length == 1);
+	t_assert(sibling2_child->token.symbol == 0);
 
 	t_assert(last == NULL);
 
@@ -269,22 +269,22 @@ void ast_next_sibling_symbol(){
 	last = ast_cursor_depth_next(&cursor);
 
 	t_assert(sibling1 != NULL);
-	t_assert(sibling1->index == 2);
-	t_assert(sibling1->length == 1);
-	t_assert(sibling1->symbol == 123);
+	t_assert(sibling1->token.index == 2);
+	t_assert(sibling1->token.length == 1);
+	t_assert(sibling1->token.symbol == 123);
 
 	t_assert(sibling2 != NULL);
-	t_assert(sibling2->index == 4);
-	t_assert(sibling2->length == 1);
-	t_assert(sibling2->symbol == 123);
+	t_assert(sibling2->token.index == 4);
+	t_assert(sibling2->token.length == 1);
+	t_assert(sibling2->token.symbol == 123);
 
 	//No sibling after second sibling
 	t_assert(sibling3 == NULL);
 
 	t_assert(last != NULL);
-	t_assert(last->index == 4);
-	t_assert(last->length == 1);
-	t_assert(last->symbol == 0);
+	t_assert(last->token.index == 4);
+	t_assert(last->token.length == 1);
+	t_assert(last->token.symbol == 0);
 
 	ast_cursor_dispose(&cursor);
 }
@@ -318,35 +318,35 @@ void ast_push_pop_state(){
 	sibling2again = ast_cursor_depth_next(&cursor);
 
 	t_assert(sibling1 != NULL);
-	t_assert(sibling1->index == 1);
-	t_assert(sibling1->length == 5);
-	t_assert(sibling1->symbol == 789);
+	t_assert(sibling1->token.index == 1);
+	t_assert(sibling1->token.length == 5);
+	t_assert(sibling1->token.symbol == 789);
 
 	t_assert(sibling1_child != NULL);
-	t_assert(sibling1_child->index == 1);
-	t_assert(sibling1_child->length == 1);
-	t_assert(sibling1_child->symbol == 0);
+	t_assert(sibling1_child->token.index == 1);
+	t_assert(sibling1_child->token.length == 1);
+	t_assert(sibling1_child->token.symbol == 0);
 
 	t_assert(sibling2 != NULL);
-	t_assert(sibling2->index == 2);
-	t_assert(sibling2->length == 1);
-	t_assert(sibling2->symbol == 123);
+	t_assert(sibling2->token.index == 2);
+	t_assert(sibling2->token.length == 1);
+	t_assert(sibling2->token.symbol == 123);
 
 	t_assert(sibling2_child != NULL);
-	t_assert(sibling2_child->index == 2);
-	t_assert(sibling2_child->length == 1);
-	t_assert(sibling2_child->symbol == 0);
+	t_assert(sibling2_child->token.index == 2);
+	t_assert(sibling2_child->token.length == 1);
+	t_assert(sibling2_child->token.symbol == 0);
 
 	t_assert(sibling3 != NULL);
-	t_assert(sibling3->index == 4);
-	t_assert(sibling3->length == 1);
-	t_assert(sibling3->symbol == 456);
+	t_assert(sibling3->token.index == 4);
+	t_assert(sibling3->token.length == 1);
+	t_assert(sibling3->token.symbol == 456);
 
 	t_assert(sibling2again != NULL);
 	t_assert(sibling2again == sibling2);
-	t_assert(sibling2again->index == 2);
-	t_assert(sibling2again->length == 1);
-	t_assert(sibling2again->symbol == 123);
+	t_assert(sibling2again->token.index == 2);
+	t_assert(sibling2again->token.length == 1);
+	t_assert(sibling2again->token.symbol == 123);
 
 	ast_cursor_dispose(&cursor);
 }

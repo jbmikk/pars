@@ -575,34 +575,34 @@ void ebnf_build_syntactic_primary(FsmBuilder *builder, AstCursor *cur)
 	int START_REPETITION_SYMBOL = ast_get_symbol(cur, nzs("start_repetition_symbol"));
 	int START_OPTION_SYMBOL = ast_get_symbol(cur, nzs("start_option_symbol"));
 
-	if(node->symbol == META_IDENTIFIER) {
+	if(node->token.symbol == META_IDENTIFIER) {
 		ast_cursor_get_string(cur, &string, &length);
 		fsm_builder_nonterminal(builder, string, length);
-	} else if (node->symbol == TERMINAL_STRING) {
+	} else if (node->token.symbol == TERMINAL_STRING) {
 		ast_cursor_get_string(cur, &string, &length);
 		for(i = 1; i < length-1; i++) {
 			//TODO: literal strings should be tokenized into simbols (utf8)
 			fsm_builder_terminal(builder, string[i]);
 		}
-	} else if (node->symbol == SPECIAL_SEQUENCE) {
+	} else if (node->token.symbol == SPECIAL_SEQUENCE) {
 		//TODO: define special sequences behaviour
 		log_warn("Special sequence is not defined");
-	} else if (node->symbol == START_GROUP_SYMBOL) {
+	} else if (node->token.symbol == START_GROUP_SYMBOL) {
 		ast_cursor_depth_next_symbol(cur, DEFINITIONS_LIST);
 		fsm_builder_group_start(builder);
 		ebnf_build_definitions_list(builder, cur);
 		fsm_builder_group_end(builder);
-	} else if (node->symbol == START_REPETITION_SYMBOL) {
+	} else if (node->token.symbol == START_REPETITION_SYMBOL) {
 		ast_cursor_depth_next_symbol(cur, DEFINITIONS_LIST);
 		fsm_builder_loop_group_start(builder);
 		ebnf_build_definitions_list(builder, cur);
 		fsm_builder_loop_group_end(builder);
-	} else if (node->symbol == START_OPTION_SYMBOL) {
+	} else if (node->token.symbol == START_OPTION_SYMBOL) {
 		ast_cursor_depth_next_symbol(cur, DEFINITIONS_LIST);
 		fsm_builder_option_group_start(builder);
 		ebnf_build_definitions_list(builder, cur);
 		fsm_builder_option_group_end(builder);
-	} else if (node->symbol == CHARACTER_SET) {
+	} else if (node->token.symbol == CHARACTER_SET) {
 		fsm_builder_group_start(builder);
 		ebnf_build_character_set(builder, cur);
 		fsm_builder_group_end(builder);
