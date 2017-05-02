@@ -1,5 +1,4 @@
 #include "ast.h"
-
 #include "cmemory.h"
 
 #include <stdio.h>
@@ -10,7 +9,7 @@
 #define trace(N, A, T, I, L)
 #endif
 
-void ast_node_init(AstNode *node, AstNode *parent, Token *token)
+void ast_node_init(AstNode *node, AstNode *parent, const Token *token)
 {
 	node->token = *token;
 	radix_tree_init(&node->children);
