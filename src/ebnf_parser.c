@@ -705,12 +705,17 @@ void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
 	ast_cursor_init(&cur, ast);
 	fsm_builder_init(&builder, fsm, REF_STRATEGY_MERGE);
 
+	// push symbol selector syntax_rule
 	int E_SYNTAX_RULE = ast_get_symbol(&cur, nzs("syntax_rule"));
+
+	// lookup selector
 	while(ast_cursor_depth_next_symbol(&cur, E_SYNTAX_RULE)) {
 		ast_cursor_push(&cur);
+		//call ebnf_build_syntax_rule
 		ebnf_build_syntax_rule(&builder, &cur);
 		ast_cursor_pop(&cur);
 	}
+	// pop symbol selector
 
 	fsm_builder_done(&builder, L_EOF);
 	//ast_done?
