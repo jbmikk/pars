@@ -3,6 +3,7 @@
 #include "symbols.h"
 #include "astlistener.h"
 #include "controlloop.h"
+#include "bcode.h"
 
 #include "cmemory.h"
 #include "dbg.h"
@@ -701,12 +702,24 @@ void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
 {
 	AstCursor cur;
 	FsmBuilder builder;
+	Bcode bcode;
 
 	ast_cursor_init(&cur, ast);
 	fsm_builder_init(&builder, fsm, REF_STRATEGY_MERGE);
 
 	// push symbol selector syntax_rule
+
 	int E_SYNTAX_RULE = ast_get_symbol(&cur, nzs("syntax_rule"));
+
+	bcode_add_instruction( &bcode, &(Instruction){ OPCODE_SELECT, 1 });
+	bcode_add_int(&bcode, E_SYNTAX_RULE);
+
+	bcode_add_instruction( &bcode, &(Instruction){ OPCODE_EACH, 0 });
+
+	bcode_add_instruction( &bcode, &(Instruction){ OPCODE_CALL, 0 });
+	bcode_add_int(&bcode, BUILD_SYNTAX_RULE);
+
+	bcode_add_instruction( &bcode, &(Instruction){ OPCODE_END, 0 });
 
 	// lookup selector
 	while(ast_cursor_depth_next_symbol(&cur, E_SYNTAX_RULE)) {
