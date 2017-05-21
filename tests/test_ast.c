@@ -247,6 +247,11 @@ void ast_next_symbol(){
 	t_assert(sibling2_child->token.length == 1);
 	t_assert(sibling2_child->token.symbol == 0);
 
+	t_assert(sibling3 != NULL);
+	t_assert(sibling3->token.index == 7);
+	t_assert(sibling3->token.length == 1);
+	t_assert(sibling3->token.symbol == 123);
+
 	t_assert(last == NULL);
 
 	ast_cursor_dispose(&cursor);
