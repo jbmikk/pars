@@ -212,7 +212,7 @@ void ast_same_index_nodes(){
 
 void ast_next_symbol(){
 	AstCursor cursor;
-	AstNode *sibling1, *sibling2, *sibling2_child, *last;
+	AstNode *sibling1, *sibling2, *sibling3, *sibling2_child, *last;
 
 	ast_open(&fix.ast, &(Token){1, 1, 0});
 	ast_open(&fix.ast, &(Token){2, 1, 0});
@@ -220,12 +220,16 @@ void ast_next_symbol(){
 	ast_open(&fix.ast, &(Token){4, 1, 0});
 	ast_close(&fix.ast, &(Token){5, 1, 123});
 	ast_close(&fix.ast, &(Token){6, 5, 456});
+	ast_open(&fix.ast, &(Token){7, 1, 0});
+	ast_close(&fix.ast, &(Token){8, 1, 123});
 	ast_done(&fix.ast);
 
 	ast_cursor_init(&cursor, &fix.ast);
 	sibling1 = ast_cursor_depth_next_symbol(&cursor, 123);
 	sibling2 = ast_cursor_depth_next_symbol(&cursor, 123);
 	sibling2_child = ast_cursor_depth_next(&cursor);
+	sibling3 = ast_cursor_depth_next_symbol(&cursor, 123);
+	last = ast_cursor_depth_next(&cursor);
 	last = ast_cursor_depth_next(&cursor);
 
 	t_assert(sibling1 != NULL);
