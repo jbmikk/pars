@@ -39,6 +39,7 @@ void ast_cursor_push(AstCursor *cursor);
 void ast_cursor_pop(AstCursor *cursor);
 AstNode *ast_cursor_depth_next(AstCursor *cursor);
 AstNode *ast_cursor_depth_next_symbol(AstCursor *cursor, int symbol);
+AstNode *ast_cursor_descendant_next_symbol(AstCursor *cursor, int symbol);
 AstNode *ast_cursor_next_sibling_symbol(AstCursor *cursor, int symbol);
 void ast_cursor_get_string(AstCursor *cursor, char **str, int *length);
 void ast_cursor_dispose(AstCursor *cursor);

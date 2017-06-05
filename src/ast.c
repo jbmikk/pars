@@ -162,7 +162,11 @@ static AstNode *_depth_next(AstCursor *cursor, AstNode *base)
 	AstNode *next;
 
 	if(cursor->current == NULL) {
-		next = base;
+		if(base) {
+			next = base;
+		} else {
+			next = base = &cursor->ast->root;
+		}
 	} else {
 		//Get first children
 		AstNode *current = cursor->current;
@@ -192,6 +196,18 @@ AstNode *ast_cursor_depth_next_symbol(AstCursor *cursor, int symbol)
 	AstNode * node;
 	do {
 		node = _depth_next(cursor, &cursor->ast->root);
+		cursor->current = node;
+	} while(node != NULL && node->token.symbol != symbol);
+	cursor->current = node;
+	return node;
+}
+
+AstNode *ast_cursor_descendant_next_symbol(AstCursor *cursor, int symbol)
+{
+	AstNode *node;
+	AstNode *base = cursor->current;
+	do {
+		node = _depth_next(cursor, base);
 		cursor->current = node;
 	} while(node != NULL && node->token.symbol != symbol);
 	cursor->current = node;
