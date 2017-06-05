@@ -291,6 +291,47 @@ void ast_next_symbol(){
 	ast_cursor_dispose(&cursor);
 }
 
+void ast_relative_symbol_next(){
+	AstCursor cursor;
+	AstNode *sibling1, *sibling2, *sibling3, *last;
+
+	ast_open(&fix.ast, &(Token){1, 1, 0});
+	ast_open(&fix.ast, &(Token){2, 1, 0});
+	ast_close(&fix.ast, &(Token){3, 1, 123});
+	ast_open(&fix.ast, &(Token){4, 1, 0});
+	ast_close(&fix.ast, &(Token){5, 1, 123});
+	ast_close(&fix.ast, &(Token){6, 5, 456});
+	ast_open(&fix.ast, &(Token){7, 1, 0});
+	ast_close(&fix.ast, &(Token){8, 1, 123});
+	ast_done(&fix.ast);
+
+	ast_cursor_init(&cursor, &fix.ast);
+	sibling1 = ast_cursor_descendant_next_symbol(&cursor, 456);
+	ast_cursor_push(&cursor);
+	sibling2 = ast_cursor_descendant_next_symbol(&cursor, 123);
+	sibling3 = ast_cursor_relative_next_symbol(&cursor, 123);
+	last = ast_cursor_relative_next_symbol(&cursor, 123);
+
+	t_assert(sibling1 != NULL);
+	t_assert(sibling1->token.index == 1);
+	t_assert(sibling1->token.length == 5);
+	t_assert(sibling1->token.symbol == 456);
+
+	t_assert(sibling2 != NULL);
+	t_assert(sibling2->token.index == 2);
+	t_assert(sibling2->token.length == 1);
+	t_assert(sibling2->token.symbol == 123);
+
+	t_assert(sibling3 != NULL);
+	t_assert(sibling3->token.index == 4);
+	t_assert(sibling3->token.length == 1);
+	t_assert(sibling3->token.symbol == 123);
+
+	t_assert(last == NULL);
+
+	ast_cursor_dispose(&cursor);
+}
+
 void ast_next_sibling_symbol(){
 	AstCursor cursor;
 	AstNode *sibling1, *sibling2, *sibling3, *last;
@@ -455,6 +496,7 @@ int main(int argc, char** argv){
 	t_test(ast_symbol_descendant_next);
 	t_test(ast_next_symbol);
 	t_test(ast_next_sibling_symbol);
+	t_test(ast_relative_symbol_next);
 	t_test(ast_push_pop_state);
 	t_test(ast_cursor_get_strings);
 	return t_done();

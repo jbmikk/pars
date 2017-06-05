@@ -151,6 +151,20 @@ void ast_cursor_pop(AstCursor *cursor)
 	cursor->stack = stack_pop(cursor->stack);
 }
 
+static AstNode *_depth_out_next(AstCursor *cursor, AstNode *base)
+{
+	AstNode *current = cursor->current;
+	AstNode *parent = current->parent;
+	AstNode *next;
+next_sibling:
+	next = ast_get_next_sibling(current);
+	if(next == NULL && parent != base) {
+		current = parent;
+		parent = current->parent;
+		goto next_sibling;
+	}
+	return next;
+}
 /**
  * 1 - Get first children
  * 2 - If no children then get next sibling
@@ -173,13 +187,7 @@ static AstNode *_depth_next(AstCursor *cursor, AstNode *base)
 		AstNode *parent = current->parent;
 		next = (AstNode *)radix_tree_get_next(&current->children, NULL, 0);
 		if(next == NULL && parent != NULL) {
-		next_sibling:
-			next = ast_get_next_sibling(current);
-			if(next == NULL && parent != base) {
-				current = parent;
-				parent = current->parent;
-				goto next_sibling;
-			}
+			next = _depth_out_next(cursor, base);
 		}
 	}
 	return next;
@@ -210,6 +218,21 @@ AstNode *ast_cursor_descendant_next_symbol(AstCursor *cursor, int symbol)
 		node = _depth_next(cursor, base);
 		cursor->current = node;
 	} while(node != NULL && node->token.symbol != symbol);
+	cursor->current = node;
+	return node;
+}
+
+AstNode *ast_cursor_relative_next_symbol(AstCursor *cursor, int symbol)
+{
+	AstNode *node;
+	AstNode *base = (AstNode *)cursor->stack->data;
+
+	node = _depth_out_next(cursor, base);
+	cursor->current = node;
+	while(node != NULL && node->token.symbol != symbol) {
+		node = _depth_next(cursor, base);
+		cursor->current = node;
+	}
 	cursor->current = node;
 	return node;
 }
