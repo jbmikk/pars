@@ -157,12 +157,12 @@ void ast_cursor_pop(AstCursor *cursor)
  * 3 - If no next sibling then get parent and go to step 2
  * 4 - If no parent stop
  */
-static AstNode *_depth_next(AstCursor *cursor)
+static AstNode *_depth_next(AstCursor *cursor, AstNode *base)
 {
 	AstNode *next;
 
 	if(cursor->current == NULL) {
-		next = &cursor->ast->root;
+		next = base;
 	} else {
 		//Get first children
 		AstNode *current = cursor->current;
@@ -171,7 +171,7 @@ static AstNode *_depth_next(AstCursor *cursor)
 		if(next == NULL && parent != NULL) {
 		next_sibling:
 			next = ast_get_next_sibling(current);
-			if(next == NULL && parent->parent != NULL) {
+			if(next == NULL && parent != base) {
 				current = parent;
 				parent = current->parent;
 				goto next_sibling;
@@ -183,7 +183,7 @@ static AstNode *_depth_next(AstCursor *cursor)
 
 AstNode *ast_cursor_depth_next(AstCursor *cursor)
 {
-	cursor->current = _depth_next(cursor);
+	cursor->current = _depth_next(cursor, &cursor->ast->root);
 	return cursor->current;
 }
 
@@ -191,7 +191,7 @@ AstNode *ast_cursor_depth_next_symbol(AstCursor *cursor, int symbol)
 {
 	AstNode * node;
 	do {
-		node = _depth_next(cursor);
+		node = _depth_next(cursor, &cursor->ast->root);
 		cursor->current = node;
 	} while(node != NULL && node->token.symbol != symbol);
 	cursor->current = node;
