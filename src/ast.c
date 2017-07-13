@@ -240,6 +240,20 @@ AstNode *ast_cursor_relative_next_symbol(AstCursor *cursor, int symbol)
 	return node;
 }
 
+AstNode *ast_cursor_desc_or_rel_next_symbol(AstCursor *cursor, int symbol)
+{
+	AstNode *node;
+	AstNode *base = (AstNode *)cursor->stack->data;
+
+	do {
+		node = _depth_next(cursor, base);
+		cursor->current = node;
+	} while(node != NULL && node->token.symbol != symbol);
+	cursor->current = node;
+	return node;
+}
+
+
 AstNode *ast_cursor_next_sibling_symbol(AstCursor *cursor, int symbol)
 {
 	AstNode * node;

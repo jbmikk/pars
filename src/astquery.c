@@ -37,7 +37,7 @@ AstNode *ast_query_next(AstQuery *query)
 		if(direction > 0) {
 			node = ast_cursor_descendant_next_symbol(&query->cursor, symbol);
 		} else {
-			node = ast_cursor_relative_next_symbol(&query->cursor, symbol);
+			node = ast_cursor_desc_or_rel_next_symbol(&query->cursor, symbol);
 		}
 
 		if(node) {
