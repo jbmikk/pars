@@ -102,10 +102,41 @@ void ast_query_nested_iteration(){
 
 	ast_query_dispose(&query);
 }
+
+void ast_query_two_level_query(){
+	AstQuery query;
+	AstNode *sibling1, *last;
+
+	ast_open(&fix.ast, &(Token){1, 1, 0});
+	ast_open(&fix.ast, &(Token){2, 1, 0});
+	ast_close(&fix.ast, &(Token){3, 1, 123});
+	ast_close(&fix.ast, &(Token){6, 5, 456});
+	ast_open(&fix.ast, &(Token){7, 1, 0});
+	ast_open(&fix.ast, &(Token){8, 1, 0});
+	ast_close(&fix.ast, &(Token){9, 1, 456});
+	ast_close(&fix.ast, &(Token){10, 1, 123});
+	ast_done(&fix.ast);
+
+	int symbols[2] = { 123, 456 };
+	ast_query_init(&query, &fix.ast, symbols, 2);
+	sibling1 = ast_query_next(&query);
+	last = ast_query_next(&query);
+
+	t_assert(sibling1 != NULL);
+	t_assert(sibling1->token.index == 8);
+	t_assert(sibling1->token.length == 1);
+	t_assert(sibling1->token.symbol == 456);
+
+	t_assert(last == NULL);
+
+	ast_query_dispose(&query);
+}
+
 int main(int argc, char** argv){
 	t_init();
 	t_test(ast_query_sibling_iteration);
 	t_test(ast_query_nested_iteration);
+	t_test(ast_query_two_level_query);
 	return t_done();
 }
 
