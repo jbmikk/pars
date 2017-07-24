@@ -118,7 +118,6 @@ void session_match(Session *session, const Token *token)
 {
 	Action *action;
 
-rematch:
 	session->index = token->index;
 	action = state_get_transition(session->current, token->symbol);
 
@@ -187,12 +186,12 @@ rematch:
 			session->handler.reduce(session->handler.target, &reduction);
 		}
 		session_match(session, &reduction);
-		goto rematch; // same as session_match(session, symbol);
+		session_match(session, token);
 		break;
 	case ACTION_EMPTY:
 		trace("match", session->current, action, token, "empty", 0);
 		session->current = action->state;
-		goto rematch; // same as session_match(session, symbol);
+		session_match(session, token);
 		break;
 	default:
 		break;
