@@ -46,30 +46,30 @@ void session_init(Session *session, Fsm *fsm, FsmHandler handler)
 	session->status = SESSION_OK;
 	session->stack.top = NULL;
 	session->mode_stack.top = NULL;
-	session->index = 0;
 	session->handler = handler;
 	//TODO: Should avoid pushing state in init?
 	_mode_push(session, fsm_get_symbol_id(fsm, nzs(".default")));
 	_mode_reset(session);
-	session_push(session);
+	session_push(session, 0);
 }
 
-void session_push(Session *session)
+void session_push(Session *session, unsigned int index)
 {
 	SessionNode *node = c_new(SessionNode, 1);
 	node->state = session->current;
-	node->index = session->index;
+	node->index = index;
 	node->next = session->stack.top;
 	session->stack.top = node;
 }
 
-void session_pop(Session *session)
+unsigned int session_pop(Session *session)
 {
 	SessionNode *top = session->stack.top;
+	unsigned int index = top->index;
 	session->current = top->state;
-	session->index = top->index;
 	session->stack.top = top->next;
 	c_delete(top);
+	return index;
 }
 
 void session_dispose(Session *session)
@@ -117,7 +117,6 @@ Action *session_match(Session *session, const Token *token)
 {
 	Action *action;
 
-	session->index = token->index;
 	action = state_get_transition(session->current, token->symbol);
 
 	if(action == NULL) {
@@ -147,7 +146,7 @@ Action *session_match(Session *session, const Token *token)
 		if(session->handler.shift) {
 			session->handler.shift(session->handler.target, &shifted);
 		}
-		session_push(session);
+		session_push(session, token->index);
 		session->current = action->state;
 		break;
 	case ACTION_ACCEPT:
@@ -174,10 +173,10 @@ Action *session_match(Session *session, const Token *token)
 		break;
 	case ACTION_REDUCE:
 		trace("match", session->current, action, token, "reduce", action->reduction);
-		session_pop(session);
+		unsigned int popped_index = session_pop(session);
 		Token reduction = {
-			session->index,
-			token->index - session->index,
+			popped_index,
+			token->index - popped_index,
 			action->reduction
 		};
 		if(session->handler.reduce) {

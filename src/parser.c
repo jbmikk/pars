@@ -41,14 +41,14 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 			lexer_session.status != SESSION_ERROR,
 			"Lexer error at token "
 			"index: %i with symbol: %i, length: %i",
-			lexer_session.index, token.symbol, token.length
+			token.index, token.symbol, token.length
 		);
 
 		check(
 			session.status != SESSION_ERROR,
 			"Parser error at token "
 			"index: %i with symbol: %i, length: %i",
-			session.index, token.symbol, token.length
+			token.index, token.symbol, token.length
 		);
 
 	} while(token.symbol != L_EOF);

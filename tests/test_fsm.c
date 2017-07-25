@@ -211,7 +211,8 @@ void session_match__reduce_handler(){
 	t_assert(token.symbol == fsm_get_symbol_id(&fix.fsm, nzs("number")));
 	t_assert(token.index == 0);
 	t_assert(token.length == 1);
-	t_assert(session.index == 1);
+	//popped index no longer available, should it be exposed somehow?
+	//t_assert(session.index == 1);
 	MATCH_AT(session, 'w', 2);
 	MATCH_AT(session, 'o', 3);
 	MATCH_AT(session, 'r', 4);
