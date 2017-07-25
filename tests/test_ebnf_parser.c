@@ -231,8 +231,8 @@ void ebnf_start_parsing__syntax_rule(){
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == fix.SYNTAX_RULE);
 
-	MATCH(session, L_EOF);
-	t_assert(session.last_action->type == ACTION_ACCEPT);
+	action = MATCH(session, L_EOF);
+	t_assert(action->type == ACTION_ACCEPT);
 
 	session_dispose(&session);
 }
@@ -276,8 +276,8 @@ void ebnf_start_parsing__syntax(){
 	//First reduction only, not recursive
 	t_assert(action->reduction == fix.SYNTAX_RULE); 
 
-	MATCH(session, L_EOF);
-	t_assert(session.last_action->type == ACTION_ACCEPT);
+	action = MATCH(session, L_EOF);
+	t_assert(action->type == ACTION_ACCEPT);
 	session_dispose(&session);
 }
 

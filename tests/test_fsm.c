@@ -59,6 +59,8 @@ void fsm_builder_define__two_gets(){
 
 void session_match__shift(){
 	FsmBuilder builder;
+	Action *action;
+
 	fsm_builder_init(&builder, &fix.fsm);
 
 	fsm_builder_define(&builder, nzs("name"));
@@ -72,10 +74,10 @@ void session_match__shift(){
 
 	Session session;
 	session_init(&session, &fix.fsm, NULL_HANDLER);
-	MATCH(session, 'a');
-	t_assert(session.last_action->type == ACTION_SHIFT);
-	MATCH(session, 'b');
-	t_assert(session.last_action->type == ACTION_DROP);
+	action = MATCH(session, 'a');
+	t_assert(action->type == ACTION_SHIFT);
+	action = MATCH(session, 'b');
+	t_assert(action->type == ACTION_DROP);
 	session_dispose(&session);
 }
 
@@ -115,6 +117,8 @@ void session_match__shift_range(){
 
 void session_match__reduce(){
 	FsmBuilder builder;
+	Action *action;
+
 	fsm_builder_init(&builder, &fix.fsm);
 
 	fsm_builder_define(&builder, nzs("number"));
@@ -128,13 +132,15 @@ void session_match__reduce(){
 	Session session;
 	session_init(&session, &fix.fsm, NULL_HANDLER);
 	MATCH(session, '1');
-	MATCH(session, '\0');
-	t_assert(session.last_action->type == ACTION_ACCEPT);
+	action = MATCH(session, '\0');
+	t_assert(action->type == ACTION_ACCEPT);
 	session_dispose(&session);
 }
 
 void session_match__reduce_shift(){
 	FsmBuilder builder;
+	Action *action;
+
 	fsm_builder_init(&builder, &fix.fsm);
 
 	fsm_builder_define(&builder, nzs("number"));
@@ -156,8 +162,8 @@ void session_match__reduce_shift(){
 	MATCH(session, '1');
 	MATCH(session, '+');
 	MATCH(session, '2');
-	MATCH(session, '\0');
-	t_assert(session.last_action->type == ACTION_ACCEPT);
+	action = MATCH(session, '\0');
+	t_assert(action->type == ACTION_ACCEPT);
 	session_dispose(&session);
 }
 
@@ -168,6 +174,8 @@ void reduce_handler(void *target, const Token *t)
 
 void session_match__reduce_handler(){
 	FsmBuilder builder;
+	Action *action;
+
 	fsm_builder_init(&builder, &fix.fsm);
 
 	fsm_builder_define(&builder, nzs("number"));
@@ -208,16 +216,18 @@ void session_match__reduce_handler(){
 	MATCH_AT(session, 'o', 3);
 	MATCH_AT(session, 'r', 4);
 	MATCH_AT(session, 'd', 5);
-	MATCH_AT(session, '\0', 6);
+	action = MATCH_AT(session, '\0', 6);
 	t_assert(token.symbol == fsm_get_symbol_id(&fix.fsm, nzs("sum")));
 	t_assert(token.index == 0);
 	t_assert(token.length == 6);
-	t_assert(session.last_action->type == ACTION_ACCEPT);
+	t_assert(action->type == ACTION_ACCEPT);
 	session_dispose(&session);
 }
 
 void session_match__first_set_collision(){
 	FsmBuilder builder;
+	Action *action;
+
 	fsm_builder_init(&builder, &fix.fsm);
 
 	fsm_builder_define(&builder, nzs("A"));
@@ -249,13 +259,15 @@ void session_match__first_set_collision(){
 	MATCH(session, '1');
 	MATCH(session, '2');
 	MATCH(session, '3');
-	MATCH(session, '\0');
-	t_assert(session.last_action->type == ACTION_ACCEPT);
+	action = MATCH(session, '\0');
+	t_assert(action->type == ACTION_ACCEPT);
 	session_dispose(&session);
 }
 
 void session_match__repetition(){
 	FsmBuilder builder;
+	Action *action;
+
 	fsm_builder_init(&builder, &fix.fsm);
 
 	fsm_builder_define(&builder, nzs("nonZeroDigit"));
@@ -303,14 +315,14 @@ void session_match__repetition(){
 
 	Session session;
 	session_init(&session, &fix.fsm, NULL_HANDLER);
-	MATCH(session, '1');
-	t_assert(session.last_action->type == ACTION_SHIFT);
-	MATCH(session, '2');
-	t_assert(session.last_action->type == ACTION_SHIFT);
-	MATCH(session, '3');
-	t_assert(session.last_action->type == ACTION_SHIFT);
-	MATCH(session, '\0');
-	t_assert(session.last_action->type == ACTION_ACCEPT);
+	action = MATCH(session, '1');
+	t_assert(action->type == ACTION_SHIFT);
+	action = MATCH(session, '2');
+	t_assert(action->type == ACTION_SHIFT);
+	action = MATCH(session, '3');
+	t_assert(action->type == ACTION_SHIFT);
+	action = MATCH(session, '\0');
+	t_assert(action->type == ACTION_ACCEPT);
 	session_dispose(&session);
 }
 

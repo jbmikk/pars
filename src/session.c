@@ -44,7 +44,6 @@ void session_init(Session *session, Fsm *fsm, FsmHandler handler)
 {
 	session->fsm = fsm;
 	session->status = SESSION_OK;
-	session->last_action = NULL;
 	session->stack.top = NULL;
 	session->mode_stack.top = NULL;
 	session->index = 0;
@@ -90,9 +89,9 @@ Action *session_test(Session *session, const Token *token)
 	action = state_get_transition(session->current, token->symbol);
 	if(action == NULL) {
 		trace("test", session->current, action, token, "error", 0);
-		session->last_action = &session->fsm->error;
-		session->current = session->last_action->state;
-		return session->last_action;
+		action = &session->fsm->error;
+		session->current = action->state;
+		return action;
 	}
 
 	switch(action->type) {
@@ -114,7 +113,7 @@ Action *session_test(Session *session, const Token *token)
 	return action;
 }
 
-void session_match(Session *session, const Token *token)
+Action *session_match(Session *session, const Token *token)
 {
 	Action *action;
 
@@ -128,15 +127,14 @@ void session_match(Session *session, const Token *token)
 
 		if(action == NULL) {
 			trace("match", session->current, action, token, "error", 0);
-			session->last_action = &session->fsm->error;
-			session->current = session->last_action->state;
+			action = &session->fsm->error;
+			session->current = action->state;
 			session->status = SESSION_ERROR;
-			return;
+			return action;
 		} else {
 			trace("match", session->current, action, token, "fback", 0);
 		}
 	}
-	session->last_action = action;
 
 	switch(action->type) {
 	case ACTION_SHIFT:
@@ -186,14 +184,15 @@ void session_match(Session *session, const Token *token)
 			session->handler.reduce(session->handler.target, &reduction);
 		}
 		session_match(session, &reduction);
-		session_match(session, token);
+		action = session_match(session, token);
 		break;
 	case ACTION_EMPTY:
 		trace("match", session->current, action, token, "empty", 0);
 		session->current = action->state;
-		session_match(session, token);
+		action = session_match(session, token);
 		break;
 	default:
 		break;
 	}
+	return action;
 }

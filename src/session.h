@@ -37,7 +37,6 @@ typedef struct _Session {
 	Fsm *fsm;
 	int status;
 	State *current;
-	Action *last_action;
 	unsigned int index;
 	Stack stack;
 	ModeStack mode_stack;
@@ -52,7 +51,7 @@ void session_dispose(Session *session);
 void session_push(Session *session);
 void session_pop(Session *session);
 
-void session_match(Session *session, const Token *token);
+Action *session_match(Session *session, const Token *token);
 Action *session_test(Session *session, const Token *token);
 
 #endif //SESSION_H
