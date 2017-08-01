@@ -47,9 +47,6 @@ typedef struct _Session {
 void session_init(Session *session, Fsm *fsm, FsmHandler handler);
 void session_dispose(Session *session);
 
-void session_push(Session *session, unsigned int index);
-unsigned int session_pop(Session *session);
-
 Action *session_match(Session *session, const Token *token);
 Action *session_test(Session *session, const Token *token);
 

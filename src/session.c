@@ -40,6 +40,26 @@ static void _mode_reset(Session *session)
 	session->current = session->mode_stack.top->state;
 }
 
+static void _state_push(Session *session, unsigned int index)
+{
+	SessionNode *node = c_new(SessionNode, 1);
+	node->state = session->current;
+	node->index = index;
+	node->next = session->stack.top;
+	session->stack.top = node;
+}
+
+static unsigned int _state_pop(Session *session)
+{
+	SessionNode *top = session->stack.top;
+	unsigned int index = top->index;
+	session->current = top->state;
+	session->stack.top = top->next;
+	c_delete(top);
+	return index;
+}
+
+
 void session_init(Session *session, Fsm *fsm, FsmHandler handler)
 {
 	session->fsm = fsm;
@@ -50,32 +70,13 @@ void session_init(Session *session, Fsm *fsm, FsmHandler handler)
 	//TODO: Should avoid pushing state in init?
 	_mode_push(session, fsm_get_symbol_id(fsm, nzs(".default")));
 	_mode_reset(session);
-	session_push(session, 0);
-}
-
-void session_push(Session *session, unsigned int index)
-{
-	SessionNode *node = c_new(SessionNode, 1);
-	node->state = session->current;
-	node->index = index;
-	node->next = session->stack.top;
-	session->stack.top = node;
-}
-
-unsigned int session_pop(Session *session)
-{
-	SessionNode *top = session->stack.top;
-	unsigned int index = top->index;
-	session->current = top->state;
-	session->stack.top = top->next;
-	c_delete(top);
-	return index;
+	_state_push(session, 0);
 }
 
 void session_dispose(Session *session)
 {
 	while(session->stack.top) {
-		session_pop(session);
+		_state_pop(session);
 	}
 	while(session->mode_stack.top) {
 		_mode_pop(session);
@@ -146,7 +147,7 @@ Action *session_match(Session *session, const Token *token)
 		if(session->handler.shift) {
 			session->handler.shift(session->handler.target, &shifted);
 		}
-		session_push(session, token->index);
+		_state_push(session, token->index);
 		session->current = action->state;
 		break;
 	case ACTION_ACCEPT:
@@ -173,7 +174,7 @@ Action *session_match(Session *session, const Token *token)
 		break;
 	case ACTION_REDUCE:
 		trace("match", session->current, action, token, "reduce", action->reduction);
-		unsigned int popped_index = session_pop(session);
+		unsigned int popped_index = _state_pop(session);
 		Token reduction = {
 			popped_index,
 			token->index - popped_index,
