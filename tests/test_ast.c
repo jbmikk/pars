@@ -35,8 +35,10 @@ void ast_empty(){
 	ast_cursor_init(&cursor, &fix.ast);
 	node = ast_cursor_depth_next(&cursor);
 	t_assert(node != NULL);
+	t_assert(cursor.offset == 0);
 	node = ast_cursor_depth_next(&cursor);
 	t_assert(node == NULL);
+	t_assert(cursor.offset == 0);
 
 	ast_cursor_dispose(&cursor);
 }
@@ -57,6 +59,7 @@ void ast_single_node(){
 	t_assert(node->token.index == 1);
 	t_assert(node->token.length == 3);
 	t_assert(node->token.symbol == 123);
+	t_assert(cursor.offset == 1);
 
 	ast_cursor_dispose(&cursor);
 }
@@ -65,6 +68,8 @@ void ast_nested_nodes(){
 	AstCursor cursor;
 	AstNode *root, *outer_node;
 	AstNode *first_child, *second_child, *grand_child, *last;
+	int root_offset, outer_node_offset, first_child_offset,
+		second_child_offset, grand_child_offset, last_offset;
 
 	ast_open(&fix.ast, &(Token){1, 1, 0});
 	ast_open(&fix.ast, &(Token){2, 1, 0});
@@ -74,39 +79,51 @@ void ast_nested_nodes(){
 
 	ast_cursor_init(&cursor, &fix.ast);
 	root = ast_cursor_depth_next(&cursor);
+	root_offset = cursor.offset;
 	outer_node = ast_cursor_depth_next(&cursor);
+	outer_node_offset = cursor.offset;
 	first_child = ast_cursor_depth_next(&cursor);
+	first_child_offset = cursor.offset;
 	second_child = ast_cursor_depth_next(&cursor);
+	second_child_offset = cursor.offset;
 	grand_child = ast_cursor_depth_next(&cursor);
+	grand_child_offset = cursor.offset;
 	last = ast_cursor_depth_next(&cursor);
+	last_offset = cursor.offset;
 
 	t_assert(root != NULL);
+	t_assert(root_offset == 0);
 
 	//First opened symbol
 	t_assert(outer_node != NULL);
 	t_assert(outer_node->token.index == 1);
 	t_assert(outer_node->token.length == 3);
 	t_assert(outer_node->token.symbol == 456);
+	t_assert(outer_node_offset == 1);
 
 	//First opened symbol's implicit shift
 	t_assert(first_child != NULL);
 	t_assert(first_child->token.index == 1);
 	t_assert(first_child->token.length == 1);
 	t_assert(first_child->token.symbol == 0);
+	t_assert(first_child_offset == 1);
 
 	//Second opened symbol
 	t_assert(second_child != NULL);
 	t_assert(second_child->token.index == 2);
 	t_assert(second_child->token.length == 1);
 	t_assert(second_child->token.symbol == 123);
+	t_assert(second_child_offset == 0);
 
 	//Second opened symbol's implicit shift
 	t_assert(grand_child != NULL);
 	t_assert(grand_child->token.index == 2);
 	t_assert(grand_child->token.length == 1);
 	t_assert(grand_child->token.symbol == 0);
+	t_assert(grand_child_offset == 1);
 
 	t_assert(last == NULL);
+	t_assert(last_offset == -3);
 
 	ast_cursor_dispose(&cursor);
 }

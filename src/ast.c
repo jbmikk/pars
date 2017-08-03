@@ -159,10 +159,13 @@ static AstNode *_depth_out_next(AstCursor *cursor, AstNode *base)
 next_sibling:
 	if(parent) {
 		next = _get_next_sibling(current);
-		if(next == NULL && parent != base) {
-			current = parent;
-			parent = current->parent;
-			goto next_sibling;
+		if(next == NULL) {
+			cursor->offset--;
+			if(parent != base) {
+				current = parent;
+				parent = current->parent;
+				goto next_sibling;
+			}
 		}
 	} else {
 		next = NULL;
@@ -191,6 +194,8 @@ static AstNode *_depth_next(AstCursor *cursor, AstNode *base)
 		next = (AstNode *)radix_tree_get_next(&current->children, NULL, 0);
 		if(next == NULL) {
 			next = _depth_out_next(cursor, base);
+		} else {
+			cursor->offset++;
 		}
 	}
 	return next;
@@ -198,6 +203,7 @@ static AstNode *_depth_next(AstCursor *cursor, AstNode *base)
 
 AstNode *ast_cursor_depth_next(AstCursor *cursor)
 {
+	cursor->offset = 0;
 	cursor->current = _depth_next(cursor, &cursor->ast->root);
 	return cursor->current;
 }
@@ -205,6 +211,7 @@ AstNode *ast_cursor_depth_next(AstCursor *cursor)
 AstNode *ast_cursor_depth_next_symbol(AstCursor *cursor, int symbol)
 {
 	AstNode * node;
+	cursor->offset = 0;
 	do {
 		node = _depth_next(cursor, &cursor->ast->root);
 		cursor->current = node;

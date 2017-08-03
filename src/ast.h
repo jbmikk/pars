@@ -24,6 +24,7 @@ typedef struct _Ast {
 typedef struct _AstCursor {
 	Ast *ast;
 	AstNode *current;
+	int offset;
 	SNode *stack;
 } AstCursor;
 
