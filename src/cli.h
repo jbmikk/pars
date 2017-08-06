@@ -9,6 +9,6 @@
 
 #define BUFFER_SIZE 4096
 
-int cli_load_grammar(char *pathname, Fsm *fsm);
+int cli_load_grammar(char *pathname, Parser *parser);
 
 #endif //CLI_H
