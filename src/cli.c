@@ -147,7 +147,7 @@ int main(int argc, char** argv){
 		_user_parser_dispose(&parser);
 	} else {
 		log_info("Usage:");
-		log_info("pars <grammar-file>");
+		log_info("pars <grammar-file> [<source-file>]");
 	}
 	return 0;
 error:
