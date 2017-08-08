@@ -24,20 +24,10 @@ static void identity_init_lexer_fsm(Fsm *fsm)
 	fsm_builder_dispose(&builder);
 }
 
-int _user_parser_init(Parser *parser)
+int _user_build_parser(Parser *parser)
 {
-	parser->handler.shift = ast_open;
-	parser->handler.reduce = ast_close;
-	parser->handler.accept = NULL;
-
-	parser->lexer_handler.shift = NULL;
-	parser->lexer_handler.reduce = NULL;
-	parser->lexer_handler.accept = NULL;
-
-	symbol_table_init(&parser->table);
-
-	fsm_init(&parser->lexer_fsm, &parser->table);
-	fsm_init(&parser->fsm, &parser->table);
+	parser_set_handlers(parser, ast_open, ast_close, NULL);
+	parser_set_lexer_handlers(parser, NULL, NULL, NULL);
 
 	//TODO: Maybe basic initialization should be separate from specific
 	//initialization for different kinds of parsers.
@@ -50,13 +40,6 @@ int _user_parser_init(Parser *parser)
 	//return -1;
 }
 
-void _user_parser_dispose(Parser *parser)
-{
-	fsm_dispose(&parser->fsm);
-	fsm_dispose(&parser->lexer_fsm);
-	symbol_table_dispose(&parser->table);
-}
-
 int cli_load_grammar(char *pathname, Parser *parser)
 {
 	Input input;
@@ -64,7 +47,8 @@ int cli_load_grammar(char *pathname, Parser *parser)
 	Ast ast;
 	int error;
 
-	error = ebnf_init_parser(&ebnf_parser);
+	parser_init(&ebnf_parser);
+	error = ebnf_build_parser(&ebnf_parser);
 	check(!error, "Could not build ebnf parser.");
 
 	input_init(&input, pathname);
@@ -82,7 +66,7 @@ int cli_load_grammar(char *pathname, Parser *parser)
 	ast_dispose(&ast);
 
 	//TODO?: can't dispose parser before ast, shared symbol table
-	ebnf_dispose_parser(&ebnf_parser);
+	parser_dispose(&ebnf_parser);
 	input_dispose(&input);
 
 	return 0;
@@ -91,7 +75,7 @@ error:
 	// _init functions should not return errors, thus ensuring
 	// all of them have been executed and _dispose functions are
 	// safe to call.
-	ebnf_dispose_parser(&ebnf_parser);
+	parser_dispose(&ebnf_parser);
 	input_dispose(&input);
 
 	return -1;
@@ -129,7 +113,8 @@ int main(int argc, char** argv){
 	if(argc > 1) {
 		log_info("Loading grammar.");
 
-		error = _user_parser_init(&parser);
+		parser_init(&parser);
+		error = _user_build_parser(&parser);
 		check(!error, "Could not initialize parser.");
 
 		error = cli_load_grammar(argv[1], &parser);
@@ -144,14 +129,14 @@ int main(int argc, char** argv){
 			ast_dispose(&ast);
 		}
 
-		_user_parser_dispose(&parser);
+		parser_dispose(&parser);
 	} else {
 		log_info("Usage:");
 		log_info("pars <grammar-file> [<source-file>]");
 	}
 	return 0;
 error:
-	_user_parser_dispose(&parser);
+	parser_dispose(&parser);
 	return -1;
 }
 #endif

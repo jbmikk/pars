@@ -2,7 +2,7 @@
 
 #include "cli.h"
 #include "symbols.h"
-#include "fsm.h"
+#include "parser.h"
 #include "test.h"
 
 
@@ -13,16 +13,13 @@ void t_teardown(){
 }
 
 void test_load_grammar(){
-	SymbolTable table;
-	Fsm fsm;
+	Parser parser;
 
-	symbol_table_init(&table);
-	fsm_init(&fsm, &table);
+	parser_init(&parser);
 
-	int error = cli_load_grammar("not-a-valid-file-name", &fsm);
+	int error = cli_load_grammar("not-a-valid-file-name", &parser);
 
-	fsm_dispose(&fsm);
-	symbol_table_dispose(&table);
+	parser_dispose(&parser);
 
 	t_assert(error <= 0);
 }

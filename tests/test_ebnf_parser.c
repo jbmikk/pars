@@ -58,10 +58,10 @@ void t_setup(){
 	symbol_table_init(&fix.table);
 
 	fsm_init(&fix.lexer_fsm, &fix.table);
-	ebnf_init_lexer_fsm(&fix.lexer_fsm);
+	ebnf_build_lexer_fsm(&fix.lexer_fsm);
 
 	fsm_init(&fix.fsm, &fix.table);
-	ebnf_init_fsm(&fix.fsm);
+	ebnf_build_fsm(&fix.fsm);
 
 	fix.TERMINATOR_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("terminator_symbol"));
 	fix.META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));

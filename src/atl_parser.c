@@ -6,7 +6,7 @@
 
 #define nzs(S) (S), (strlen(S))
 
-void atl_init_fsm(Fsm *fsm)
+void atl_build_fsm(Fsm *fsm)
 {
 	FsmBuilder builder;
 
@@ -36,7 +36,7 @@ void atl_init_fsm(Fsm *fsm)
 	fsm_builder_dispose(&builder);
 }
 
-void atl_init_lexer_fsm(Fsm *fsm)
+void atl_build_lexer_fsm(Fsm *fsm)
 {
 	FsmBuilder builder;
 
@@ -175,37 +175,19 @@ static void _atl_pipe_token(void *session, const Token *token)
 	}
 }
 
-int atl_init_parser(Parser *parser)
+int atl_build_parser(Parser *parser)
 {
-	parser->handler.shift = ast_open;
-	parser->handler.reduce = ast_close;
-	parser->handler.accept = NULL;
+	parser_set_handlers(parser, ast_open, ast_close, NULL);
+	parser_set_lexer_handlers(parser, NULL, NULL, _atl_pipe_token);
 
-	parser->lexer_handler.shift = NULL;
-	parser->lexer_handler.reduce = NULL;
-	parser->lexer_handler.accept = _atl_pipe_token;
-
-	symbol_table_init(&parser->table);
-
-	fsm_init(&parser->lexer_fsm, &parser->table);
-	atl_init_lexer_fsm(&parser->lexer_fsm);
-
-	fsm_init(&parser->fsm, &parser->table);
-	atl_init_fsm(&parser->fsm);
+	atl_build_lexer_fsm(&parser->lexer_fsm);
+	atl_build_fsm(&parser->fsm);
 
 	return 0;
 //error:
 	//TODO: free
 
 	//return -1;
-}
-
-int atl_dispose_parser(Parser *parser)
-{
-	fsm_dispose(&parser->fsm);
-	symbol_table_dispose(&parser->table);
-	//TODO: handle errors?
-	return 0;
 }
 
 void atl_ast_transform(Ast *ast)

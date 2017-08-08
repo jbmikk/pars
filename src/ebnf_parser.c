@@ -15,7 +15,7 @@ void parse_error(Input *input, unsigned int index)
 	longjmp(on_error, 1);
 }
 
-void ebnf_init_fsm(Fsm *fsm)
+void ebnf_build_fsm(Fsm *fsm)
 {
 	FsmBuilder builder;
 
@@ -161,7 +161,7 @@ void ebnf_init_fsm(Fsm *fsm)
 	fsm_builder_dispose(&builder);
 }
 
-void ebnf_init_lexer_fsm(Fsm *fsm)
+void ebnf_build_lexer_fsm(Fsm *fsm)
 {
 	FsmBuilder builder;
 
@@ -481,38 +481,19 @@ static void _ebnf_pipe_token(void *session, const Token *token)
 	}
 }
 
-int ebnf_init_parser(Parser *parser)
+int ebnf_build_parser(Parser *parser)
 {
-	parser->handler.shift = ast_open;
-	parser->handler.reduce = ast_close;
-	parser->handler.accept = NULL;
+	parser_set_handlers(parser, ast_open, ast_close, NULL);
+	parser_set_lexer_handlers(parser, NULL, NULL, _ebnf_pipe_token);
 
-	parser->lexer_handler.shift = NULL;
-	parser->lexer_handler.reduce = NULL;
-	parser->lexer_handler.accept = _ebnf_pipe_token;
-
-	symbol_table_init(&parser->table);
-
-	fsm_init(&parser->lexer_fsm, &parser->table);
-	ebnf_init_lexer_fsm(&parser->lexer_fsm);
-
-	fsm_init(&parser->fsm, &parser->table);
-	ebnf_init_fsm(&parser->fsm);
+	ebnf_build_lexer_fsm(&parser->lexer_fsm);
+	ebnf_build_fsm(&parser->fsm);
 
 	return 0;
 //error:
 	//TODO: free
 
 	//return -1;
-}
-
-int ebnf_dispose_parser(Parser *parser)
-{
-	fsm_dispose(&parser->fsm);
-	fsm_dispose(&parser->lexer_fsm);
-	symbol_table_dispose(&parser->table);
-	//TODO: handle errors?
-	return 0;
 }
 
 static int parse_utf8(char *array, unsigned int size)

@@ -47,7 +47,7 @@ void t_setup(){
 	symbol_table_init(&fix.table);
 
 	fsm_init(&fix.fsm, &fix.table);
-	ebnf_init_lexer_fsm(&fix.fsm);
+	ebnf_build_lexer_fsm(&fix.fsm);
 
 	fix.handler.shift = NULL;
 	fix.handler.reduce = NULL;

@@ -8,6 +8,47 @@ static void _default_pipe_token(void *session, const Token *token)
 	session_match((Session *)session, token);
 }
 
+void parser_init(Parser *parser)
+{
+	symbol_table_init(&parser->table);
+	fsm_init(&parser->lexer_fsm, &parser->table);
+	fsm_init(&parser->fsm, &parser->table);
+
+	parser_set_handlers(parser, NULL, NULL, NULL);
+	parser_set_lexer_handlers(parser, NULL, NULL, NULL);
+}
+
+void parser_dispose(Parser *parser)
+{
+	fsm_dispose(&parser->fsm);
+	fsm_dispose(&parser->lexer_fsm);
+	symbol_table_dispose(&parser->table);
+}
+
+void parser_set_handlers(
+	Parser *parser,
+	void (*shift)(void *target, const Token *token),
+	void (*reduce)(void *target, const Token *token),
+	void (*accept)(void *target, const Token *token)
+) {
+	parser->handler.target = NULL;
+	parser->handler.shift = shift;
+	parser->handler.reduce = reduce;
+	parser->handler.accept = accept;
+}
+
+void parser_set_lexer_handlers(
+	Parser *parser,
+	void (*shift)(void *target, const Token *token),
+	void (*reduce)(void *target, const Token *token),
+	void (*accept)(void *target, const Token *token)
+) {
+	parser->lexer_handler.target = NULL;
+	parser->lexer_handler.shift = shift;
+	parser->lexer_handler.reduce = reduce;
+	parser->lexer_handler.accept = accept;
+}
+
 int parser_execute(Parser *parser, Ast *ast, Input *input)
 {
 	Token token;
