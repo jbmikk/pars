@@ -19,10 +19,6 @@ void fsm_init(Fsm *fsm, SymbolTable *table)
 	action_init(&fsm->error, ACTION_ERROR, NULL_SYMBOL, NULL, 0, 0);
 	fsm->error.state = c_new(State, 1);
 	state_init(fsm->error.state);
-
-	//Accept state
-	fsm->accept = c_new(State, 1);
-	state_init(fsm->accept);
 }
 
 void fsm_get_states(Node *states, State *state)
@@ -80,12 +76,6 @@ void fsm_dispose(Fsm *fsm)
 	radix_tree_iterator_dispose(&it);
 
 	radix_tree_dispose(&fsm->nonterminals);
-
-	//Make sure accept state is reachable
-	unsigned char buffer[sizeof(intptr_t)];
-	unsigned int size;
-	int_to_array(buffer, &size, (intptr_t)fsm->accept);
-	radix_tree_try_set(&all_states, buffer, size, fsm->accept);
 
 	//Delete all states
 	State *st;

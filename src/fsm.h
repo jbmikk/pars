@@ -72,7 +72,6 @@ typedef struct _Reference {
 
 typedef struct _Fsm {
 	Action error;
-	State *accept;
 	SymbolTable *table;
 	Node nonterminals;
 } Fsm;

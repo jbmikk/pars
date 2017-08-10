@@ -372,10 +372,10 @@ static void _set_start(FsmBuilder *builder, int eof_symbol)
 	_ensure_state(builder);
 	Action *action = state_add(builder->state, eof_symbol, ACTION_ACCEPT, NONE);
 
+	_transition(builder, action);
 	//Is the final accept state necessary? The accept action already 
 	//resets to the initial state.
-	_transition(builder, action);
-	_append_state(builder, builder->fsm->accept);
+	_ensure_state(builder);
 
 	//TODO: Possible replaces the accept state
 	fsm_builder_end(builder);
@@ -405,10 +405,10 @@ static void _set_lexer_start(FsmBuilder *builder, int eof_symbol)
 	_move_to(builder, start);
 	Action *action = state_add(builder->state, eof_symbol, ACTION_ACCEPT, NONE);
 
+	_transition(builder, action);
 	//Is the final accept state necessary? The accept action already 
 	//resets to the initial state.
-	_transition(builder, action);
-	_append_state(builder, builder->fsm->accept);
+	_ensure_state(builder);
 
 	//TODO: Possible replaces the accept state
 	fsm_builder_end(builder);
