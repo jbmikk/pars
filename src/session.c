@@ -89,10 +89,12 @@ Action *session_test(Session *session, const Token *token)
 
 	action = state_get_transition(session->current, token->symbol);
 	if(action == NULL) {
+		Symbol *empty = symbol_table_get(session->fsm->table, "__empty", 7);
+
 		trace("test", session->current, action, token, "error", 0);
-		action = &session->fsm->error;
-		session->current = action->state;
-		return action;
+		_mode_push(session, fsm_get_symbol_id(session->fsm, nzs(".error")));
+		_mode_reset(session);
+		action = state_get_transition(session->current, empty->id);
 	}
 
 	switch(action->type) {
@@ -127,10 +129,9 @@ Action *session_match(Session *session, const Token *token)
 
 		if(action == NULL) {
 			trace("match", session->current, action, token, "error", 0);
-			action = &session->fsm->error;
-			session->current = action->state;
-			session->status = SESSION_ERROR;
-			return action;
+			_mode_push(session, fsm_get_symbol_id(session->fsm, nzs(".error")));
+			_mode_reset(session);
+			action = state_get_transition(session->current, empty->id);
 		} else {
 			trace("match", session->current, action, token, "fback", 0);
 		}
@@ -191,6 +192,8 @@ Action *session_match(Session *session, const Token *token)
 		session->current = action->state;
 		action = session_match(session, token);
 		break;
+	case ACTION_ERROR:
+		session->status = SESSION_ERROR;
 	default:
 		break;
 	}

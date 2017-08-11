@@ -20,8 +20,6 @@
 #define ACTION_FLAG_MODE_PUSH 2
 #define ACTION_FLAG_MODE_POP 4
 
-#define NULL_SYMBOL 0
-
 #define REF_PENDING 0
 #define REF_SOLVED 1
 
@@ -71,7 +69,6 @@ typedef struct _Reference {
 } Reference;
 
 typedef struct _Fsm {
-	Action error;
 	SymbolTable *table;
 	Node nonterminals;
 } Fsm;

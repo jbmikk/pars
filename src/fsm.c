@@ -15,10 +15,6 @@ void fsm_init(Fsm *fsm, SymbolTable *table)
 	symbol_table_add(fsm->table, "__empty", 7);
 	
 	radix_tree_init(&fsm->nonterminals);
-
-	action_init(&fsm->error, ACTION_ERROR, NULL_SYMBOL, NULL, 0, 0);
-	fsm->error.state = c_new(State, 1);
-	state_init(fsm->error.state);
 }
 
 void fsm_get_states(Node *states, State *state)
@@ -86,10 +82,6 @@ void fsm_dispose(Fsm *fsm)
 	}
 	radix_tree_iterator_dispose(&it);
 	radix_tree_dispose(&all_states);
-
-	//Delete error state
-	state_dispose(fsm->error.state);
-	c_delete(fsm->error.state);
 
 	fsm->table = NULL;
 }

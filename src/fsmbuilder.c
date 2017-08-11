@@ -576,15 +576,28 @@ retry:
 	}
 }
 
+
+static void _add_error(FsmBuilder *builder)
+{
+	Symbol *empty = symbol_table_get(builder->fsm->table, "__empty", 7);
+	
+	_define_mode(builder, nzs(".error"));
+	State *error = builder->state;
+	state_add(error, empty->id, ACTION_ERROR, NONE);
+	_append_state(builder, error);
+}
+
 void fsm_builder_done(FsmBuilder *builder, int eof_symbol) {
 
 	_set_start(builder, eof_symbol);
+	_add_error(builder);
 	_solve_references(builder);
 }
 
 void fsm_builder_lexer_done(FsmBuilder *builder, int eof_symbol) {
 
 	_set_lexer_start(builder, eof_symbol);
+	_add_error(builder);
 	_solve_references(builder);
 }
 
