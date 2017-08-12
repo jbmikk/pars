@@ -11,9 +11,6 @@ void fsm_init(Fsm *fsm, SymbolTable *table)
 {
 	//TODO: Get symbol table as parameter
 	fsm->table = table;
-
-	symbol_table_add(fsm->table, "__empty", 7);
-	
 	radix_tree_init(&fsm->nonterminals);
 }
 

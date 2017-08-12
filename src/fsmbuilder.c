@@ -97,8 +97,8 @@ static void _ensure_state(FsmBuilder *builder)
 static void _add_empty(FsmBuilder *builder, int type, int reduction)
 {
 	Fsm *fsm = builder->fsm;
-	Symbol *symbol = symbol_table_get(fsm->table, "__empty", 7);
-
+	Symbol *symbol = symbol_table_add(fsm->table, "__empty", 7);
+	
 	_ensure_state(builder);
 	Action *action = state_add(builder->state, symbol->id, type, reduction);
 	_transition(builder, action);
@@ -579,7 +579,7 @@ retry:
 
 static void _add_error(FsmBuilder *builder)
 {
-	Symbol *empty = symbol_table_get(builder->fsm->table, "__empty", 7);
+	Symbol *empty = symbol_table_add(builder->fsm->table, "__empty", 7);
 	
 	_define_mode(builder, nzs(".error"));
 	State *error = builder->state;
