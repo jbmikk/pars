@@ -3,9 +3,9 @@
 #include "cmemory.h"
 #include "dbg.h"
 
-static void _default_pipe_token(void *session, const Token *token)
+static void _default_pipe_token(void *thread, const Token *token)
 {
-	session_match((Session *)session, token);
+	fsm_thread_match((FsmThread *)thread, token);
 }
 
 void parser_init(Parser *parser)
@@ -56,37 +56,37 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 
 	ast_init(ast, input, &parser->table);
 
-	//Parser session
+	//Parser thread
 	//Copy handler prototype and set target
 	FsmHandler handler = parser->handler;
 	handler.target = ast;
 
-	Session session;
-	session_init(&session, &parser->fsm, handler);
+	FsmThread thread;
+	fsm_thread_init(&thread, &parser->fsm, handler);
 
-	//Lexer session
+	//Lexer thread
 	FsmHandler lexer_handler = parser->lexer_handler;
-	lexer_handler.target = &session;
+	lexer_handler.target = &thread;
 	if(!lexer_handler.accept) {
 		lexer_handler.accept = _default_pipe_token;
 	}
 
-	Session lexer_session;
-	session_init(&lexer_session, &parser->lexer_fsm, lexer_handler);
+	FsmThread lexer_thread;
+	fsm_thread_init(&lexer_thread, &parser->lexer_fsm, lexer_handler);
 
 	do {
 		input_next_token(input, &token, &token);
-		session_match(&lexer_session, &token);
+		fsm_thread_match(&lexer_thread, &token);
 
 		check(
-			lexer_session.status != SESSION_ERROR,
+			lexer_thread.status != FSM_THREAD_ERROR,
 			"Lexer error at token "
 			"index: %i with symbol: %i, length: %i",
 			token.index, token.symbol, token.length
 		);
 
 		check(
-			session.status != SESSION_ERROR,
+			thread.status != FSM_THREAD_ERROR,
 			"Parser error at token "
 			"index: %i with symbol: %i, length: %i",
 			token.index, token.symbol, token.length
@@ -95,14 +95,14 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 	} while(token.symbol != L_EOF);
 
 	ast_done(ast);
-	session_dispose(&session);
-	session_dispose(&lexer_session);
+	fsm_thread_dispose(&thread);
+	fsm_thread_dispose(&lexer_thread);
 
 	return 0;
 error:
 	//TODO: free
-	session_dispose(&session);
-	session_dispose(&lexer_session);
+	fsm_thread_dispose(&thread);
+	fsm_thread_dispose(&lexer_thread);
 	ast_dispose(ast);
 
 	return -1;

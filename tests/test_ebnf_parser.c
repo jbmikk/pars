@@ -5,8 +5,8 @@
 #include "ebnf_parser.h"
 #include "test.h"
 
-#define MATCH(S, Y) session_match(&(S), &(struct _Token){ 0, 0, (Y)});
-#define TEST(S, Y) session_test(&(S), &(struct _Token){ 0, 0, (Y)});
+#define MATCH(S, Y) fsm_thread_match(&(S), &(struct _Token){ 0, 0, (Y)});
+#define TEST(S, Y) fsm_thread_test(&(S), &(struct _Token){ 0, 0, (Y)});
 
 #define nzs(S) (S), (strlen(S))
 
@@ -96,189 +96,189 @@ void ebnf_start_parsing__identifier(){
 
 	Action *action;
 
-	Session session;
-	session_init(&session, &fix.fsm, NULL_HANDLER);
-	session.current = fsm_get_state(&fix.fsm, nzs("syntactic_primary"));
-	MATCH(session, fix.META_IDENTIFIER);
+	FsmThread thread;
+	fsm_thread_init(&thread, &fix.fsm, NULL_HANDLER);
+	thread.current = fsm_get_state(&fix.fsm, nzs("syntactic_primary"));
+	MATCH(thread, fix.META_IDENTIFIER);
 
-	action = TEST(session, fix.CONCATENATE_SYMBOL);
+	action = TEST(thread, fix.CONCATENATE_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == fix.SYNTACTIC_PRIMARY);
 
-	action = TEST(session, fix.DEFINITION_SEPARATOR_SYMBOL);
+	action = TEST(thread, fix.DEFINITION_SEPARATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == fix.SYNTACTIC_PRIMARY);
 
-	action = TEST(session, fix.TERMINATOR_SYMBOL);
+	action = TEST(thread, fix.TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == fix.SYNTACTIC_PRIMARY);
 
 	//TODO: mockup shift before reduction
-	//MATCH(session, fix.TERMINATOR_SYMBOL);
-	session_dispose(&session);
+	//MATCH(thread, fix.TERMINATOR_SYMBOL);
+	fsm_thread_dispose(&thread);
 }
 
 void ebnf_start_parsing__terminal(){
 
 	Action *action;
 
-	Session session;
-	session_init(&session, &fix.fsm, NULL_HANDLER);
-	session.current = fsm_get_state(&fix.fsm, nzs("syntactic_primary"));
-	MATCH(session, fix.TERMINAL_STRING);
+	FsmThread thread;
+	fsm_thread_init(&thread, &fix.fsm, NULL_HANDLER);
+	thread.current = fsm_get_state(&fix.fsm, nzs("syntactic_primary"));
+	MATCH(thread, fix.TERMINAL_STRING);
 
-	action = TEST(session, fix.CONCATENATE_SYMBOL);
+	action = TEST(thread, fix.CONCATENATE_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == fix.SYNTACTIC_PRIMARY);
 
-	action = TEST(session, fix.DEFINITION_SEPARATOR_SYMBOL);
+	action = TEST(thread, fix.DEFINITION_SEPARATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == fix.SYNTACTIC_PRIMARY);
 
-	action = TEST(session, fix.TERMINATOR_SYMBOL);
+	action = TEST(thread, fix.TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == fix.SYNTACTIC_PRIMARY);
 
 	//TODO: mockup shift before reduction
-	//MATCH(session, fix.TERMINATOR_SYMBOL);
+	//MATCH(thread, fix.TERMINATOR_SYMBOL);
 
-	session_dispose(&session);
+	fsm_thread_dispose(&thread);
 }
 
 void ebnf_start_parsing__concatenate(){
 	Action *action;
 
-	Session session;
-	session_init(&session, &fix.fsm, NULL_HANDLER);
-	session.current = fsm_get_state(&fix.fsm, nzs("single_definition"));
-	MATCH(session, fix.META_IDENTIFIER);
-	MATCH(session, fix.CONCATENATE_SYMBOL);
-	MATCH(session, fix.TERMINAL_STRING);
+	FsmThread thread;
+	fsm_thread_init(&thread, &fix.fsm, NULL_HANDLER);
+	thread.current = fsm_get_state(&fix.fsm, nzs("single_definition"));
+	MATCH(thread, fix.META_IDENTIFIER);
+	MATCH(thread, fix.CONCATENATE_SYMBOL);
+	MATCH(thread, fix.TERMINAL_STRING);
 
-	action = TEST(session, fix.DEFINITION_SEPARATOR_SYMBOL);
+	action = TEST(thread, fix.DEFINITION_SEPARATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == fix.SYNTACTIC_PRIMARY);
 
-	action = TEST(session, fix.TERMINATOR_SYMBOL);
+	action = TEST(thread, fix.TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == fix.SYNTACTIC_PRIMARY);
 
 	//TODO: mockup shift before reduction
-	//MATCH(session, fix.DEFINITION_SEPARATOR_SYMBOL);
+	//MATCH(thread, fix.DEFINITION_SEPARATOR_SYMBOL);
 
-	session_dispose(&session);
+	fsm_thread_dispose(&thread);
 }
 
 void ebnf_start_parsing__separator(){
 	Action *action;
 
-	Session session;
-	session_init(&session, &fix.fsm, NULL_HANDLER);
-	session.current = fsm_get_state(&fix.fsm, nzs("definitions_list"));
-	MATCH(session, fix.META_IDENTIFIER);
-	MATCH(session, fix.DEFINITION_SEPARATOR_SYMBOL);
-	MATCH(session, fix.TERMINAL_STRING);
+	FsmThread thread;
+	fsm_thread_init(&thread, &fix.fsm, NULL_HANDLER);
+	thread.current = fsm_get_state(&fix.fsm, nzs("definitions_list"));
+	MATCH(thread, fix.META_IDENTIFIER);
+	MATCH(thread, fix.DEFINITION_SEPARATOR_SYMBOL);
+	MATCH(thread, fix.TERMINAL_STRING);
 
-	action = TEST(session, fix.TERMINATOR_SYMBOL);
+	action = TEST(thread, fix.TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == fix.SYNTACTIC_PRIMARY);
 
 	//TODO: mockup shift before reduction
-	//MATCH(session, fix.TERMINATOR_SYMBOL);
+	//MATCH(thread, fix.TERMINATOR_SYMBOL);
 
-	session_dispose(&session);
+	fsm_thread_dispose(&thread);
 }
 
 void ebnf_start_parsing__syntactic_term(){
 	Action *action;
 
-	Session session;
-	session_init(&session, &fix.fsm, NULL_HANDLER);
-	session.current = fsm_get_state(&fix.fsm, nzs("syntactic_term"));
-	MATCH(session, fix.TERMINAL_STRING);
+	FsmThread thread;
+	fsm_thread_init(&thread, &fix.fsm, NULL_HANDLER);
+	thread.current = fsm_get_state(&fix.fsm, nzs("syntactic_term"));
+	MATCH(thread, fix.TERMINAL_STRING);
 
-	action = TEST(session, fix.TERMINATOR_SYMBOL);
+	action = TEST(thread, fix.TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == fix.SYNTACTIC_PRIMARY);
 
-	MATCH(session, fix.EXCEPT_SYMBOL);
-	MATCH(session, fix.TERMINAL_STRING);
+	MATCH(thread, fix.EXCEPT_SYMBOL);
+	MATCH(thread, fix.TERMINAL_STRING);
 
-	action = TEST(session, fix.TERMINATOR_SYMBOL);
+	action = TEST(thread, fix.TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == fix.SYNTACTIC_PRIMARY);
 
 	//TODO: mockup shift before reduction
-	//MATCH(session, fix.TERMINATOR_SYMBOL);
+	//MATCH(thread, fix.TERMINATOR_SYMBOL);
 
-	session_dispose(&session);
+	fsm_thread_dispose(&thread);
 }
 
 void ebnf_start_parsing__syntax_rule(){
 	Action *action;
 
-	Session session;
-	session_init(&session, &fix.fsm, NULL_HANDLER);
-	session.current = fsm_get_state(&fix.fsm, nzs("syntax_rule"));
-	MATCH(session, fix.META_IDENTIFIER);
-	MATCH(session, fix.DEFINING_SYMBOL);
-	MATCH(session, fix.TERMINAL_STRING);
-	MATCH(session, fix.DEFINITION_SEPARATOR_SYMBOL);
-	MATCH(session, fix.META_IDENTIFIER);
-	MATCH(session, fix.TERMINATOR_SYMBOL);
+	FsmThread thread;
+	fsm_thread_init(&thread, &fix.fsm, NULL_HANDLER);
+	thread.current = fsm_get_state(&fix.fsm, nzs("syntax_rule"));
+	MATCH(thread, fix.META_IDENTIFIER);
+	MATCH(thread, fix.DEFINING_SYMBOL);
+	MATCH(thread, fix.TERMINAL_STRING);
+	MATCH(thread, fix.DEFINITION_SEPARATOR_SYMBOL);
+	MATCH(thread, fix.META_IDENTIFIER);
+	MATCH(thread, fix.TERMINATOR_SYMBOL);
 
-	action = TEST(session, L_EOF);
+	action = TEST(thread, L_EOF);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == fix.SYNTAX_RULE);
 
-	action = MATCH(session, L_EOF);
+	action = MATCH(thread, L_EOF);
 	t_assert(action->type == ACTION_ACCEPT);
 
-	session_dispose(&session);
+	fsm_thread_dispose(&thread);
 }
 
 void ebnf_start_parsing__group(){
 	Action *action;
 
-	Session session;
-	session_init(&session, &fix.fsm, NULL_HANDLER);
-	session.current = fsm_get_state(&fix.fsm, nzs("syntactic_primary"));
-	MATCH(session, fix.START_GROUP_SYMBOL);
-	MATCH(session, fix.TERMINAL_STRING);
-	MATCH(session, fix.END_GROUP_SYMBOL);
+	FsmThread thread;
+	fsm_thread_init(&thread, &fix.fsm, NULL_HANDLER);
+	thread.current = fsm_get_state(&fix.fsm, nzs("syntactic_primary"));
+	MATCH(thread, fix.START_GROUP_SYMBOL);
+	MATCH(thread, fix.TERMINAL_STRING);
+	MATCH(thread, fix.END_GROUP_SYMBOL);
 
-	action = TEST(session, fix.TERMINATOR_SYMBOL);
+	action = TEST(thread, fix.TERMINATOR_SYMBOL);
 	t_assert(action->type == ACTION_REDUCE);
 	t_assert(action->reduction == fix.SYNTACTIC_PRIMARY);
 
 	//TODO: mockup shift before reduction
-	//MATCH(session, fix.TERMINATOR_SYMBOL);
+	//MATCH(thread, fix.TERMINATOR_SYMBOL);
 
-	session_dispose(&session);
+	fsm_thread_dispose(&thread);
 }
 
 void ebnf_start_parsing__syntax(){
 	Action *action;
 
-	Session session;
-	session_init(&session, &fix.fsm, NULL_HANDLER);
-	MATCH(session, fix.META_IDENTIFIER);
-	MATCH(session, fix.DEFINING_SYMBOL);
-	MATCH(session, fix.TERMINAL_STRING);
-	MATCH(session, fix.TERMINATOR_SYMBOL);
-	MATCH(session, fix.META_IDENTIFIER);
-	MATCH(session, fix.DEFINING_SYMBOL);
-	MATCH(session, fix.META_IDENTIFIER);
-	MATCH(session, fix.TERMINATOR_SYMBOL);
+	FsmThread thread;
+	fsm_thread_init(&thread, &fix.fsm, NULL_HANDLER);
+	MATCH(thread, fix.META_IDENTIFIER);
+	MATCH(thread, fix.DEFINING_SYMBOL);
+	MATCH(thread, fix.TERMINAL_STRING);
+	MATCH(thread, fix.TERMINATOR_SYMBOL);
+	MATCH(thread, fix.META_IDENTIFIER);
+	MATCH(thread, fix.DEFINING_SYMBOL);
+	MATCH(thread, fix.META_IDENTIFIER);
+	MATCH(thread, fix.TERMINATOR_SYMBOL);
 
-	action = TEST(session, L_EOF);
+	action = TEST(thread, L_EOF);
 	t_assert(action->type == ACTION_REDUCE);
 	//First reduction only, not recursive
 	t_assert(action->reduction == fix.SYNTAX_RULE); 
 
-	action = MATCH(session, L_EOF);
+	action = MATCH(thread, L_EOF);
 	t_assert(action->type == ACTION_ACCEPT);
-	session_dispose(&session);
+	fsm_thread_dispose(&thread);
 }
 
 int main(int argc, char** argv){

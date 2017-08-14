@@ -469,15 +469,15 @@ void ebnf_build_lexer_fsm(Fsm *fsm)
 	fsm_builder_dispose(&builder);
 }
 
-static void _ebnf_pipe_token(void *session, const Token *token)
+static void _ebnf_pipe_token(void *thread, const Token *token)
 {
-	Session *_session = (Session *)session;
-	Symbol *comment = symbol_table_get(_session->fsm->table, "comment", 7);
-	Symbol *white_space = symbol_table_get(_session->fsm->table, "white_space", 11);
+	FsmThread *_thread = (FsmThread *)thread;
+	Symbol *comment = symbol_table_get(_thread->fsm->table, "comment", 7);
+	Symbol *white_space = symbol_table_get(_thread->fsm->table, "white_space", 11);
 
 	//Filter white space and tokens
 	if(token->symbol != comment->id && token->symbol != white_space->id) {
-		session_match(_session, token);
+		fsm_thread_match(_thread, token);
 	}
 }
 

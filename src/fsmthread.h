@@ -1,20 +1,20 @@
-#ifndef SESSION_H
-#define SESSION_H
+#ifndef FSM_THREAD_H
+#define FSM_THREAD_H
 
 #include "fsm.h"
 #include "token.h"
 
-#define SESSION_OK 0
-#define SESSION_ERROR 1
+#define FSM_THREAD_OK 0
+#define FSM_THREAD_ERROR 1
 
-typedef struct _SessionNode {
+typedef struct _FsmThreadNode {
 	State *state;
 	int index;
-	struct _SessionNode *next;
-} SessionNode;
+	struct _FsmThreadNode *next;
+} FsmThreadNode;
 
 typedef struct _Stack {
-	SessionNode *top;
+	FsmThreadNode *top;
 } Stack;
 
 typedef struct _ModeNode {
@@ -33,21 +33,21 @@ typedef struct _FsmHandler {
 	void (*accept)(void *target, const Token *token);
 } FsmHandler;
 
-typedef struct _Session {
+typedef struct _FsmThread {
 	Fsm *fsm;
 	int status;
 	State *current;
 	Stack stack;
 	ModeStack mode_stack;
 	FsmHandler handler;
-} Session;
+} FsmThread;
 
 #define NULL_HANDLER ((FsmHandler){NULL, NULL, NULL})
 
-void session_init(Session *session, Fsm *fsm, FsmHandler handler);
-void session_dispose(Session *session);
+void fsm_thread_init(FsmThread *thread, Fsm *fsm, FsmHandler handler);
+void fsm_thread_dispose(FsmThread *thread);
 
-Action *session_match(Session *session, const Token *token);
-Action *session_test(Session *session, const Token *token);
+Action *fsm_thread_match(FsmThread *thread, const Token *token);
+Action *fsm_thread_test(FsmThread *thread, const Token *token);
 
-#endif //SESSION_H
+#endif //FSM_THREAD_H

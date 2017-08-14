@@ -4,7 +4,7 @@
 #include "symbols.h"
 #include "fsm.h"
 #include "ast.h"
-#include "session.h"
+#include "fsmthread.h"
 
 typedef struct _Parser {
 	SymbolTable table;
