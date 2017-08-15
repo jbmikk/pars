@@ -42,11 +42,12 @@ typedef struct _FsmThread {
 	FsmHandler handler;
 } FsmThread;
 
-#define NULL_HANDLER ((FsmHandler){NULL, NULL, NULL})
+#define NULL_HANDLER ((FsmHandler){NULL, NULL, NULL, NULL})
 
-void fsm_thread_init(FsmThread *thread, Fsm *fsm, FsmHandler handler);
+void fsm_thread_init(FsmThread *thread, Fsm *fsm);
 void fsm_thread_dispose(FsmThread *thread);
 
+int fsm_thread_start(FsmThread *thread);
 Action *fsm_thread_match(FsmThread *thread, const Token *token);
 Action *fsm_thread_test(FsmThread *thread, const Token *token);
 

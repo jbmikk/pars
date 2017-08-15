@@ -60,17 +60,13 @@ static unsigned int _state_pop(FsmThread *thread)
 }
 
 
-void fsm_thread_init(FsmThread *thread, Fsm *fsm, FsmHandler handler)
+void fsm_thread_init(FsmThread *thread, Fsm *fsm)
 {
 	thread->fsm = fsm;
 	thread->status = FSM_THREAD_OK;
 	thread->stack.top = NULL;
 	thread->mode_stack.top = NULL;
-	thread->handler = handler;
-	//TODO: Should avoid pushing state in init?
-	_mode_push(thread, fsm_get_symbol_id(fsm, nzs(".default")));
-	_mode_reset(thread);
-	_state_push(thread, 0);
+	thread->handler = NULL_HANDLER;
 }
 
 void fsm_thread_dispose(FsmThread *thread)
@@ -82,6 +78,16 @@ void fsm_thread_dispose(FsmThread *thread)
 		_mode_pop(thread);
 	}
 }
+
+int fsm_thread_start(FsmThread *thread)
+{
+	_mode_push(thread, fsm_get_symbol_id(thread->fsm, nzs(".default")));
+	_mode_reset(thread);
+	_state_push(thread, 0);
+	//TODO: Check errors?
+	return 0;
+}
+
 
 Action *fsm_thread_test(FsmThread *thread, const Token *token)
 {

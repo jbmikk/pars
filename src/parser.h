@@ -9,20 +9,20 @@
 typedef struct _Parser {
 	SymbolTable table;
 	Fsm fsm;
-	FsmHandler handler;
 	Fsm lexer_fsm;
-	FsmHandler lexer_handler;
+	FsmThread proto_fsm_thread;
+	FsmThread proto_lexer_fsm_thread;
 } Parser;
 
 void parser_init(Parser *parser);
 void parser_dispose(Parser *parser);
-void parser_set_handlers(
+void parser_setup_fsm(
 	Parser *parser,
 	void (*shift)(void *target, const Token *token),
 	void (*reduce)(void *target, const Token *token),
 	void (*accept)(void *target, const Token *token)
 );
-void parser_set_lexer_handlers(
+void parser_setup_lexer_fsm(
 	Parser *parser,
 	void (*shift)(void *target, const Token *token),
 	void (*reduce)(void *target, const Token *token),

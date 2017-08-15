@@ -13,40 +13,41 @@ void parser_init(Parser *parser)
 	symbol_table_init(&parser->table);
 	fsm_init(&parser->lexer_fsm, &parser->table);
 	fsm_init(&parser->fsm, &parser->table);
-
-	parser_set_handlers(parser, NULL, NULL, NULL);
-	parser_set_lexer_handlers(parser, NULL, NULL, NULL);
+	fsm_thread_init(&parser->proto_fsm_thread, &parser->fsm);
+	fsm_thread_init(&parser->proto_lexer_fsm_thread, &parser->lexer_fsm);
 }
 
 void parser_dispose(Parser *parser)
 {
+	fsm_thread_dispose(&parser->proto_fsm_thread);
+	fsm_thread_dispose(&parser->proto_lexer_fsm_thread);
 	fsm_dispose(&parser->fsm);
 	fsm_dispose(&parser->lexer_fsm);
 	symbol_table_dispose(&parser->table);
 }
 
-void parser_set_handlers(
+void parser_setup_fsm(
 	Parser *parser,
 	void (*shift)(void *target, const Token *token),
 	void (*reduce)(void *target, const Token *token),
 	void (*accept)(void *target, const Token *token)
 ) {
-	parser->handler.target = NULL;
-	parser->handler.shift = shift;
-	parser->handler.reduce = reduce;
-	parser->handler.accept = accept;
+	parser->proto_fsm_thread.handler.target = NULL;
+	parser->proto_fsm_thread.handler.shift = shift;
+	parser->proto_fsm_thread.handler.reduce = reduce;
+	parser->proto_fsm_thread.handler.accept = accept;
 }
 
-void parser_set_lexer_handlers(
+void parser_setup_lexer_fsm(
 	Parser *parser,
 	void (*shift)(void *target, const Token *token),
 	void (*reduce)(void *target, const Token *token),
 	void (*accept)(void *target, const Token *token)
 ) {
-	parser->lexer_handler.target = NULL;
-	parser->lexer_handler.shift = shift;
-	parser->lexer_handler.reduce = reduce;
-	parser->lexer_handler.accept = accept;
+	parser->proto_lexer_fsm_thread.handler.target = NULL;
+	parser->proto_lexer_fsm_thread.handler.shift = shift;
+	parser->proto_lexer_fsm_thread.handler.reduce = reduce;
+	parser->proto_lexer_fsm_thread.handler.accept = accept;
 }
 
 int parser_execute(Parser *parser, Ast *ast, Input *input)
@@ -57,23 +58,19 @@ int parser_execute(Parser *parser, Ast *ast, Input *input)
 	ast_init(ast, input, &parser->table);
 
 	//Parser thread
-	//Copy handler prototype and set target
-	FsmHandler handler = parser->handler;
-	handler.target = ast;
+	//Clone thread prototype and set target
+	FsmThread thread = parser->proto_fsm_thread;
+	thread.handler.target = ast;
 
-	FsmThread thread;
-	fsm_thread_init(&thread, &parser->fsm, handler);
-
-	//Lexer thread
-	FsmHandler lexer_handler = parser->lexer_handler;
-	lexer_handler.target = &thread;
-	if(!lexer_handler.accept) {
-		lexer_handler.accept = _default_pipe_token;
+	//Close lexer thread
+	FsmThread lexer_thread = parser->proto_lexer_fsm_thread;
+	lexer_thread.handler.target = &thread;
+	if(!lexer_thread.handler.accept) {
+		lexer_thread.handler.accept = _default_pipe_token;
 	}
 
-	FsmThread lexer_thread;
-	fsm_thread_init(&lexer_thread, &parser->lexer_fsm, lexer_handler);
-
+	fsm_thread_start(&thread);
+	fsm_thread_start(&lexer_thread);
 	do {
 		input_next_token(input, &token, &token);
 		fsm_thread_match(&lexer_thread, &token);

@@ -177,8 +177,8 @@ static void _atl_pipe_token(void *thread, const Token *token)
 
 int atl_build_parser(Parser *parser)
 {
-	parser_set_handlers(parser, ast_open, ast_close, NULL);
-	parser_set_lexer_handlers(parser, NULL, NULL, _atl_pipe_token);
+	parser_setup_fsm(parser, ast_open, ast_close, NULL);
+	parser_setup_lexer_fsm(parser, NULL, NULL, _atl_pipe_token);
 
 	atl_build_lexer_fsm(&parser->lexer_fsm);
 	atl_build_fsm(&parser->fsm);

@@ -15,7 +15,6 @@ typedef struct {
 	SymbolTable table;
 	Fsm fsm;
 	FsmThread thread;
-	FsmHandler handler;
 
 	//Utf8 lexer tests
 	/*
@@ -49,11 +48,9 @@ void t_setup(){
 	fsm_init(&fix.fsm, &fix.table);
 	ebnf_build_lexer_fsm(&fix.fsm);
 
-	fix.handler.shift = NULL;
-	fix.handler.reduce = NULL;
-	fix.handler.accept = push_token;
-	fix.handler.target = &fix;
-	fsm_thread_init(&fix.thread, &fix.fsm, fix.handler);
+	fsm_thread_init(&fix.thread, &fix.fsm);
+	fsm_thread_start(&fix.thread);
+	fix.thread.handler = ((FsmHandler){&fix, NULL, NULL, push_token});
 	//Utf8 tests
 	/*
 	input_init_buffer(&fix.input_utf8_two_byte, I_UTF8_TWO_BYTE, strlen(I_UTF8_TWO_BYTE));

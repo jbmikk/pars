@@ -26,8 +26,8 @@ static void identity_init_lexer_fsm(Fsm *fsm)
 
 int _user_build_parser(Parser *parser)
 {
-	parser_set_handlers(parser, ast_open, ast_close, NULL);
-	parser_set_lexer_handlers(parser, NULL, NULL, NULL);
+	parser_setup_fsm(parser, ast_open, ast_close, NULL);
+	parser_setup_lexer_fsm(parser, NULL, NULL, NULL);
 
 	//TODO: Maybe basic initialization should be separate from specific
 	//initialization for different kinds of parsers.
