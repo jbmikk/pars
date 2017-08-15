@@ -50,7 +50,8 @@ void t_setup(){
 
 	fsm_thread_init(&fix.thread, &fix.fsm);
 	fsm_thread_start(&fix.thread);
-	fix.thread.handler = ((FsmHandler){&fix, NULL, NULL, push_token});
+	fix.thread.handler.target = &fix;
+	fix.thread.handler.accept = push_token;
 	//Utf8 tests
 	/*
 	input_init_buffer(&fix.input_utf8_two_byte, I_UTF8_TWO_BYTE, strlen(I_UTF8_TWO_BYTE));

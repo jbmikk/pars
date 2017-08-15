@@ -206,7 +206,7 @@ void fsm_thread_match__reduce_handler(){
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm);
 	fsm_thread_start(&thread);
-	thread.handler = ((FsmHandler){NULL, NULL, reduce_handler, NULL});
+	thread.handler.reduce = reduce_handler;
 	MATCH_AT(thread, '1', 0);
 	MATCH_AT(thread, '+', 1);
 	t_assert(token.symbol == fsm_get_symbol_id(&fix.fsm, nzs("number")));
