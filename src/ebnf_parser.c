@@ -1,5 +1,7 @@
 #include "ebnf_parser.h"
+#include "parsercontext.h"
 #include "symbols.h"
+#include "astlistener.h"
 
 #include "cmemory.h"
 #include "dbg.h"
@@ -485,6 +487,10 @@ int ebnf_build_parser(Parser *parser)
 {
 	parser_setup_fsm(parser, ast_open, ast_close, NULL);
 	parser_setup_lexer_fsm(parser, NULL, NULL, _ebnf_pipe_token);
+
+	listener_init(&parser->parse_start, ast_parse_start, NULL);
+	listener_init(&parser->parse_end, ast_parse_end, NULL);
+	listener_init(&parser->parse_error, ast_parse_error, NULL);
 
 	ebnf_build_lexer_fsm(&parser->lexer_fsm);
 	ebnf_build_fsm(&parser->fsm);

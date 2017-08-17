@@ -4,8 +4,9 @@
 #include "cmemory.h"
 #include "input.h"
 #include "fsm.h"
-#include "parser.h"
+#include "parsercontext.h"
 #include "ebnf_parser.h"
+#include "astlistener.h"
 
 #include <stddef.h>
 #include <stdio.h>
@@ -29,6 +30,10 @@ int _user_build_parser(Parser *parser)
 	parser_setup_fsm(parser, ast_open, ast_close, NULL);
 	parser_setup_lexer_fsm(parser, NULL, NULL, NULL);
 
+	listener_init(&parser->parse_start, ast_parse_start, NULL);
+	listener_init(&parser->parse_end, ast_parse_end, NULL);
+	listener_init(&parser->parse_error, ast_parse_error, NULL);
+
 	//TODO: Maybe basic initialization should be separate from specific
 	//initialization for different kinds of parsers.
 	//TODO: We don't have a lexer for the source yet
@@ -40,11 +45,36 @@ int _user_build_parser(Parser *parser)
 	//return -1;
 }
 
+static int _parse_grammar(Parser *ebnf_parser, Input *input, Parser *parser)
+{
+	Ast ast;
+	ParserContext context;
+	parser_context_init(&context, ebnf_parser);
+
+	parser_context_set_ast(&context, &ast);
+	parser_context_set_input(&context, input);
+
+	int error = parser_context_execute(&context);
+	check(!error, "Could not build ebnf ast.");
+
+	//TODO: make optional under a -v flag
+	ast_print(&ast);
+
+	ebnf_ast_to_fsm(&parser->fsm, &ast);
+
+	//Must be disposed always, unless parser_execute fails?
+	ast_dispose(&ast);
+	parser_context_dispose(&context);
+	return 0;
+error:
+	parser_context_dispose(&context);
+	return -1;
+}
+
 int cli_load_grammar(char *pathname, Parser *parser)
 {
 	Input input;
 	Parser ebnf_parser;
-	Ast ast;
 	int error;
 
 	parser_init(&ebnf_parser);
@@ -54,18 +84,9 @@ int cli_load_grammar(char *pathname, Parser *parser)
 	input_init(&input, pathname);
 	check(input.is_open, "Could not find or open grammar file: %s", pathname);
 
-	error = parser_execute(&ebnf_parser, &ast, &input);
-	check(!error, "Could not build ebnf ast.");
+	error = _parse_grammar(&ebnf_parser, &input, parser);
+	check(!error, "Could not parse grammar.");
 
-	//TODO: make optional under a -v flag
-	ast_print(&ast);
-
-	ebnf_ast_to_fsm(&parser->fsm, &ast);
-
-	//Must be disposed always, unless parser_execute fails.
-	ast_dispose(&ast);
-
-	//TODO?: can't dispose parser before ast, shared symbol table
 	parser_dispose(&ebnf_parser);
 	input_dispose(&input);
 
@@ -83,7 +104,25 @@ error:
 
 #define nzs(S) (S), (strlen(S))
 
-int cli_parse_source(char *pathname, Parser *parser, Ast *ast)
+static int _parse_source(Parser *parser, Input *input, Ast *ast)
+{
+	ParserContext context;
+	parser_context_init(&context, parser);
+
+	parser_context_set_ast(&context, ast);
+	parser_context_set_input(&context, input);
+
+	int error = parser_context_execute(&context);
+	check(!error, "Could not build ast for source.");
+
+	parser_context_dispose(&context);
+	return 0;
+error:
+	parser_context_dispose(&context);
+	return -1;
+}
+
+int cli_load_source(char *pathname, Parser *parser, Ast *ast)
 {
 	Input input;
 	int error;
@@ -91,17 +130,15 @@ int cli_parse_source(char *pathname, Parser *parser, Ast *ast)
 	input_init(&input, pathname);
 	check(input.is_open, "Could not find or open source file: %s", pathname);
 
-	error = parser_execute(parser, ast, &input);
-	check(!error, "Could not build ast for source %s.", pathname);
+	error = _parse_source(parser, &input, ast);
+	check(!error, "Could not parse source: %s", pathname);
 
 	ast_print(ast);
 
 	input_dispose(&input);
-
 	return 0;
 error:
 	input_dispose(&input);
-
 	return -1;
 }
 
@@ -122,7 +159,7 @@ int main(int argc, char** argv){
 
 		if(argc > 2) {
 			log_info("Parsing source.");
-			error = cli_parse_source(argv[2], &parser, &ast);
+			error = cli_load_source(argv[2], &parser, &ast);
 
 			//TODO: no need to dispose on parsing error
 			//Safe to dispose twice anyway.

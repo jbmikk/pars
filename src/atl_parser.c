@@ -3,6 +3,7 @@
 
 #include "cmemory.h"
 #include "dbg.h"
+#include "astlistener.h"
 
 #define nzs(S) (S), (strlen(S))
 
@@ -179,6 +180,10 @@ int atl_build_parser(Parser *parser)
 {
 	parser_setup_fsm(parser, ast_open, ast_close, NULL);
 	parser_setup_lexer_fsm(parser, NULL, NULL, _atl_pipe_token);
+
+	listener_init(&parser->parse_start, ast_parse_start, NULL);
+	listener_init(&parser->parse_end, ast_parse_end, NULL);
+	listener_init(&parser->parse_error, ast_parse_error, NULL);
 
 	atl_build_lexer_fsm(&parser->lexer_fsm);
 	atl_build_fsm(&parser->fsm);

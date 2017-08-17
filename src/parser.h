@@ -1,15 +1,17 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "symbols.h"
 #include "fsm.h"
-#include "ast.h"
+#include "listener.h"
 #include "fsmthread.h"
 
 typedef struct _Parser {
 	SymbolTable table;
 	Fsm fsm;
 	Fsm lexer_fsm;
+	Listener parse_start;
+	Listener parse_end;
+	Listener parse_error;
 	FsmThread proto_fsm_thread;
 	FsmThread proto_lexer_fsm_thread;
 } Parser;
@@ -28,6 +30,5 @@ void parser_setup_lexer_fsm(
 	void (*reduce)(void *target, const Token *token),
 	void (*accept)(void *target, const Token *token)
 );
-int parser_execute(Parser *parser, Ast *ast, Input *input);
 
 #endif //PARSER_H
