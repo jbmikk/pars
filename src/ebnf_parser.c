@@ -485,6 +485,7 @@ static void _ebnf_pipe_token(void *thread, const Token *token)
 
 int ebnf_build_parser(Parser *parser)
 {
+	//TODO: Move setup into parse_start listeners?
 	parser_setup_fsm(parser, ast_open, ast_close, NULL);
 	parser_setup_lexer_fsm(parser, NULL, NULL, _ebnf_pipe_token);
 
