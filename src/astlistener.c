@@ -6,6 +6,10 @@ int ast_parse_start(void *object, void *params)
 {
 	ParserContext *context = (ParserContext *)object;
 	ast_init(context->ast, context->input, &context->parser->table);
+
+	//Fsm thread target is the ast
+	context->thread.handler.target = context->ast;
+
 	return 0;
 }
 

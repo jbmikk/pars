@@ -48,9 +48,6 @@ int parser_context_execute(ParserContext *context)
 
 	listener_notify(&context->parse_start, NULL);
 
-	//TODO: Should set target in parse start handlers?
-	context->thread.handler.target = context->ast;
-
 	context->lexer_thread.handler.target = &context->thread;
 	if(!context->lexer_thread.handler.accept) {
 		context->lexer_thread.handler.accept = _default_pipe_token;
