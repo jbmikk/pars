@@ -483,12 +483,22 @@ static void _ebnf_pipe_token(void *thread, const Token *token)
 	}
 }
 
+int ebnf_setup_lexer(void *object, void *params)
+{
+	ParserContext *context = (ParserContext *)object;
+
+	context->lexer_thread.handler.target = NULL;
+	context->lexer_thread.handler.shift = NULL;
+	context->lexer_thread.handler.reduce = NULL;
+	context->lexer_thread.handler.accept = _ebnf_pipe_token;
+
+	return 0;
+}
+
 int ebnf_build_parser(Parser *parser)
 {
-	//TODO: Move setup into parse_start listeners?
-	parser_setup_fsm(parser, ast_open, ast_close, NULL);
-	parser_setup_lexer_fsm(parser, NULL, NULL, _ebnf_pipe_token);
-
+	listener_init(&parser->parse_setup_lexer, ebnf_setup_lexer, NULL);
+	listener_init(&parser->parse_setup_fsm, ast_setup_fsm, NULL);
 	listener_init(&parser->parse_start, ast_parse_start, NULL);
 	listener_init(&parser->parse_end, ast_parse_end, NULL);
 	listener_init(&parser->parse_error, ast_parse_error, NULL);

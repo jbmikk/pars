@@ -7,6 +7,8 @@
 
 typedef struct _ParserContext {
 	Parser *parser;
+	Listener parse_setup_lexer;
+	Listener parse_setup_fsm;
 	Listener parse_start;
 	Listener parse_end;
 	Listener parse_error;

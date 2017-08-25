@@ -2,13 +2,22 @@
 
 #include "parsercontext.h"
 
+int ast_setup_fsm(void *object, void *params)
+{
+	ParserContext *context = (ParserContext *)object;
+
+	context->thread.handler.target = context->ast;
+	context->thread.handler.shift = ast_open;
+	context->thread.handler.reduce = ast_close;
+	context->thread.handler.accept = NULL;
+
+	return 0;
+}
+
 int ast_parse_start(void *object, void *params)
 {
 	ParserContext *context = (ParserContext *)object;
 	ast_init(context->ast, context->input, &context->parser->table);
-
-	//Fsm thread target is the ast
-	context->thread.handler.target = context->ast;
 
 	return 0;
 }

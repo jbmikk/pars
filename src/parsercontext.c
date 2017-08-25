@@ -12,6 +12,10 @@ void parser_context_init(ParserContext *context, Parser *parser)
 	context->ast = NULL;
 
 	context->parser = parser;
+	context->parse_setup_lexer = parser->parse_setup_lexer;
+	context->parse_setup_lexer.object = context;
+	context->parse_setup_fsm = parser->parse_setup_fsm;
+	context->parse_setup_fsm.object = context;
 	context->parse_start = parser->parse_start;
 	context->parse_start.object = context;
 	context->parse_end = parser->parse_end;
@@ -19,10 +23,8 @@ void parser_context_init(ParserContext *context, Parser *parser)
 	context->parse_error = parser->parse_error;
 	context->parse_error.object = context;
 
-	//Clone thread prototype
-	context->thread = context->parser->proto_fsm_thread;
-	//Clone lexer thread
-	context->lexer_thread = parser->proto_lexer_fsm_thread;
+	fsm_thread_init(&context->thread, &parser->fsm);
+	fsm_thread_init(&context->lexer_thread, &parser->lexer_fsm);
 }
 
 void parser_context_dispose(ParserContext *context)
@@ -46,6 +48,8 @@ int parser_context_execute(ParserContext *context)
 	Token token;
 	token_init(&token, 0, 0, 0);
 
+	listener_notify(&context->parse_setup_lexer, NULL);
+	listener_notify(&context->parse_setup_fsm, NULL);
 	listener_notify(&context->parse_start, NULL);
 
 	context->lexer_thread.handler.target = &context->thread;
