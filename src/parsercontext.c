@@ -1,11 +1,6 @@
 #include "parsercontext.h"
 #include "dbg.h"
 
-static void _default_pipe_token(void *thread, const Token *token)
-{
-	fsm_thread_match((FsmThread *)thread, token);
-}
-
 void parser_context_init(ParserContext *context, Parser *parser)
 {
 	context->input = NULL;
@@ -51,11 +46,6 @@ int parser_context_execute(ParserContext *context)
 	listener_notify(&context->parse_setup_lexer, NULL);
 	listener_notify(&context->parse_setup_fsm, NULL);
 	listener_notify(&context->parse_start, NULL);
-
-	context->lexer_thread.handler.target = &context->thread;
-	if(!context->lexer_thread.handler.accept) {
-		context->lexer_thread.handler.accept = _default_pipe_token;
-	}
 
 	fsm_thread_start(&context->thread);
 	fsm_thread_start(&context->lexer_thread);

@@ -25,15 +25,19 @@ static void identity_init_lexer_fsm(Fsm *fsm)
 	fsm_builder_dispose(&builder);
 }
 
+static void _user_pipe_token(void *thread, const Token *token)
+{
+	fsm_thread_match((FsmThread *)thread, token);
+}
+
 int _user_setup_lexer(void *object, void *params)
 {
 	ParserContext *context = (ParserContext *)object;
 
-	context->lexer_thread.handler.target = NULL;
+	context->lexer_thread.handler.target = &context->thread;
 	context->lexer_thread.handler.shift = NULL;
 	context->lexer_thread.handler.reduce = NULL;
-	context->lexer_thread.handler.accept = NULL;
-
+	context->lexer_thread.handler.accept = _user_pipe_token;
 	return 0;
 }
 
