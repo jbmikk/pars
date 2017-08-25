@@ -38,17 +38,11 @@ void parser_context_set_ast(ParserContext *context, Ast *ast)
 	context->ast = ast;
 }
 
-int parser_context_execute(ParserContext *context)
+static int _parse_linear_input(ParserContext *context)
 {
 	Token token;
 	token_init(&token, 0, 0, 0);
 
-	listener_notify(&context->parse_setup_lexer, NULL);
-	listener_notify(&context->parse_setup_fsm, NULL);
-	listener_notify(&context->parse_start, NULL);
-
-	fsm_thread_start(&context->thread);
-	fsm_thread_start(&context->lexer_thread);
 	do {
 		input_next_token(context->input, &token, &token);
 		fsm_thread_match(&context->lexer_thread, &token);
@@ -68,6 +62,23 @@ int parser_context_execute(ParserContext *context)
 		);
 
 	} while(token.symbol != L_EOF);
+
+	return 0;
+error:
+	return -1;
+}
+
+int parser_context_execute(ParserContext *context)
+{
+	listener_notify(&context->parse_setup_lexer, NULL);
+	listener_notify(&context->parse_setup_fsm, NULL);
+	listener_notify(&context->parse_start, NULL);
+
+	fsm_thread_start(&context->thread);
+	fsm_thread_start(&context->lexer_thread);
+
+	int error = _parse_linear_input(context);
+	check(!error, "Error during parse.");
 
 	listener_notify(&context->parse_end, NULL);
 
