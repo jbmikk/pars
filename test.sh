@@ -13,6 +13,7 @@ run_test $MODE $PATTERN ./test_input
 run_test $MODE $PATTERN ./test_lexer
 run_test $MODE $PATTERN ./test_ebnf_parser
 run_test $MODE $PATTERN ./test_fsm
+run_test $MODE $PATTERN ./test_parser
 run_test $MODE $PATTERN ./test_ast
 run_test $MODE $PATTERN ./test_cli
 run_test $MODE $PATTERN ./test_astquery
