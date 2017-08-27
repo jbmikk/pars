@@ -40,6 +40,11 @@ void parser_context_set_ast(ParserContext *context, Ast *ast)
 	context->ast = ast;
 }
 
+void parser_context_set_input_ast(ParserContext *context, Ast *ast)
+{
+	context->input_ast = ast;
+}
+
 int parser_context_execute(ParserContext *context)
 {
 	listener_notify(&context->parse_setup_lexer, NULL);

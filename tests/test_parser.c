@@ -2,7 +2,9 @@
 #include <string.h>
 
 #include "fsm.h"
+#include "fsmbuilder.h"
 #include "parsercontext.h"
+#include "controlloop.h"
 #include "test.h"
 
 #define MATCH(S, Y) fsm_thread_match(&(S), &(struct _Token){ 0, 0, (Y)});
@@ -28,6 +30,44 @@ void h(int token)
 	count++;
 }
 
+static void _test_identity_init_lexer_fsm(Fsm *fsm)
+{
+	FsmBuilder builder;
+
+	fsm_builder_init(&builder, fsm);
+
+	fsm_builder_set_mode(&builder, nzs(".default"));
+
+	fsm_builder_lexer_done(&builder, L_EOF);
+	fsm_builder_lexer_default_input(&builder);
+
+	fsm_builder_dispose(&builder);
+}
+
+static void _test_build_tree_fsm(Fsm *fsm)
+{
+	FsmBuilder builder;
+
+	Symbol *t_down = symbol_table_get(&fix.parser.table, "__tdown", 7);
+	//Symbol *t_up = symbol_table_get(&fix.parser.table, "__tup", 5);
+
+	fsm_builder_init(&builder, fsm);
+
+	fsm_builder_define(&builder, nzs("rule"));
+	fsm_builder_terminal(&builder, 0);
+	fsm_builder_terminal(&builder, t_down->id);
+	fsm_builder_terminal(&builder, 'a');
+	fsm_builder_terminal(&builder, t_down->id);
+	fsm_builder_terminal(&builder, 0);
+	fsm_builder_terminal(&builder, 'b');
+	fsm_builder_terminal(&builder, t_down->id);
+	fsm_builder_end(&builder);
+
+	fsm_builder_done(&builder, L_EOF);
+
+	fsm_builder_dispose(&builder);
+}
+
 static void _test_pipe_token(void *thread, const Token *token)
 {
 	fsm_thread_match((FsmThread *)thread, token);
@@ -44,13 +84,21 @@ static int _test_setup_lexer(void *object, void *params)
 	return 0;
 }
 
+void _on_shift(void *ast_p, const Token *token)
+{
+}
+
+void _on_reduce(void *ast_p, const Token *token)
+{
+}
+
 static int _test_setup_fsm(void *object, void *params)
 {
 	ParserContext *context = (ParserContext *)object;
 
 	context->thread.handler.target = context->ast;
-	context->thread.handler.shift = ast_open;
-	context->thread.handler.reduce = ast_close;
+	context->thread.handler.shift = _on_shift;
+	context->thread.handler.reduce = _on_reduce;
 	context->thread.handler.accept = NULL;
 
 	return 0;
@@ -79,8 +127,15 @@ void t_setup(){
 	listener_init(&fix.parser.parse_setup_lexer, _test_setup_lexer, NULL);
 	listener_init(&fix.parser.parse_setup_fsm, _test_setup_fsm, NULL);
 	listener_init(&fix.parser.parse_start, _test_parse_start, NULL);
+	listener_init(&fix.parser.parse_loop, control_loop_ast, NULL);
 	listener_init(&fix.parser.parse_end, _test_parse_end, NULL);
 	listener_init(&fix.parser.parse_error, _test_parse_error, NULL);
+
+	symbol_table_add(&fix.parser.table, "__tdown", 7);
+	symbol_table_add(&fix.parser.table, "__tup", 5);
+
+	_test_identity_init_lexer_fsm(&fix.parser.lexer_fsm);
+	_test_build_tree_fsm(&fix.parser.fsm);
 }
 
 void t_teardown(){
@@ -90,14 +145,26 @@ void t_teardown(){
 void parser_basic_parse(){
 
 	ParserContext context;
-	//Input *input;
+	Ast ast;
+
+	ast_init(&ast, NULL, &fix.parser.table);
+
+	ast_open(&ast, &(Token){1, 1, 0});
+	ast_open(&ast, &(Token){2, 1, 0});
+	ast_close(&ast, &(Token){3, 1, 'b'});
+	ast_close(&ast, &(Token){6, 5, 'a'});
+	ast_done(&ast);
 
 	parser_context_init(&context, &fix.parser);
 
-	//TODO: write proper test when easier to mockup inputs
-	//parser_context_set_input(&context, &input);
+	parser_context_set_input_ast(&context, &ast);
+
+	int error = parser_context_execute(&context);
+
+	t_assert(!error);
 
 	parser_context_dispose(&context);
+	ast_dispose(&ast);
 }
 
 int main(int argc, char** argv){
