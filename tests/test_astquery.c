@@ -18,7 +18,7 @@ typedef struct {
 Fixture fix;
 
 void t_setup(){
-	input_init_buffer(&fix.input, buffer, strlen(buffer));
+	input_set_data(&fix.input, buffer, strlen(buffer));
 	symbol_table_init(&fix.table);
 	ast_init(&fix.ast, &fix.input, &fix.table);
 }

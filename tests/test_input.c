@@ -12,15 +12,17 @@ void t_teardown(){
 
 void input_init__existent_file(){
 	Input input;
-	input_init(&input, "grammars/test_ebnf_grammar.txt");
-	t_assert(input.is_open);
+	input_init(&input);
+	int error = input_open_file(&input, "grammars/test_ebnf_grammar.txt");
+	t_assert(!error);
 	input_dispose(&input);
 }
 
 void input_init__missing_file(){
 	Input input;
-	input_init(&input, "should_not_exist.txt");
-	t_assert(!input.is_open);
+	input_init(&input);
+	int error = input_open_file(&input, "should_not_exist.txt");
+	t_assert(error);
 	input_dispose(&input);
 }
 

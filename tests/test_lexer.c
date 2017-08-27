@@ -54,9 +54,9 @@ void t_setup(){
 	fix.thread.handler.accept = push_token;
 	//Utf8 tests
 	/*
-	input_init_buffer(&fix.input_utf8_two_byte, I_UTF8_TWO_BYTE, strlen(I_UTF8_TWO_BYTE));
+	input_set_data(&fix.input_utf8_two_byte, I_UTF8_TWO_BYTE, strlen(I_UTF8_TWO_BYTE));
 	lexer_init(&fix.lexer_utf8_two_byte, &fix.input_utf8_two_byte);
-	input_init_buffer(&fix.input_utf8_three_byte, I_UTF8_THREE_BYTE, strlen(I_UTF8_THREE_BYTE));
+	input_set_data(&fix.input_utf8_three_byte, I_UTF8_THREE_BYTE, strlen(I_UTF8_THREE_BYTE));
 	lexer_init(&fix.lexer_utf8_three_byte, &fix.input_utf8_three_byte);
 	*/
 }

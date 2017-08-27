@@ -93,11 +93,13 @@ int cli_load_grammar(char *pathname, Parser *parser)
 	int error;
 
 	parser_init(&ebnf_parser);
+	input_init(&input);
+
 	error = ebnf_build_parser(&ebnf_parser);
 	check(!error, "Could not build ebnf parser.");
 
-	input_init(&input, pathname);
-	check(input.is_open, "Could not find or open grammar file: %s", pathname);
+	error = input_open_file(&input, pathname);
+	check(!error, "Could not open grammar file.");
 
 	error = _parse_grammar(&ebnf_parser, &input, parser);
 	check(!error, "Could not parse grammar.");
@@ -107,10 +109,6 @@ int cli_load_grammar(char *pathname, Parser *parser)
 
 	return 0;
 error:
-	//TODO: remove risk of disposing uninitialized structures
-	// _init functions should not return errors, thus ensuring
-	// all of them have been executed and _dispose functions are
-	// safe to call.
 	parser_dispose(&ebnf_parser);
 	input_dispose(&input);
 
@@ -142,8 +140,10 @@ int cli_load_source(char *pathname, Parser *parser, Ast *ast)
 	Input input;
 	int error;
 
-	input_init(&input, pathname);
-	check(input.is_open, "Could not find or open source file: %s", pathname);
+	input_init(&input);
+
+	error = input_open_file(&input, pathname);
+	check(!error, "Could not open input file.");
 
 	error = _parse_source(parser, &input, ast);
 	check(!error, "Could not parse source: %s", pathname);

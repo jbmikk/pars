@@ -1,49 +1,54 @@
 #include "input.h"
 #include "cmemory.h"
+#include "dbg.h"
 
-void input_init_buffer(Input *input, char *data, unsigned int length)
+void input_init(Input *input)
 {
 	input->file = NULL;
-	input->buffer_size = length;
-	input->buffer = data;
+	input->buffer = NULL;
+	input->buffer_size = 0;
 }
 
-void input_init(Input *input, char *pathname)
+void input_set_data(Input *input, char *data, unsigned int length)
+{
+	input->buffer = data;
+	input->buffer_size = length;
+}
+
+int input_open_file(Input *input, char *pathname)
 {
 	FILE *file;
 	char *buffer;
 	unsigned int length;
 
 	file = fopen(pathname, "rb");
+	check(file, "Could not open file: %s", pathname);
 
-	if(file)
-	{
-		fseek(file, 0, SEEK_END);
-		length = ftell(file);
-		fseek(file, 0, SEEK_SET);
-		if(length > 0) {
-			buffer = c_new(char, length);
-			length = fread(buffer, 1, length, file);
-		} else {
-			buffer = NULL;
-		}
-		//TODO:close file
-		input_init_buffer(input, buffer, length);
-		input->file = file;
-		input->is_open = 1;
+	fseek(file, 0, SEEK_END);
+	length = ftell(file);
+	fseek(file, 0, SEEK_SET);
+	if(length > 0) {
+		buffer = c_new(char, length);
+		length = fread(buffer, 1, length, file);
 	} else {
-		input_init_buffer(input, NULL, 0);
-		input->file = NULL;
-		input->is_open = 0;
+		buffer = NULL;
 	}
+
+	input_set_data(input, buffer, length);
+	input->file = file;
+
+	return 0;
+error:
+	return -1;
 }
 
 void input_dispose(Input *input)
 {
-	if(input->is_open) {
+	if(input->file) {
 		c_delete(input->buffer);
 		input->buffer = NULL;
 		fclose(input->file);
+		input->file = NULL;
 	}
 }
 
