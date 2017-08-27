@@ -12,6 +12,7 @@ typedef struct _Parser {
 	Listener parse_setup_fsm;
 	Listener parse_setup_lexer;
 	Listener parse_start;
+	Listener parse_loop;
 	Listener parse_end;
 	Listener parse_error;
 } Parser;

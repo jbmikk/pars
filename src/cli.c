@@ -7,6 +7,7 @@
 #include "parsercontext.h"
 #include "ebnf_parser.h"
 #include "astlistener.h"
+#include "controlloop.h"
 
 #include <stddef.h>
 #include <stdio.h>
@@ -46,6 +47,7 @@ int _user_build_parser(Parser *parser)
 	listener_init(&parser->parse_setup_lexer, _user_setup_lexer, NULL);
 	listener_init(&parser->parse_setup_fsm, ast_setup_fsm, NULL);
 	listener_init(&parser->parse_start, ast_parse_start, NULL);
+	listener_init(&parser->parse_loop, control_loop_linear, NULL);
 	listener_init(&parser->parse_end, ast_parse_end, NULL);
 	listener_init(&parser->parse_error, ast_parse_error, NULL);
 
