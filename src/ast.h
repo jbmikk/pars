@@ -25,7 +25,7 @@ typedef struct _AstCursor {
 	Ast *ast;
 	AstNode *current;
 	int offset;
-	SNode *stack;
+	Stack stack;
 } AstCursor;
 
 void ast_init(Ast *ast, Input *input, SymbolTable *table);

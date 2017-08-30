@@ -129,18 +129,19 @@ void ast_cursor_init(AstCursor *cursor, Ast *ast)
 {
 	cursor->ast = ast;
 	cursor->current = NULL;
-	cursor->stack = NULL;
+	stack_init(&cursor->stack);
 }
 
 void ast_cursor_push(AstCursor *cursor) 
 {
-	cursor->stack = stack_push(cursor->stack, cursor->current);
+	//TODO: validate errors?
+	stack_push(&cursor->stack, cursor->current);
 }
 
 void ast_cursor_pop(AstCursor *cursor) 
 {
-	cursor->current = (AstNode *)cursor->stack->data;
-	cursor->stack = stack_pop(cursor->stack);
+	cursor->current = (AstNode *)cursor->stack.top->data;
+	stack_pop(&cursor->stack);
 }
 
 static AstNode *_get_next_sibling(AstNode *node) {
@@ -235,7 +236,7 @@ AstNode *ast_cursor_descendant_next_symbol(AstCursor *cursor, int symbol)
 AstNode *ast_cursor_relative_next_symbol(AstCursor *cursor, int symbol)
 {
 	AstNode *node;
-	AstNode *base = (AstNode *)cursor->stack->data;
+	AstNode *base = (AstNode *)cursor->stack.top->data;
 
 	node = _depth_out_next(cursor, base);
 	cursor->current = node;
@@ -250,7 +251,7 @@ AstNode *ast_cursor_relative_next_symbol(AstCursor *cursor, int symbol)
 AstNode *ast_cursor_desc_or_rel_next_symbol(AstCursor *cursor, int symbol)
 {
 	AstNode *node;
-	AstNode *base = (AstNode *)cursor->stack->data;
+	AstNode *base = (AstNode *)cursor->stack.top->data;
 
 	do {
 		node = _depth_next(cursor, base);
@@ -283,8 +284,7 @@ void ast_cursor_dispose(AstCursor *cursor)
 {
 	cursor->ast = NULL;
 	cursor->current = NULL;
-	stack_dispose(cursor->stack);
-	cursor->stack = NULL;
+	stack_dispose(&cursor->stack);
 }
 
 void ast_print_node(Ast *ast, AstNode *node, int level) {
