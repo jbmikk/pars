@@ -36,6 +36,7 @@ include_directories("${CMAKE_BINARY_DIR}/dbg-prefix/src/dbg")
 externalproject_add(
         dbg
         GIT_REPOSITORY git@github.com:jbmikk/dbg.git
+        GIT_TAG 1.0.0
         DOWNLOAD_NAME dbg
         DOWNLOAD_DIR dbg
         INSTALL_COMMAND ""
