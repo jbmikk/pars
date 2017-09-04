@@ -359,8 +359,10 @@ void ast_next_sibling_symbol(){
 	ast_open(&fix.ast, &(Token){2, 1, 0});
 	ast_close(&fix.ast, &(Token){3, 1, 123}); //First sibling
 	ast_open(&fix.ast, &(Token){4, 1, 0});
-	ast_close(&fix.ast, &(Token){5, 1, 123}); //Second sibling
-	ast_close(&fix.ast, &(Token){6, 5, 456});
+	ast_close(&fix.ast, &(Token){5, 1, 456}); //Second sibling (should be skipped)
+	ast_open(&fix.ast, &(Token){6, 1, 0});
+	ast_close(&fix.ast, &(Token){7, 1, 123}); //Third sibling
+	ast_close(&fix.ast, &(Token){8, 5, 456});
 	ast_done(&fix.ast);
 
 	ast_cursor_init(&cursor, &fix.ast);
@@ -375,7 +377,7 @@ void ast_next_sibling_symbol(){
 	t_assert(sibling1->token.symbol == 123);
 
 	t_assert(sibling2 != NULL);
-	t_assert(sibling2->token.index == 4);
+	t_assert(sibling2->token.index == 6);
 	t_assert(sibling2->token.length == 1);
 	t_assert(sibling2->token.symbol == 123);
 
@@ -383,7 +385,7 @@ void ast_next_sibling_symbol(){
 	t_assert(sibling3 == NULL);
 
 	t_assert(last != NULL);
-	t_assert(last->token.index == 4);
+	t_assert(last->token.index == 6);
 	t_assert(last->token.length == 1);
 	t_assert(last->token.symbol == 0);
 

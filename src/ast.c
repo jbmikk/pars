@@ -264,9 +264,9 @@ AstNode *ast_cursor_desc_or_rel_next_symbol(AstCursor *cursor, int symbol)
 
 AstNode *ast_cursor_next_sibling_symbol(AstCursor *cursor, int symbol)
 {
-	AstNode * node;
+	AstNode * node = cursor->current;
 	do {
-		node = _get_next_sibling(cursor->current);
+		node = _get_next_sibling(node);
 	} while(node != NULL && node->token.symbol != symbol);
 	if(node != NULL) {
 		cursor->current = node;
