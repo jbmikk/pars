@@ -29,4 +29,4 @@ You can also build the project with tracing information:
     cmake .. -DTRACE=ON
     make
 
-You can also run test.sh to run all tests.
+You can also run test.sh to run all tests and grammars.sh to run test grammars.
