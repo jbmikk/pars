@@ -30,6 +30,7 @@ typedef struct _AstCursor {
 
 void ast_init(Ast *ast, Input *input, SymbolTable *table);
 void ast_dispose(Ast *ast);
+void ast_append(void *ast_p, const Token *token);
 void ast_open(void *ast_p, const Token *token);
 void ast_close(void *ast_p, const Token *token);
 void ast_done(Ast *ast);

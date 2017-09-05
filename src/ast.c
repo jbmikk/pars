@@ -60,6 +60,13 @@ void ast_dispose(Ast *ast)
 
 static void _bind_to_parent(AstNode *node)
 {
+	AstNode* pre = (AstNode*)radix_tree_get_ple_int(&node->parent->children, node->token.index);
+	// TODO: Review algorithm: should avoid creating duplicate nodes when
+	// dropping nonterminals and then closing previous nodes.
+	if(pre) {
+		_node_dispose(pre);
+		c_delete(pre);
+	}
 	radix_tree_set_ple_int(&node->parent->children, node->token.index, node);
 }
 
@@ -71,6 +78,12 @@ static void _node_append(Ast *ast, const Token *token)
 	_bind_to_parent(node);
 
 	trace(node, "add", token->symbol, token->index, token->length);
+}
+
+void ast_append(void *ast_p, const Token *token)
+{
+	Ast *ast = (Ast *)ast_p;
+	_node_append(ast, token);
 }
 
 void ast_open(void *ast_p, const Token *token)

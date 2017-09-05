@@ -28,6 +28,7 @@ typedef struct _ModeStack {
 
 typedef struct _FsmHandler {
 	void *target;
+	void (*drop)(void *target, const Token *token);
 	void (*shift)(void *target, const Token *token);
 	void (*reduce)(void *target, const Token *token);
 	void (*accept)(void *target, const Token *token);

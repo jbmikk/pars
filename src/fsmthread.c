@@ -177,6 +177,14 @@ Action *fsm_thread_match(FsmThread *thread, const Token *token)
 		break;
 	case ACTION_DROP:
 		trace("match", thread->current, action, token, "drop", 0);
+		Token dropped = {
+			token->index,
+			token->length,
+			token->symbol
+		};
+		if(thread->handler.drop) {
+			thread->handler.drop(thread->handler.target, &dropped);
+		}
 		thread->current = action->state;
 		break;
 	case ACTION_REDUCE:

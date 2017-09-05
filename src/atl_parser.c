@@ -183,6 +183,7 @@ int atl_setup_lexer(void *object, void *params)
 	ParserContext *context = (ParserContext *)object;
 
 	context->lexer_thread.handler.target = &context->thread;
+	context->lexer_thread.handler.drop = NULL;
 	context->lexer_thread.handler.shift = NULL;
 	context->lexer_thread.handler.reduce = NULL;
 	context->lexer_thread.handler.accept = _atl_pipe_token;
