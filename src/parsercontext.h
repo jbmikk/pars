@@ -4,6 +4,7 @@
 #include "parser.h"
 #include "listener.h"
 #include "ast.h"
+#include "astbuilder.h"
 
 typedef struct _ParserContext {
 	Parser *parser;
@@ -16,6 +17,7 @@ typedef struct _ParserContext {
 	FsmThread thread;
 	FsmThread lexer_thread;
 	Ast *ast;
+	AstBuilder ast_builder;
 	Input *input;
 	Ast *input_ast;
 } ParserContext;

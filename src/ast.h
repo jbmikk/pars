@@ -15,8 +15,6 @@ typedef struct _AstNode {
 
 typedef struct _Ast {
 	AstNode root;
-	AstNode *current;
-	AstNode *previous;
 	SymbolTable *table;
 	Input *input;
 } Ast;
@@ -28,12 +26,11 @@ typedef struct _AstCursor {
 	Stack stack;
 } AstCursor;
 
+void ast_node_init(AstNode *node, AstNode *parent, const Token *token);
+void ast_node_dispose(AstNode *node);
+
 void ast_init(Ast *ast, Input *input, SymbolTable *table);
 void ast_dispose(Ast *ast);
-void ast_append(void *ast_p, const Token *token);
-void ast_open(void *ast_p, const Token *token);
-void ast_close(void *ast_p, const Token *token);
-void ast_done(Ast *ast);
 void ast_print(Ast *ast);
 int ast_get_symbol(AstCursor *cur, char *name, unsigned int length);
 void ast_cursor_init(AstCursor *cursor, Ast *ast);

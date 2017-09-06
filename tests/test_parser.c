@@ -4,6 +4,7 @@
 #include "fsm.h"
 #include "fsmbuilder.h"
 #include "parsercontext.h"
+#include "astbuilder.h"
 #include "controlloop.h"
 #include "test.h"
 
@@ -147,14 +148,17 @@ void parser_basic_parse(){
 
 	ParserContext context;
 	Ast ast;
+	AstBuilder builder;
 
 	ast_init(&ast, NULL, &fix.parser.table);
 
-	ast_open(&ast, &(Token){1, 1, 0});
-	ast_open(&ast, &(Token){2, 1, 0});
-	ast_close(&ast, &(Token){3, 1, 'b'});
-	ast_close(&ast, &(Token){6, 5, 'a'});
-	ast_done(&ast);
+	ast_builder_init(&builder, &ast);
+	ast_builder_open(&builder, &(Token){1, 1, 0});
+	ast_builder_open(&builder, &(Token){2, 1, 0});
+	ast_builder_close(&builder, &(Token){3, 1, 'b'});
+	ast_builder_close(&builder, &(Token){6, 5, 'a'});
+	ast_builder_done(&builder);
+	ast_builder_dispose(&builder);
 
 	parser_context_init(&context, &fix.parser);
 

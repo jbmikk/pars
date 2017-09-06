@@ -4,6 +4,7 @@
 
 #include "input.h"
 #include "ast.h"
+#include "astbuilder.h"
 #include "test.h"
 
 char *buffer = "this is a test";
@@ -45,11 +46,14 @@ void ast_empty(){
 
 void ast_single_node(){
 	AstCursor cursor;
+	AstBuilder builder;
 	AstNode *node;
 
-	ast_open(&fix.ast, &(Token){1, 1, 0});
-	ast_close(&fix.ast, &(Token){3, 3, 123});
-	ast_done(&fix.ast);
+	ast_builder_init(&builder, &fix.ast);
+	ast_builder_open(&builder, &(Token){1, 1, 0});
+	ast_builder_close(&builder, &(Token){3, 3, 123});
+	ast_builder_done(&builder);
+	ast_builder_dispose(&builder);
 
 	ast_cursor_init(&cursor, &fix.ast);
 	node = ast_cursor_depth_next(&cursor);
@@ -66,16 +70,19 @@ void ast_single_node(){
 
 void ast_nested_nodes(){
 	AstCursor cursor;
+	AstBuilder builder;
 	AstNode *root, *outer_node;
 	AstNode *first_child, *second_child, *grand_child, *last;
 	int root_offset, outer_node_offset, first_child_offset,
 		second_child_offset, grand_child_offset, last_offset;
 
-	ast_open(&fix.ast, &(Token){1, 1, 0});
-	ast_open(&fix.ast, &(Token){2, 1, 0});
-	ast_close(&fix.ast, &(Token){3, 1, 123});
-	ast_close(&fix.ast, &(Token){4, 3, 456});
-	ast_done(&fix.ast);
+	ast_builder_init(&builder, &fix.ast);
+	ast_builder_open(&builder, &(Token){1, 1, 0});
+	ast_builder_open(&builder, &(Token){2, 1, 0});
+	ast_builder_close(&builder, &(Token){3, 1, 123});
+	ast_builder_close(&builder, &(Token){4, 3, 456});
+	ast_builder_done(&builder);
+	ast_builder_dispose(&builder);
 
 	ast_cursor_init(&cursor, &fix.ast);
 	root = ast_cursor_depth_next(&cursor);
@@ -130,16 +137,19 @@ void ast_nested_nodes(){
 
 void ast_sibling_nodes(){
 	AstCursor cursor;
+	AstBuilder builder;
 	AstNode *root, *outer, *outer_child, *sibling1, *sibling2;
 	AstNode *sibling1_child, *sibling2_child, *last;
 
-	ast_open(&fix.ast, &(Token){1, 1, 0});
-	ast_open(&fix.ast, &(Token){2, 1, 0});
-	ast_close(&fix.ast, &(Token){3, 1, 123});
-	ast_open(&fix.ast, &(Token){4, 1, 0});
-	ast_close(&fix.ast, &(Token){5, 1, 456});
-	ast_close(&fix.ast, &(Token){6, 5, 789});
-	ast_done(&fix.ast);
+	ast_builder_init(&builder, &fix.ast);
+	ast_builder_open(&builder, &(Token){1, 1, 0});
+	ast_builder_open(&builder, &(Token){2, 1, 0});
+	ast_builder_close(&builder, &(Token){3, 1, 123});
+	ast_builder_open(&builder, &(Token){4, 1, 0});
+	ast_builder_close(&builder, &(Token){5, 1, 456});
+	ast_builder_close(&builder, &(Token){6, 5, 789});
+	ast_builder_done(&builder);
+	ast_builder_dispose(&builder);
 
 	ast_cursor_init(&cursor, &fix.ast);
 	root = ast_cursor_depth_next(&cursor);
@@ -190,13 +200,16 @@ void ast_sibling_nodes(){
 
 void ast_same_index_nodes(){
 	AstCursor cursor;
+	AstBuilder builder;
 	AstNode *root, *outer, *inner, *inner_child, *last;
 
-	ast_open(&fix.ast, &(Token){1, 1, 0});
-	ast_close(&fix.ast, &(Token){4, 3, 123});
-	ast_open(&fix.ast, &(Token){1, 1, 0});
-	ast_close(&fix.ast, &(Token){5, 4, 456});
-	ast_done(&fix.ast);
+	ast_builder_init(&builder, &fix.ast);
+	ast_builder_open(&builder, &(Token){1, 1, 0});
+	ast_builder_close(&builder, &(Token){4, 3, 123});
+	ast_builder_open(&builder, &(Token){1, 1, 0});
+	ast_builder_close(&builder, &(Token){5, 4, 456});
+	ast_builder_done(&builder);
+	ast_builder_dispose(&builder);
 
 	ast_cursor_init(&cursor, &fix.ast);
 	root = ast_cursor_depth_next(&cursor);
@@ -229,17 +242,20 @@ void ast_same_index_nodes(){
 
 void ast_symbol_descendant_next(){
 	AstCursor cursor;
+	AstBuilder builder;
 	AstNode *sibling1, *sibling2, *last;
 
-	ast_open(&fix.ast, &(Token){1, 1, 0});
-	ast_open(&fix.ast, &(Token){2, 1, 0});
-	ast_close(&fix.ast, &(Token){3, 1, 123});
-	ast_open(&fix.ast, &(Token){4, 1, 0});
-	ast_close(&fix.ast, &(Token){5, 1, 123});
-	ast_close(&fix.ast, &(Token){6, 5, 456});
-	ast_open(&fix.ast, &(Token){7, 1, 0});
-	ast_close(&fix.ast, &(Token){8, 1, 123});
-	ast_done(&fix.ast);
+	ast_builder_init(&builder, &fix.ast);
+	ast_builder_open(&builder, &(Token){1, 1, 0});
+	ast_builder_open(&builder, &(Token){2, 1, 0});
+	ast_builder_close(&builder, &(Token){3, 1, 123});
+	ast_builder_open(&builder, &(Token){4, 1, 0});
+	ast_builder_close(&builder, &(Token){5, 1, 123});
+	ast_builder_close(&builder, &(Token){6, 5, 456});
+	ast_builder_open(&builder, &(Token){7, 1, 0});
+	ast_builder_close(&builder, &(Token){8, 1, 123});
+	ast_builder_done(&builder);
+	ast_builder_dispose(&builder);
 
 	ast_cursor_init(&cursor, &fix.ast);
 	sibling1 = ast_cursor_descendant_next_symbol(&cursor, 456);
@@ -263,17 +279,20 @@ void ast_symbol_descendant_next(){
 
 void ast_next_symbol(){
 	AstCursor cursor;
+	AstBuilder builder;
 	AstNode *sibling1, *sibling2, *sibling3, *sibling2_child, *last;
 
-	ast_open(&fix.ast, &(Token){1, 1, 0});
-	ast_open(&fix.ast, &(Token){2, 1, 0});
-	ast_close(&fix.ast, &(Token){3, 1, 123});
-	ast_open(&fix.ast, &(Token){4, 1, 0});
-	ast_close(&fix.ast, &(Token){5, 1, 123});
-	ast_close(&fix.ast, &(Token){6, 5, 456});
-	ast_open(&fix.ast, &(Token){7, 1, 0});
-	ast_close(&fix.ast, &(Token){8, 1, 123});
-	ast_done(&fix.ast);
+	ast_builder_init(&builder, &fix.ast);
+	ast_builder_open(&builder, &(Token){1, 1, 0});
+	ast_builder_open(&builder, &(Token){2, 1, 0});
+	ast_builder_close(&builder, &(Token){3, 1, 123});
+	ast_builder_open(&builder, &(Token){4, 1, 0});
+	ast_builder_close(&builder, &(Token){5, 1, 123});
+	ast_builder_close(&builder, &(Token){6, 5, 456});
+	ast_builder_open(&builder, &(Token){7, 1, 0});
+	ast_builder_close(&builder, &(Token){8, 1, 123});
+	ast_builder_done(&builder);
+	ast_builder_dispose(&builder);
 
 	ast_cursor_init(&cursor, &fix.ast);
 	sibling1 = ast_cursor_depth_next_symbol(&cursor, 123);
@@ -310,17 +329,20 @@ void ast_next_symbol(){
 
 void ast_relative_symbol_next(){
 	AstCursor cursor;
+	AstBuilder builder;
 	AstNode *sibling1, *sibling2, *sibling3, *last;
 
-	ast_open(&fix.ast, &(Token){1, 1, 0});
-	ast_open(&fix.ast, &(Token){2, 1, 0});
-	ast_close(&fix.ast, &(Token){3, 1, 123});
-	ast_open(&fix.ast, &(Token){4, 1, 0});
-	ast_close(&fix.ast, &(Token){5, 1, 123});
-	ast_close(&fix.ast, &(Token){6, 5, 456});
-	ast_open(&fix.ast, &(Token){7, 1, 0});
-	ast_close(&fix.ast, &(Token){8, 1, 123});
-	ast_done(&fix.ast);
+	ast_builder_init(&builder, &fix.ast);
+	ast_builder_open(&builder, &(Token){1, 1, 0});
+	ast_builder_open(&builder, &(Token){2, 1, 0});
+	ast_builder_close(&builder, &(Token){3, 1, 123});
+	ast_builder_open(&builder, &(Token){4, 1, 0});
+	ast_builder_close(&builder, &(Token){5, 1, 123});
+	ast_builder_close(&builder, &(Token){6, 5, 456});
+	ast_builder_open(&builder, &(Token){7, 1, 0});
+	ast_builder_close(&builder, &(Token){8, 1, 123});
+	ast_builder_done(&builder);
+	ast_builder_dispose(&builder);
 
 	ast_cursor_init(&cursor, &fix.ast);
 	sibling1 = ast_cursor_descendant_next_symbol(&cursor, 456);
@@ -351,19 +373,22 @@ void ast_relative_symbol_next(){
 
 void ast_next_sibling_symbol(){
 	AstCursor cursor;
+	AstBuilder builder;
 	AstNode *sibling1, *sibling2, *sibling3, *last;
 
-	ast_open(&fix.ast, &(Token){1, 1, 0});
-	ast_open(&fix.ast, &(Token){2, 1, 0});
-	ast_close(&fix.ast, &(Token){3, 1, 123}); //Inner sibling (should not be raeched)
-	ast_open(&fix.ast, &(Token){2, 1, 0});
-	ast_close(&fix.ast, &(Token){3, 1, 123}); //First sibling
-	ast_open(&fix.ast, &(Token){4, 1, 0});
-	ast_close(&fix.ast, &(Token){5, 1, 456}); //Second sibling (should be skipped)
-	ast_open(&fix.ast, &(Token){6, 1, 0});
-	ast_close(&fix.ast, &(Token){7, 1, 123}); //Third sibling
-	ast_close(&fix.ast, &(Token){8, 5, 456});
-	ast_done(&fix.ast);
+	ast_builder_init(&builder, &fix.ast);
+	ast_builder_open(&builder, &(Token){1, 1, 0});
+	ast_builder_open(&builder, &(Token){2, 1, 0});
+	ast_builder_close(&builder, &(Token){3, 1, 123}); //Inner sibling (should not be raeched)
+	ast_builder_open(&builder, &(Token){2, 1, 0});
+	ast_builder_close(&builder, &(Token){3, 1, 123}); //First sibling
+	ast_builder_open(&builder, &(Token){4, 1, 0});
+	ast_builder_close(&builder, &(Token){5, 1, 456}); //Second sibling (should be skipped)
+	ast_builder_open(&builder, &(Token){6, 1, 0});
+	ast_builder_close(&builder, &(Token){7, 1, 123}); //Third sibling
+	ast_builder_close(&builder, &(Token){8, 5, 456});
+	ast_builder_done(&builder);
+	ast_builder_dispose(&builder);
 
 	ast_cursor_init(&cursor, &fix.ast);
 	sibling1 = ast_cursor_depth_next_symbol(&cursor, 123);
@@ -394,16 +419,19 @@ void ast_next_sibling_symbol(){
 
 void ast_push_pop_state(){
 	AstCursor cursor;
+	AstBuilder builder;
 	AstNode *sibling1, *sibling1_child, *sibling2, *sibling2_child;
 	AstNode  *sibling2again, *sibling3;
 
-	ast_open(&fix.ast, &(Token){1, 1, 0});
-	ast_open(&fix.ast, &(Token){2, 1, 0});
-	ast_close(&fix.ast, &(Token){3, 1, 123});
-	ast_open(&fix.ast, &(Token){4, 1, 0});
-	ast_close(&fix.ast, &(Token){5, 1, 456});
-	ast_close(&fix.ast, &(Token){6, 5, 789});
-	ast_done(&fix.ast);
+	ast_builder_init(&builder, &fix.ast);
+	ast_builder_open(&builder, &(Token){1, 1, 0});
+	ast_builder_open(&builder, &(Token){2, 1, 0});
+	ast_builder_close(&builder, &(Token){3, 1, 123});
+	ast_builder_open(&builder, &(Token){4, 1, 0});
+	ast_builder_close(&builder, &(Token){5, 1, 456});
+	ast_builder_close(&builder, &(Token){6, 5, 789});
+	ast_builder_done(&builder);
+	ast_builder_dispose(&builder);
 
 	ast_cursor_init(&cursor, &fix.ast);
 
@@ -456,16 +484,19 @@ void ast_push_pop_state(){
 
 void ast_cursor_get_strings(){
 	AstCursor cursor;
+	AstBuilder builder;
 	char *string;
 	int length, diff;
 
-	ast_open(&fix.ast, &(Token){0, 1, 0}); // this is a test
-	ast_open(&fix.ast, &(Token){5, 1, 0}); // is
-	ast_close(&fix.ast, &(Token){6, 2, 123});
-	ast_open(&fix.ast, &(Token){8, 1, 0}); // a
-	ast_close(&fix.ast, &(Token){8, 1, 456});
-	ast_close(&fix.ast, &(Token){13, 14, 789});
-	ast_done(&fix.ast);
+	ast_builder_init(&builder, &fix.ast);
+	ast_builder_open(&builder, &(Token){0, 1, 0}); // this is a test
+	ast_builder_open(&builder, &(Token){5, 1, 0}); // is
+	ast_builder_close(&builder, &(Token){6, 2, 123});
+	ast_builder_open(&builder, &(Token){8, 1, 0}); // a
+	ast_builder_close(&builder, &(Token){8, 1, 456});
+	ast_builder_close(&builder, &(Token){13, 14, 789});
+	ast_builder_done(&builder);
+	ast_builder_dispose(&builder);
 
 	ast_cursor_init(&cursor, &fix.ast);
 

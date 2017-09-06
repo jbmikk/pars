@@ -4,6 +4,7 @@
 
 #include "input.h"
 #include "ast.h"
+#include "astbuilder.h"
 #include "astquery.h"
 #include "test.h"
 
@@ -31,17 +32,20 @@ void t_teardown(){
 
 void ast_query_sibling_iteration(){
 	AstQuery query;
+	AstBuilder builder;
 	AstNode *sibling1, *sibling2, *sibling3, *last;
 
-	ast_open(&fix.ast, &(Token){1, 1, 0});
-	ast_open(&fix.ast, &(Token){2, 1, 0});
-	ast_close(&fix.ast, &(Token){3, 1, 123});
-	ast_open(&fix.ast, &(Token){4, 1, 0});
-	ast_close(&fix.ast, &(Token){5, 1, 123});
-	ast_close(&fix.ast, &(Token){6, 5, 456});
-	ast_open(&fix.ast, &(Token){7, 1, 0});
-	ast_close(&fix.ast, &(Token){8, 1, 123});
-	ast_done(&fix.ast);
+	ast_builder_init(&builder, &fix.ast);
+	ast_builder_open(&builder, &(Token){1, 1, 0});
+	ast_builder_open(&builder, &(Token){2, 1, 0});
+	ast_builder_close(&builder, &(Token){3, 1, 123});
+	ast_builder_open(&builder, &(Token){4, 1, 0});
+	ast_builder_close(&builder, &(Token){5, 1, 123});
+	ast_builder_close(&builder, &(Token){6, 5, 456});
+	ast_builder_open(&builder, &(Token){7, 1, 0});
+	ast_builder_close(&builder, &(Token){8, 1, 123});
+	ast_builder_done(&builder);
+	ast_builder_dispose(&builder);
 
 	int symbols[1] = { 123 };
 	ast_query_init(&query, &fix.ast, symbols, 1);
@@ -72,15 +76,18 @@ void ast_query_sibling_iteration(){
 
 void ast_query_nested_iteration(){
 	AstQuery query;
+	AstBuilder builder;
 	AstNode *sibling1, *sibling2, *last;
 
-	ast_open(&fix.ast, &(Token){1, 1, 0});
-	ast_close(&fix.ast, &(Token){6, 5, 456});
-	ast_open(&fix.ast, &(Token){7, 1, 0});
-	ast_open(&fix.ast, &(Token){8, 1, 0});
-	ast_close(&fix.ast, &(Token){9, 1, 123});
-	ast_close(&fix.ast, &(Token){10, 1, 123});
-	ast_done(&fix.ast);
+	ast_builder_init(&builder, &fix.ast);
+	ast_builder_open(&builder, &(Token){1, 1, 0});
+	ast_builder_close(&builder, &(Token){6, 5, 456});
+	ast_builder_open(&builder, &(Token){7, 1, 0});
+	ast_builder_open(&builder, &(Token){8, 1, 0});
+	ast_builder_close(&builder, &(Token){9, 1, 123});
+	ast_builder_close(&builder, &(Token){10, 1, 123});
+	ast_builder_done(&builder);
+	ast_builder_dispose(&builder);
 
 	int symbols[1] = { 123 };
 	ast_query_init(&query, &fix.ast, symbols, 1);
@@ -105,17 +112,20 @@ void ast_query_nested_iteration(){
 
 void ast_query_two_level_query(){
 	AstQuery query;
+	AstBuilder builder;
 	AstNode *sibling1, *last;
 
-	ast_open(&fix.ast, &(Token){1, 1, 0});
-	ast_open(&fix.ast, &(Token){2, 1, 0});
-	ast_close(&fix.ast, &(Token){3, 1, 123});
-	ast_close(&fix.ast, &(Token){6, 5, 456});
-	ast_open(&fix.ast, &(Token){7, 1, 0});
-	ast_open(&fix.ast, &(Token){8, 1, 0});
-	ast_close(&fix.ast, &(Token){9, 1, 456});
-	ast_close(&fix.ast, &(Token){10, 1, 123});
-	ast_done(&fix.ast);
+	ast_builder_init(&builder, &fix.ast);
+	ast_builder_open(&builder, &(Token){1, 1, 0});
+	ast_builder_open(&builder, &(Token){2, 1, 0});
+	ast_builder_close(&builder, &(Token){3, 1, 123});
+	ast_builder_close(&builder, &(Token){6, 5, 456});
+	ast_builder_open(&builder, &(Token){7, 1, 0});
+	ast_builder_open(&builder, &(Token){8, 1, 0});
+	ast_builder_close(&builder, &(Token){9, 1, 456});
+	ast_builder_close(&builder, &(Token){10, 1, 123});
+	ast_builder_done(&builder);
+	ast_builder_dispose(&builder);
 
 	int symbols[2] = { 123, 456 };
 	ast_query_init(&query, &fix.ast, symbols, 2);

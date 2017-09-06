@@ -9,30 +9,21 @@
 #define trace(N, A, T, I, L)
 #endif
 
-static void _node_init(AstNode *node, AstNode *parent, const Token *token)
+void ast_node_init(AstNode *node, AstNode *parent, const Token *token)
 {
 	node->token = *token;
 	radix_tree_init(&node->children);
 	node->parent = parent;
 }
 
-void ast_init(Ast *ast, Input *input, SymbolTable *table)
-{
-	_node_init(&ast->root, NULL, &(Token){0, 0, 0});
-	ast->current = &ast->root;
-	ast->previous = NULL;
-	ast->input = input;
-	ast->table = table;
-}
-
-static void _node_dispose(AstNode *node)
+void ast_node_dispose(AstNode *node)
 {
 	AstNode *an;
 	Iterator it;
 
 	radix_tree_iterator_init(&it, &node->children);
 	while((an = (AstNode *)radix_tree_iterator_next(&it))) {
-		_node_dispose(an);
+		ast_node_dispose(an);
 		c_delete(an);
 	}
 	radix_tree_iterator_dispose(&it);
@@ -40,102 +31,22 @@ static void _node_dispose(AstNode *node)
 	radix_tree_dispose(&node->children);
 }
 
+
+void ast_init(Ast *ast, Input *input, SymbolTable *table)
+{
+	ast_node_init(&ast->root, NULL, &(Token){0, 0, 0});
+	ast->input = input;
+	ast->table = table;
+}
+
 void ast_dispose(Ast *ast)
 {
-	//TODO Write tests for ast disposal
-	while(ast->current && ast->current != &ast->root) {
-		Token token;
-		token_init(&token, 0, 0, 0);
-		ast_close(ast, &token);
-	}
-	ast_done(ast);
-
-	_node_dispose(&ast->root);
+	ast_node_dispose(&ast->root);
 
 	//In order to dispose multiple times we need to delete old references
 	//Another solution would be to make the root node dynamic.
 	radix_tree_init(&ast->root.children);
 	ast->table = NULL;
-}
-
-static void _bind_to_parent(AstNode *node)
-{
-	AstNode* pre = (AstNode*)radix_tree_get_ple_int(&node->parent->children, node->token.index);
-	// TODO: Review algorithm: should avoid creating duplicate nodes when
-	// dropping nonterminals and then closing previous nodes.
-	if(pre) {
-		_node_dispose(pre);
-		c_delete(pre);
-	}
-	radix_tree_set_ple_int(&node->parent->children, node->token.index, node);
-}
-
-static void _node_append(Ast *ast, const Token *token)
-{
-	AstNode *node = c_new(AstNode, 1);
-	_node_init(node, ast->current, token);
-
-	_bind_to_parent(node);
-
-	trace(node, "add", token->symbol, token->index, token->length);
-}
-
-void ast_append(void *ast_p, const Token *token)
-{
-	Ast *ast = (Ast *)ast_p;
-	_node_append(ast, token);
-}
-
-void ast_open(void *ast_p, const Token *token)
-{
-	Ast *ast = (Ast *)ast_p;
-	AstNode *node = c_new(AstNode, 1);
-	_node_init(node, ast->current, &(Token){token->index, 0, 0});
-
-	trace(node, "open", '?', token->index, 0);
-	AstNode *previous = ast->previous;
-	if(previous != NULL) {
-		ast->previous = NULL;
-		trace(previous, "previous", '?', previous->token.index, 0);
-		if(previous->token.index == node->token.index) {
-			previous->parent = node;
-		}
-		_bind_to_parent(previous);
-	}
-	ast->current = node;
-
-	if(previous == NULL || previous->token.index != node->token.index) {
-		//Only add shifted symbol if it's not the same
-		//that was just closed.
-		_node_append(ast, token);
-	}
-}
-
-void ast_close(void *ast_p, const Token *token)
-{
-	Ast *ast = (Ast *)ast_p;
-	AstNode *node = ast->current;
-
-	node->token.length = token->length;
-	node->token.symbol = token->symbol;
-
-	trace(node, "close", token->symbol, token->index, token->length);
-	if(ast->previous != NULL) {
-		_bind_to_parent(ast->previous);
-	}
-	ast->previous = node;
-	ast->current = node->parent;
-}
-
-void ast_done(Ast *ast)
-{
-	if(ast->previous != NULL) {
-		trace(ast->previous, "done", 0, ast->previous->index, 0);
-		_bind_to_parent(ast->previous);
-		ast->previous = NULL;
-	} else {
-		//TODO: warning or sentinel?
-	}
 }
 
 void ast_cursor_init(AstCursor *cursor, Ast *ast) 
