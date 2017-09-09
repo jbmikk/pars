@@ -22,7 +22,7 @@ static void _node_bind_to_parent(AstNode *node)
 	radix_tree_set_ple_int(&node->parent->children, node->token.index, node);
 }
 
-static void _node_append(AstBuilder *builder, const Token *token)
+static AstNode *_node_append(AstBuilder *builder, const Token *token)
 {
 	AstNode *node = c_new(AstNode, 1);
 	ast_node_init(node, builder->current, token);
@@ -30,6 +30,7 @@ static void _node_append(AstBuilder *builder, const Token *token)
 	_node_bind_to_parent(node);
 
 	trace(node, "add", token->symbol, token->index, token->length);
+	return node;
 }
 
 void ast_builder_init(AstBuilder *builder, Ast *ast)
@@ -54,12 +55,28 @@ void ast_builder_dispose(AstBuilder *builder)
 	builder->previous = NULL;
 }
 
-void ast_builder_append(void *builder_p, const Token *token)
+void ast_builder_append(AstBuilder *builder, const Token *token)
+{
+	_node_append(builder, token);
+}
+
+void ast_builder_append_follow(AstBuilder *builder, const Token *token)
+{
+	builder->current = _node_append(builder, token);
+}
+
+void ast_builder_parent(AstBuilder *builder)
+{
+	builder->current = builder->current->parent;
+}
+
+void ast_builder_drop(void *builder_p, const Token *token)
 {
 	AstBuilder *builder = (AstBuilder *)builder_p;
 	_node_append(builder, token);
 }
 
+//TODO: Should be renamed to 'on shift'?
 void ast_builder_open(void *builder_p, const Token *token)
 {
 	AstBuilder *builder = (AstBuilder *)builder_p;
@@ -85,6 +102,7 @@ void ast_builder_open(void *builder_p, const Token *token)
 	}
 }
 
+//TODO: Should be renamed to 'on reduce'?
 void ast_builder_close(void *builder_p, const Token *token)
 {
 	AstBuilder *builder = (AstBuilder *)builder_p;
@@ -110,5 +128,6 @@ void ast_builder_done(AstBuilder *builder)
 	} else {
 		//TODO: warning or sentinel?
 	}
+	builder->current = &builder->ast->root;
 }
 

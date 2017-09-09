@@ -59,9 +59,7 @@ static void _test_build_tree_fsm(Fsm *fsm)
 	fsm_builder_terminal(&builder, t_down->id);
 	fsm_builder_terminal(&builder, 'a');
 	fsm_builder_terminal(&builder, t_down->id);
-	fsm_builder_terminal(&builder, 0);
 	fsm_builder_terminal(&builder, 'b');
-	fsm_builder_terminal(&builder, t_down->id);
 	fsm_builder_end(&builder);
 
 	fsm_builder_done(&builder, L_EOF);
@@ -153,10 +151,8 @@ void parser_basic_parse(){
 	ast_init(&ast, NULL, &fix.parser.table);
 
 	ast_builder_init(&builder, &ast);
-	ast_builder_open(&builder, &(Token){1, 1, 0});
-	ast_builder_open(&builder, &(Token){2, 1, 0});
-	ast_builder_close(&builder, &(Token){3, 1, 'b'});
-	ast_builder_close(&builder, &(Token){6, 5, 'a'});
+	ast_builder_append_follow(&builder, &(Token){1, 1, 'a'});
+	ast_builder_append(&builder, &(Token){2, 1, 'b'});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
