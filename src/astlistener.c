@@ -9,8 +9,8 @@ int ast_setup_fsm(void *object, void *params)
 
 	context->thread.handler.target = &context->ast_builder;
 	context->thread.handler.drop = ast_builder_drop;
-	context->thread.handler.shift = ast_builder_open;
-	context->thread.handler.reduce = ast_builder_close;
+	context->thread.handler.shift = ast_builder_shift;
+	context->thread.handler.reduce = ast_builder_reduce;
 	context->thread.handler.accept = NULL;
 
 	return 0;

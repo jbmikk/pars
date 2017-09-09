@@ -36,14 +36,14 @@ void ast_query_sibling_iteration(){
 	AstNode *sibling1, *sibling2, *sibling3, *last;
 
 	ast_builder_init(&builder, &fix.ast);
-	ast_builder_open(&builder, &(Token){1, 1, 0});
-	ast_builder_open(&builder, &(Token){2, 1, 0});
-	ast_builder_close(&builder, &(Token){3, 1, 123});
-	ast_builder_open(&builder, &(Token){4, 1, 0});
-	ast_builder_close(&builder, &(Token){5, 1, 123});
-	ast_builder_close(&builder, &(Token){6, 5, 456});
-	ast_builder_open(&builder, &(Token){7, 1, 0});
-	ast_builder_close(&builder, &(Token){8, 1, 123});
+	ast_builder_shift(&builder, &(Token){1, 1, 0});
+	ast_builder_shift(&builder, &(Token){2, 1, 0});
+	ast_builder_reduce(&builder, &(Token){3, 1, 123});
+	ast_builder_shift(&builder, &(Token){4, 1, 0});
+	ast_builder_reduce(&builder, &(Token){5, 1, 123});
+	ast_builder_reduce(&builder, &(Token){6, 5, 456});
+	ast_builder_shift(&builder, &(Token){7, 1, 0});
+	ast_builder_reduce(&builder, &(Token){8, 1, 123});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
@@ -80,12 +80,12 @@ void ast_query_nested_iteration(){
 	AstNode *sibling1, *sibling2, *last;
 
 	ast_builder_init(&builder, &fix.ast);
-	ast_builder_open(&builder, &(Token){1, 1, 0});
-	ast_builder_close(&builder, &(Token){6, 5, 456});
-	ast_builder_open(&builder, &(Token){7, 1, 0});
-	ast_builder_open(&builder, &(Token){8, 1, 0});
-	ast_builder_close(&builder, &(Token){9, 1, 123});
-	ast_builder_close(&builder, &(Token){10, 1, 123});
+	ast_builder_shift(&builder, &(Token){1, 1, 0});
+	ast_builder_reduce(&builder, &(Token){6, 5, 456});
+	ast_builder_shift(&builder, &(Token){7, 1, 0});
+	ast_builder_shift(&builder, &(Token){8, 1, 0});
+	ast_builder_reduce(&builder, &(Token){9, 1, 123});
+	ast_builder_reduce(&builder, &(Token){10, 1, 123});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
@@ -116,14 +116,14 @@ void ast_query_two_level_query(){
 	AstNode *sibling1, *last;
 
 	ast_builder_init(&builder, &fix.ast);
-	ast_builder_open(&builder, &(Token){1, 1, 0});
-	ast_builder_open(&builder, &(Token){2, 1, 0});
-	ast_builder_close(&builder, &(Token){3, 1, 123});
-	ast_builder_close(&builder, &(Token){6, 5, 456});
-	ast_builder_open(&builder, &(Token){7, 1, 0});
-	ast_builder_open(&builder, &(Token){8, 1, 0});
-	ast_builder_close(&builder, &(Token){9, 1, 456});
-	ast_builder_close(&builder, &(Token){10, 1, 123});
+	ast_builder_shift(&builder, &(Token){1, 1, 0});
+	ast_builder_shift(&builder, &(Token){2, 1, 0});
+	ast_builder_reduce(&builder, &(Token){3, 1, 123});
+	ast_builder_reduce(&builder, &(Token){6, 5, 456});
+	ast_builder_shift(&builder, &(Token){7, 1, 0});
+	ast_builder_shift(&builder, &(Token){8, 1, 0});
+	ast_builder_reduce(&builder, &(Token){9, 1, 456});
+	ast_builder_reduce(&builder, &(Token){10, 1, 123});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 

@@ -46,7 +46,8 @@ void ast_builder_dispose(AstBuilder *builder)
 	while(builder->current && builder->current != &builder->ast->root) {
 		Token token;
 		token_init(&token, 0, 0, 0);
-		ast_builder_close(builder, &token);
+		//TODO: What if we are not using the fsm api?
+		ast_builder_reduce(builder, &token);
 	}
 	ast_builder_done(builder);
 
@@ -76,8 +77,7 @@ void ast_builder_drop(void *builder_p, const Token *token)
 	_node_append(builder, token);
 }
 
-//TODO: Should be renamed to 'on shift'?
-void ast_builder_open(void *builder_p, const Token *token)
+void ast_builder_shift(void *builder_p, const Token *token)
 {
 	AstBuilder *builder = (AstBuilder *)builder_p;
 	AstNode *node = c_new(AstNode, 1);
@@ -102,8 +102,7 @@ void ast_builder_open(void *builder_p, const Token *token)
 	}
 }
 
-//TODO: Should be renamed to 'on reduce'?
-void ast_builder_close(void *builder_p, const Token *token)
+void ast_builder_reduce(void *builder_p, const Token *token)
 {
 	AstBuilder *builder = (AstBuilder *)builder_p;
 	AstNode *node = builder->current;

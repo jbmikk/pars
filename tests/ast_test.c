@@ -50,8 +50,8 @@ void ast_single_node(){
 	AstNode *node;
 
 	ast_builder_init(&builder, &fix.ast);
-	ast_builder_open(&builder, &(Token){1, 1, 0});
-	ast_builder_close(&builder, &(Token){3, 3, 123});
+	ast_builder_shift(&builder, &(Token){1, 1, 0});
+	ast_builder_reduce(&builder, &(Token){3, 3, 123});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
@@ -77,10 +77,10 @@ void ast_nested_nodes(){
 		second_child_offset, grand_child_offset, last_offset;
 
 	ast_builder_init(&builder, &fix.ast);
-	ast_builder_open(&builder, &(Token){1, 1, 0});
-	ast_builder_open(&builder, &(Token){2, 1, 0});
-	ast_builder_close(&builder, &(Token){3, 1, 123});
-	ast_builder_close(&builder, &(Token){4, 3, 456});
+	ast_builder_shift(&builder, &(Token){1, 1, 0});
+	ast_builder_shift(&builder, &(Token){2, 1, 0});
+	ast_builder_reduce(&builder, &(Token){3, 1, 123});
+	ast_builder_reduce(&builder, &(Token){4, 3, 456});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
@@ -142,12 +142,12 @@ void ast_sibling_nodes(){
 	AstNode *sibling1_child, *sibling2_child, *last;
 
 	ast_builder_init(&builder, &fix.ast);
-	ast_builder_open(&builder, &(Token){1, 1, 0});
-	ast_builder_open(&builder, &(Token){2, 1, 0});
-	ast_builder_close(&builder, &(Token){3, 1, 123});
-	ast_builder_open(&builder, &(Token){4, 1, 0});
-	ast_builder_close(&builder, &(Token){5, 1, 456});
-	ast_builder_close(&builder, &(Token){6, 5, 789});
+	ast_builder_shift(&builder, &(Token){1, 1, 0});
+	ast_builder_shift(&builder, &(Token){2, 1, 0});
+	ast_builder_reduce(&builder, &(Token){3, 1, 123});
+	ast_builder_shift(&builder, &(Token){4, 1, 0});
+	ast_builder_reduce(&builder, &(Token){5, 1, 456});
+	ast_builder_reduce(&builder, &(Token){6, 5, 789});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
@@ -204,10 +204,10 @@ void ast_same_index_nodes(){
 	AstNode *root, *outer, *inner, *inner_child, *last;
 
 	ast_builder_init(&builder, &fix.ast);
-	ast_builder_open(&builder, &(Token){1, 1, 0});
-	ast_builder_close(&builder, &(Token){4, 3, 123});
-	ast_builder_open(&builder, &(Token){1, 1, 0});
-	ast_builder_close(&builder, &(Token){5, 4, 456});
+	ast_builder_shift(&builder, &(Token){1, 1, 0});
+	ast_builder_reduce(&builder, &(Token){4, 3, 123});
+	ast_builder_shift(&builder, &(Token){1, 1, 0});
+	ast_builder_reduce(&builder, &(Token){5, 4, 456});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
@@ -246,14 +246,14 @@ void ast_symbol_descendant_next(){
 	AstNode *sibling1, *sibling2, *last;
 
 	ast_builder_init(&builder, &fix.ast);
-	ast_builder_open(&builder, &(Token){1, 1, 0});
-	ast_builder_open(&builder, &(Token){2, 1, 0});
-	ast_builder_close(&builder, &(Token){3, 1, 123});
-	ast_builder_open(&builder, &(Token){4, 1, 0});
-	ast_builder_close(&builder, &(Token){5, 1, 123});
-	ast_builder_close(&builder, &(Token){6, 5, 456});
-	ast_builder_open(&builder, &(Token){7, 1, 0});
-	ast_builder_close(&builder, &(Token){8, 1, 123});
+	ast_builder_shift(&builder, &(Token){1, 1, 0});
+	ast_builder_shift(&builder, &(Token){2, 1, 0});
+	ast_builder_reduce(&builder, &(Token){3, 1, 123});
+	ast_builder_shift(&builder, &(Token){4, 1, 0});
+	ast_builder_reduce(&builder, &(Token){5, 1, 123});
+	ast_builder_reduce(&builder, &(Token){6, 5, 456});
+	ast_builder_shift(&builder, &(Token){7, 1, 0});
+	ast_builder_reduce(&builder, &(Token){8, 1, 123});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
@@ -283,14 +283,14 @@ void ast_next_symbol(){
 	AstNode *sibling1, *sibling2, *sibling3, *sibling2_child, *last;
 
 	ast_builder_init(&builder, &fix.ast);
-	ast_builder_open(&builder, &(Token){1, 1, 0});
-	ast_builder_open(&builder, &(Token){2, 1, 0});
-	ast_builder_close(&builder, &(Token){3, 1, 123});
-	ast_builder_open(&builder, &(Token){4, 1, 0});
-	ast_builder_close(&builder, &(Token){5, 1, 123});
-	ast_builder_close(&builder, &(Token){6, 5, 456});
-	ast_builder_open(&builder, &(Token){7, 1, 0});
-	ast_builder_close(&builder, &(Token){8, 1, 123});
+	ast_builder_shift(&builder, &(Token){1, 1, 0});
+	ast_builder_shift(&builder, &(Token){2, 1, 0});
+	ast_builder_reduce(&builder, &(Token){3, 1, 123});
+	ast_builder_shift(&builder, &(Token){4, 1, 0});
+	ast_builder_reduce(&builder, &(Token){5, 1, 123});
+	ast_builder_reduce(&builder, &(Token){6, 5, 456});
+	ast_builder_shift(&builder, &(Token){7, 1, 0});
+	ast_builder_reduce(&builder, &(Token){8, 1, 123});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
@@ -333,14 +333,14 @@ void ast_relative_symbol_next(){
 	AstNode *sibling1, *sibling2, *sibling3, *last;
 
 	ast_builder_init(&builder, &fix.ast);
-	ast_builder_open(&builder, &(Token){1, 1, 0});
-	ast_builder_open(&builder, &(Token){2, 1, 0});
-	ast_builder_close(&builder, &(Token){3, 1, 123});
-	ast_builder_open(&builder, &(Token){4, 1, 0});
-	ast_builder_close(&builder, &(Token){5, 1, 123});
-	ast_builder_close(&builder, &(Token){6, 5, 456});
-	ast_builder_open(&builder, &(Token){7, 1, 0});
-	ast_builder_close(&builder, &(Token){8, 1, 123});
+	ast_builder_shift(&builder, &(Token){1, 1, 0});
+	ast_builder_shift(&builder, &(Token){2, 1, 0});
+	ast_builder_reduce(&builder, &(Token){3, 1, 123});
+	ast_builder_shift(&builder, &(Token){4, 1, 0});
+	ast_builder_reduce(&builder, &(Token){5, 1, 123});
+	ast_builder_reduce(&builder, &(Token){6, 5, 456});
+	ast_builder_shift(&builder, &(Token){7, 1, 0});
+	ast_builder_reduce(&builder, &(Token){8, 1, 123});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
@@ -377,16 +377,16 @@ void ast_next_sibling_symbol(){
 	AstNode *sibling1, *sibling2, *sibling3, *last;
 
 	ast_builder_init(&builder, &fix.ast);
-	ast_builder_open(&builder, &(Token){1, 1, 0});
-	ast_builder_open(&builder, &(Token){2, 1, 0});
-	ast_builder_close(&builder, &(Token){3, 1, 123}); //Inner sibling (should not be raeched)
-	ast_builder_open(&builder, &(Token){2, 1, 0});
-	ast_builder_close(&builder, &(Token){3, 1, 123}); //First sibling
-	ast_builder_open(&builder, &(Token){4, 1, 0});
-	ast_builder_close(&builder, &(Token){5, 1, 456}); //Second sibling (should be skipped)
-	ast_builder_open(&builder, &(Token){6, 1, 0});
-	ast_builder_close(&builder, &(Token){7, 1, 123}); //Third sibling
-	ast_builder_close(&builder, &(Token){8, 5, 456});
+	ast_builder_shift(&builder, &(Token){1, 1, 0});
+	ast_builder_shift(&builder, &(Token){2, 1, 0});
+	ast_builder_reduce(&builder, &(Token){3, 1, 123}); //Inner sibling (should not be raeched)
+	ast_builder_shift(&builder, &(Token){2, 1, 0});
+	ast_builder_reduce(&builder, &(Token){3, 1, 123}); //First sibling
+	ast_builder_shift(&builder, &(Token){4, 1, 0});
+	ast_builder_reduce(&builder, &(Token){5, 1, 456}); //Second sibling (should be skipped)
+	ast_builder_shift(&builder, &(Token){6, 1, 0});
+	ast_builder_reduce(&builder, &(Token){7, 1, 123}); //Third sibling
+	ast_builder_reduce(&builder, &(Token){8, 5, 456});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
@@ -424,12 +424,12 @@ void ast_push_pop_state(){
 	AstNode  *sibling2again, *sibling3;
 
 	ast_builder_init(&builder, &fix.ast);
-	ast_builder_open(&builder, &(Token){1, 1, 0});
-	ast_builder_open(&builder, &(Token){2, 1, 0});
-	ast_builder_close(&builder, &(Token){3, 1, 123});
-	ast_builder_open(&builder, &(Token){4, 1, 0});
-	ast_builder_close(&builder, &(Token){5, 1, 456});
-	ast_builder_close(&builder, &(Token){6, 5, 789});
+	ast_builder_shift(&builder, &(Token){1, 1, 0});
+	ast_builder_shift(&builder, &(Token){2, 1, 0});
+	ast_builder_reduce(&builder, &(Token){3, 1, 123});
+	ast_builder_shift(&builder, &(Token){4, 1, 0});
+	ast_builder_reduce(&builder, &(Token){5, 1, 456});
+	ast_builder_reduce(&builder, &(Token){6, 5, 789});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
@@ -489,12 +489,12 @@ void ast_cursor_get_strings(){
 	int length, diff;
 
 	ast_builder_init(&builder, &fix.ast);
-	ast_builder_open(&builder, &(Token){0, 1, 0}); // this is a test
-	ast_builder_open(&builder, &(Token){5, 1, 0}); // is
-	ast_builder_close(&builder, &(Token){6, 2, 123});
-	ast_builder_open(&builder, &(Token){8, 1, 0}); // a
-	ast_builder_close(&builder, &(Token){8, 1, 456});
-	ast_builder_close(&builder, &(Token){13, 14, 789});
+	ast_builder_shift(&builder, &(Token){0, 1, 0}); // this is a test
+	ast_builder_shift(&builder, &(Token){5, 1, 0}); // is
+	ast_builder_reduce(&builder, &(Token){6, 2, 123});
+	ast_builder_shift(&builder, &(Token){8, 1, 0}); // a
+	ast_builder_reduce(&builder, &(Token){8, 1, 456});
+	ast_builder_reduce(&builder, &(Token){13, 14, 789});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
