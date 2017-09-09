@@ -1,6 +1,6 @@
 # pars: a parsing tool
 
-Licensed under the [GPL version 2] (http://www.gnu.org/licenses/)
+Licensed under the [GPL version 2](http://www.gnu.org/licenses/)
 
 ## Introduction
 
