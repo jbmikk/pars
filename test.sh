@@ -9,13 +9,13 @@ echo ""
 echo "TESTPARS:"
 echo "--------"
 
-run_test $MODE $PATTERN ./test_input
-run_test $MODE $PATTERN ./test_lexer
-run_test $MODE $PATTERN ./test_ebnf_parser
-run_test $MODE $PATTERN ./test_fsm
-run_test $MODE $PATTERN ./test_parser
-run_test $MODE $PATTERN ./test_ast
-run_test $MODE $PATTERN ./test_cli
-run_test $MODE $PATTERN ./test_astquery
+run_test $MODE $PATTERN ./input_test
+run_test $MODE $PATTERN ./lexer_test
+run_test $MODE $PATTERN ./ebnf_parser_test
+run_test $MODE $PATTERN ./fsm_test
+run_test $MODE $PATTERN ./parser_test
+run_test $MODE $PATTERN ./ast_test
+run_test $MODE $PATTERN ./cli_test
+run_test $MODE $PATTERN ./astquery_test
 
 
