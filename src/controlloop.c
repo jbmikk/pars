@@ -41,9 +41,8 @@ int control_loop_ast(void *object, void *params)
 	Token token;
 	token_init(&token, 0, 0, 0);
 
-	//TODO: These symbols should be created elsewhere.
-	Symbol *t_down = symbol_table_add(&context->parser->table, "__tdown", 7);
-	Symbol *t_up = symbol_table_add(&context->parser->table, "__tup", 5);
+	Symbol *t_down = symbol_table_get(&context->parser->table, "__tdown", 7);
+	Symbol *t_up = symbol_table_get(&context->parser->table, "__tup", 5);
 
 	Token token_down;
 	token_init(&token_down, 0, 0, t_down->id);

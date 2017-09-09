@@ -131,6 +131,8 @@ void t_setup(){
 	listener_init(&fix.parser.parse_end, _test_parse_end, NULL);
 	listener_init(&fix.parser.parse_error, _test_parse_error, NULL);
 
+
+	//TODO: Move to _test_build_symbol_table?
 	symbol_table_add(&fix.parser.table, "__tdown", 7);
 	symbol_table_add(&fix.parser.table, "__tup", 5);
 
