@@ -221,9 +221,14 @@ void ast_print_node(Ast *ast, AstNode *node, int level) {
 	}
 
 	do {
-		char *src = ast->input->buffer + next->token.index;
+		char *src = NULL;
 		int index = next->token.index;
-		int length = next->token.length;
+		int length = 0;
+
+		if(ast->input) {
+			src = ast->input->buffer + next->token.index;
+			length = next->token.length;
+		}
 
 		unsigned char levelstr[level+1];
 		int i;
