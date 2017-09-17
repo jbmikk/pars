@@ -67,6 +67,29 @@ static void _build_simple_ab_fsm(Fsm *fsm)
 	fsm_builder_dispose(&builder);
 }
 
+static void _build_simple_abc_fsm(Fsm *fsm)
+{
+	FsmBuilder builder;
+
+	Symbol *t_down = symbol_table_get(&fix.parser.table, "__tdown", 7);
+	//Symbol *t_up = symbol_table_get(&fix.parser.table, "__tup", 5);
+
+	fsm_builder_init(&builder, fsm);
+
+	fsm_builder_define(&builder, nzs("rule"));
+	fsm_builder_terminal(&builder, 0);
+	fsm_builder_terminal(&builder, t_down->id);
+	fsm_builder_terminal(&builder, 'a');
+	fsm_builder_terminal(&builder, t_down->id);
+	fsm_builder_terminal(&builder, 'b');
+	fsm_builder_terminal(&builder, 'c');
+	fsm_builder_end(&builder);
+
+	fsm_builder_done(&builder, L_EOF);
+
+	fsm_builder_dispose(&builder);
+}
+
 static void _test_pipe_token(void *thread, const Token *token)
 {
 	fsm_thread_match((FsmThread *)thread, token);
@@ -143,7 +166,7 @@ void t_teardown(){
 	parser_dispose(&fix.parser);
 }
 
-void parser_basic_parse(){
+void _parser_basic_parse(){
 
 	ParserContext context;
 	Ast ast;
@@ -171,8 +194,38 @@ void parser_basic_parse(){
 	ast_dispose(&ast);
 }
 
+static void _parse_parent_and_siblings_test(){
+
+	ParserContext context;
+	Ast ast;
+	AstBuilder builder;
+
+	_build_simple_abc_fsm(&fix.parser.fsm);
+
+	ast_init(&ast, NULL, &fix.parser.table);
+
+	ast_builder_init(&builder, &ast);
+	ast_builder_append_follow(&builder, &(Token){1, 1, 'a'});
+	ast_builder_append(&builder, &(Token){2, 1, 'b'});
+	ast_builder_append(&builder, &(Token){3, 1, 'c'});
+	ast_builder_done(&builder);
+	ast_builder_dispose(&builder);
+
+	parser_context_init(&context, &fix.parser);
+
+	parser_context_set_input_ast(&context, &ast);
+
+	int error = parser_context_execute(&context);
+
+	t_assert(!error);
+
+	parser_context_dispose(&context);
+	ast_dispose(&ast);
+}
+
 int main(int argc, char** argv){
 	t_init(&argc, &argv, NULL);
-	t_test(parser_basic_parse);
+	t_test(_parser_basic_parse);
+	t_test(_parse_parent_and_siblings_test);
 	return t_done();
 }
