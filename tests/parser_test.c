@@ -45,7 +45,7 @@ static void _test_identity_init_lexer_fsm(Fsm *fsm)
 	fsm_builder_dispose(&builder);
 }
 
-static void _test_build_tree_fsm(Fsm *fsm)
+static void _build_simple_ab_fsm(Fsm *fsm)
 {
 	FsmBuilder builder;
 
@@ -137,7 +137,6 @@ void t_setup(){
 	symbol_table_add(&fix.parser.table, "__tup", 5);
 
 	_test_identity_init_lexer_fsm(&fix.parser.lexer_fsm);
-	_test_build_tree_fsm(&fix.parser.fsm);
 }
 
 void t_teardown(){
@@ -149,6 +148,8 @@ void parser_basic_parse(){
 	ParserContext context;
 	Ast ast;
 	AstBuilder builder;
+
+	_build_simple_ab_fsm(&fix.parser.fsm);
 
 	ast_init(&ast, NULL, &fix.parser.table);
 
