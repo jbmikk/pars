@@ -94,7 +94,7 @@ void state_add_reference(State *state, Symbol *symbol, State *to_state);
 Action *state_get_transition(State *state, int symbol);
 void state_dispose(State *state);
 Action *state_add(State *from, int symbol, int type, int reduction);
-Action *state_add_range(State *state, int symbol1, int symbol2, int type, int reduction);
+Action *state_add_range(State *state, Range range, int type, int reduction);
 void reference_solve_first_set(Reference *ref, int *unsolved);
 void state_add_reduce_follow_set(State *from, State *to, int symbol);
 

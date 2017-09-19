@@ -88,7 +88,7 @@ void fsm_thread_match__shift_range(){
 	fsm_builder_init(&builder, &fix.fsm);
 
 	fsm_builder_define(&builder, nzs("name"));
-	fsm_builder_terminal_range(&builder, 'a', 'p');
+	fsm_builder_terminal_range(&builder, (Range){'a', 'p'});
 	fsm_builder_end(&builder);
 
 	fsm_builder_done(&builder, '\0');

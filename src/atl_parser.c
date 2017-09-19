@@ -77,26 +77,26 @@ void atl_build_lexer_fsm(Fsm *fsm)
 	//Meta identifiers
 	fsm_builder_define(&builder, nzs("identifier"));
 	fsm_builder_group_start(&builder);
-	fsm_builder_terminal_range(&builder, 'a', 'z');
+	fsm_builder_terminal_range(&builder, (Range){'a', 'z'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'A', 'Z');
+	fsm_builder_terminal_range(&builder, (Range){'A', 'Z'});
 	fsm_builder_group_end(&builder);
 	fsm_builder_loop_group_start(&builder);
-	fsm_builder_terminal_range(&builder, 'a', 'z');
+	fsm_builder_terminal_range(&builder, (Range){'a', 'z'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'A', 'Z');
+	fsm_builder_terminal_range(&builder, (Range){'A', 'Z'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, '0', '9');
+	fsm_builder_terminal_range(&builder, (Range){'0', '9'});
 	fsm_builder_loop_group_end(&builder);
 	fsm_builder_end(&builder);
 
 	//Integer
 	fsm_builder_define(&builder, nzs("integer"));
 	fsm_builder_group_start(&builder);
-	fsm_builder_terminal_range(&builder, '0', '9');
+	fsm_builder_terminal_range(&builder, (Range){'0', '9'});
 	fsm_builder_group_end(&builder);
 	fsm_builder_loop_group_start(&builder);
-	fsm_builder_terminal_range(&builder, '0', '9');
+	fsm_builder_terminal_range(&builder, (Range){'0', '9'});
 	fsm_builder_loop_group_end(&builder);
 	fsm_builder_end(&builder);
 
@@ -105,11 +105,11 @@ void atl_build_lexer_fsm(Fsm *fsm)
 	fsm_builder_define(&builder, nzs("string"));
 	fsm_builder_terminal(&builder, '"');
 	fsm_builder_loop_group_start(&builder);
-	fsm_builder_terminal_range(&builder, '0', '9');
+	fsm_builder_terminal_range(&builder, (Range){'0', '9'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'a', 'z');
+	fsm_builder_terminal_range(&builder, (Range){'a', 'z'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'A', 'Z');
+	fsm_builder_terminal_range(&builder, (Range){'A', 'Z'});
 	fsm_builder_or(&builder);
 	fsm_builder_terminal(&builder, '\\');
 	fsm_builder_terminal(&builder, '"');
@@ -122,11 +122,11 @@ void atl_build_lexer_fsm(Fsm *fsm)
 	fsm_builder_define(&builder, nzs("string"));
 	fsm_builder_terminal(&builder, '\'');
 	fsm_builder_loop_group_start(&builder);
-	fsm_builder_terminal_range(&builder, '0', '9');
+	fsm_builder_terminal_range(&builder, (Range){'0', '9'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'a', 'z');
+	fsm_builder_terminal_range(&builder, (Range){'a', 'z'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'A', 'Z');
+	fsm_builder_terminal_range(&builder, (Range){'A', 'Z'});
 	fsm_builder_or(&builder);
 	fsm_builder_terminal(&builder, '\\');
 	fsm_builder_terminal(&builder, '\'');
@@ -140,11 +140,11 @@ void atl_build_lexer_fsm(Fsm *fsm)
 	fsm_builder_terminal(&builder, '/');
 	fsm_builder_terminal(&builder, '*');
 	fsm_builder_loop_group_start(&builder);
-	fsm_builder_terminal_range(&builder, '0', '9');
+	fsm_builder_terminal_range(&builder, (Range){'0', '9'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'a', 'z');
+	fsm_builder_terminal_range(&builder, (Range){'a', 'z'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'A', 'Z');
+	fsm_builder_terminal_range(&builder, (Range){'A', 'Z'});
 	fsm_builder_loop_group_end(&builder);
 	fsm_builder_terminal(&builder, '*');
 	//TODO: if asterisk followed by a non-asterisk it should be accepted

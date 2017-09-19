@@ -171,29 +171,29 @@ Action *state_add(State *state, int symbol, int type, int reduction)
 	return action;
 }
 
-Action *state_add_range(State *state, int symbol1, int symbol2, int type, int reduction)
+Action *state_add_range(State *state, Range range, int type, int reduction)
 {
 	Action *action = c_new(Action, 1);
 	Action *cont;
 
 	unsigned char buffer[sizeof(int)];
 
-	action_init(action, type, reduction, NULL, ACTION_FLAG_RANGE, symbol2);
+	action_init(action, type, reduction, NULL, ACTION_FLAG_RANGE, range.end);
 
-	int_to_padded_array(buffer, symbol1);
+	int_to_padded_array(buffer, range.start);
 	cont = _state_add_buffer(state, buffer, sizeof(int), action);
 
 	if(cont) {
 		if(type == ACTION_SHIFT) {
-			trace("add", state, action, symbol1, "range-shift", 0);
+			trace("add", state, action, range.start, "range-shift", 0);
 		} else if(type == ACTION_DROP) {
-			trace("add", state, action, symbol1, "range-drop", 0);
+			trace("add", state, action, range.start, "range-drop", 0);
 		} else if(type == ACTION_REDUCE) {
-			trace("add", state, action, symbol1, "range-reduce", 0);
+			trace("add", state, action, range.start, "range-reduce", 0);
 		} else if(type == ACTION_ACCEPT) {
-			trace("add", state, action, symbol1, "range-accept", 0);
+			trace("add", state, action, range.start, "range-accept", 0);
 		} else {
-			trace("add", state, action, symbol1, "range-action", 0);
+			trace("add", state, action, range.start, "range-action", 0);
 		}
 	} else {
 		c_delete(action);

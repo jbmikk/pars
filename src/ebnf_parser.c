@@ -218,26 +218,26 @@ void ebnf_build_lexer_fsm(Fsm *fsm)
 	//TODO: should add whitespace to comply with EBNF specs
 	fsm_builder_define(&builder, nzs("meta_identifier"));
 	fsm_builder_group_start(&builder);
-	fsm_builder_terminal_range(&builder, 'a', 'z');
+	fsm_builder_terminal_range(&builder, (Range){'a', 'z'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'A', 'Z');
+	fsm_builder_terminal_range(&builder, (Range){'A', 'Z'});
 	fsm_builder_group_end(&builder);
 	fsm_builder_loop_group_start(&builder);
-	fsm_builder_terminal_range(&builder, 'a', 'z');
+	fsm_builder_terminal_range(&builder, (Range){'a', 'z'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'A', 'Z');
+	fsm_builder_terminal_range(&builder, (Range){'A', 'Z'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, '0', '9');
+	fsm_builder_terminal_range(&builder, (Range){'0', '9'});
 	fsm_builder_loop_group_end(&builder);
 	fsm_builder_end(&builder);
 
 	//Integer
 	fsm_builder_define(&builder, nzs("integer"));
 	fsm_builder_group_start(&builder);
-	fsm_builder_terminal_range(&builder, '0', '9');
+	fsm_builder_terminal_range(&builder, (Range){'0', '9'});
 	fsm_builder_group_end(&builder);
 	fsm_builder_loop_group_start(&builder);
-	fsm_builder_terminal_range(&builder, '0', '9');
+	fsm_builder_terminal_range(&builder, (Range){'0', '9'});
 	fsm_builder_loop_group_end(&builder);
 	fsm_builder_end(&builder);
 
@@ -260,11 +260,11 @@ void ebnf_build_lexer_fsm(Fsm *fsm)
 	fsm_builder_or(&builder);
 	fsm_builder_terminal(&builder, '|');
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, '0', '9');
+	fsm_builder_terminal_range(&builder, (Range){'0', '9'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'a', 'z');
+	fsm_builder_terminal_range(&builder, (Range){'a', 'z'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'A', 'Z');
+	fsm_builder_terminal_range(&builder, (Range){'A', 'Z'});
 	fsm_builder_or(&builder);
 	fsm_builder_terminal(&builder, '\\');
 	fsm_builder_terminal(&builder, '"');
@@ -291,11 +291,11 @@ void ebnf_build_lexer_fsm(Fsm *fsm)
 	fsm_builder_or(&builder);
 	fsm_builder_terminal(&builder, '|');
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, '0', '9');
+	fsm_builder_terminal_range(&builder, (Range){'0', '9'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'a', 'z');
+	fsm_builder_terminal_range(&builder, (Range){'a', 'z'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'A', 'Z');
+	fsm_builder_terminal_range(&builder, (Range){'A', 'Z'});
 	fsm_builder_or(&builder);
 	fsm_builder_terminal(&builder, '\\');
 	fsm_builder_terminal(&builder, '\'');
@@ -322,11 +322,11 @@ void ebnf_build_lexer_fsm(Fsm *fsm)
 	fsm_builder_or(&builder);
 	fsm_builder_terminal(&builder, '|');
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, '0', '9');
+	fsm_builder_terminal_range(&builder, (Range){'0', '9'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'a', 'z');
+	fsm_builder_terminal_range(&builder, (Range){'a', 'z'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'A', 'Z');
+	fsm_builder_terminal_range(&builder, (Range){'A', 'Z'});
 	fsm_builder_or(&builder);
 	fsm_builder_terminal(&builder, '\\');
 	fsm_builder_terminal(&builder, '?');
@@ -347,11 +347,11 @@ void ebnf_build_lexer_fsm(Fsm *fsm)
 	//Character set item
 	fsm_builder_define(&builder, nzs("character_set_item"));
 	fsm_builder_group_start(&builder);
-	fsm_builder_terminal_range(&builder, 'a', 'z');
+	fsm_builder_terminal_range(&builder, (Range){'a', 'z'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'A', 'Z');
+	fsm_builder_terminal_range(&builder, (Range){'A', 'Z'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, '0', '9');
+	fsm_builder_terminal_range(&builder, (Range){'0', '9'});
 	fsm_builder_group_end(&builder);
 	fsm_builder_end(&builder);
 
@@ -395,11 +395,11 @@ void ebnf_build_lexer_fsm(Fsm *fsm)
 	fsm_builder_or(&builder);
 	fsm_builder_terminal(&builder, '|');
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, '0', '9');
+	fsm_builder_terminal_range(&builder, (Range){'0', '9'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'a', 'z');
+	fsm_builder_terminal_range(&builder, (Range){'a', 'z'});
 	fsm_builder_or(&builder);
-	fsm_builder_terminal_range(&builder, 'A', 'Z');
+	fsm_builder_terminal_range(&builder, (Range){'A', 'Z'});
 	fsm_builder_loop_group_end(&builder);
 	fsm_builder_terminal(&builder, '*');
 	//TODO: if asterisk followed by a non-asterisk it should be accepted
@@ -550,7 +550,7 @@ void ebnf_build_character_set(FsmBuilder *builder, AstCursor *cur)
 			ast_cursor_get_string(cur, &string, &length);
 			int end = parse_utf8(string, length);
 			//TODO: Verify start < end
-			fsm_builder_terminal_range(builder, start, end);
+			fsm_builder_terminal_range(builder, (Range){start, end});
 		} else {
 			fsm_builder_terminal(builder, start);
 		}

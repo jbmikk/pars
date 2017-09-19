@@ -3,6 +3,11 @@
 
 #include "radixtree.h"
 
+typedef struct _Range {
+	int start;
+	int end;
+} Range;
+
 typedef struct _Symbol {
 	int id;
 	char *name;
