@@ -7,11 +7,11 @@ int ast_setup_fsm(void *object, void *params)
 {
 	ParserContext *context = (ParserContext *)object;
 
-	context->thread.handler.target = &context->ast_builder;
-	context->thread.handler.drop = ast_builder_drop;
-	context->thread.handler.shift = ast_builder_shift;
-	context->thread.handler.reduce = ast_builder_reduce;
-	context->thread.handler.accept = NULL;
+	context->process.handler.target = &context->ast_builder;
+	context->process.handler.drop = ast_builder_drop;
+	context->process.handler.shift = ast_builder_shift;
+	context->process.handler.reduce = ast_builder_reduce;
+	context->process.handler.accept = NULL;
 
 	return 0;
 }

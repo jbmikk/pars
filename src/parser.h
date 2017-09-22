@@ -3,7 +3,7 @@
 
 #include "fsm.h"
 #include "listener.h"
-#include "fsmthread.h"
+#include "fsmprocess.h"
 
 typedef struct _Parser {
 	SymbolTable table;
