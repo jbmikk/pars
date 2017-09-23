@@ -186,6 +186,8 @@ Action *fsm_thread_match(FsmThread *thread, const Token *token)
 			thread->handler.drop(thread->handler.target, &dropped);
 		}
 		thread->current = action->state;
+		//if(action->flags & ACTION_FLAG_THREAD_SPAWN)
+			//_thread_spawn(thread);
 		break;
 	case ACTION_REDUCE:
 		trace("match", thread->current, action, token, "reduce", action->reduction);
