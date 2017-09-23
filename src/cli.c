@@ -121,7 +121,7 @@ int main(int argc, char** argv){
 		error = user_build_parser(&parser);
 		check(!error, "Could not initialize parser.");
 
-		Params params1 = { argv[2] };
+		Params params1 = { argv[1] };
 		error = cli_load_grammar(&params1, &parser);
 		check(!error, "Could not load grammar.");
 
