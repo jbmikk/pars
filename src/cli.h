@@ -9,6 +9,12 @@
 
 #define BUFFER_SIZE 4096
 
-int cli_load_grammar(char *pathname, Parser *parser);
+typedef struct _Params {
+	char *param;
+	//TODO: Add flags for -v etc
+	//int flags;
+} Params;
+
+int cli_load_grammar(Params *params, Parser *parser);
 
 #endif //CLI_H

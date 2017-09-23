@@ -17,7 +17,8 @@ void test_load_grammar(){
 
 	parser_init(&parser);
 
-	int error = cli_load_grammar("not-a-valid-file-name", &parser);
+	Params params = { "not-a-valid-file-name" };
+	int error = cli_load_grammar(&params, &parser);
 
 	parser_dispose(&parser);
 

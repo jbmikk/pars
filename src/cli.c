@@ -38,7 +38,7 @@ error:
 	return -1;
 }
 
-int cli_load_grammar(char *pathname, Parser *parser)
+int cli_load_grammar(Params *params, Parser *parser)
 {
 	Input input;
 	Parser ebnf_parser;
@@ -50,7 +50,7 @@ int cli_load_grammar(char *pathname, Parser *parser)
 	error = ebnf_build_parser(&ebnf_parser);
 	check(!error, "Could not build ebnf parser.");
 
-	error = input_open_file(&input, pathname);
+	error = input_open_file(&input, params->param);
 	check(!error, "Could not open grammar file.");
 
 	error = _parse_grammar(&ebnf_parser, &input, parser);
@@ -87,18 +87,18 @@ error:
 	return -1;
 }
 
-int cli_load_source(char *pathname, Parser *parser, Ast *ast)
+int cli_load_source(Params *params, Parser *parser, Ast *ast)
 {
 	Input input;
 	int error;
 
 	input_init(&input);
 
-	error = input_open_file(&input, pathname);
+	error = input_open_file(&input, params->param);
 	check(!error, "Could not open input file.");
 
 	error = _parse_source(parser, &input, ast);
-	check(!error, "Could not parse source: %s", pathname);
+	check(!error, "Could not parse source: %s", params->param);
 
 	ast_print(ast);
 
@@ -121,12 +121,14 @@ int main(int argc, char** argv){
 		error = user_build_parser(&parser);
 		check(!error, "Could not initialize parser.");
 
-		error = cli_load_grammar(argv[1], &parser);
+		Params params1 = { argv[2] };
+		error = cli_load_grammar(&params1, &parser);
 		check(!error, "Could not load grammar.");
 
 		if(argc > 2) {
 			log_info("Parsing source.");
-			error = cli_load_source(argv[2], &parser, &ast);
+			Params params2 = { argv[2] };
+			error = cli_load_source(&params2, &parser, &ast);
 
 			//TODO: no need to dispose on parsing error
 			//Safe to dispose twice anyway.
