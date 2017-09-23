@@ -161,6 +161,10 @@ static int _test_setup_lexer(void *object, void *params)
 	return 0;
 }
 
+void _on_drop(void *ast_p, const Token *token)
+{
+}
+
 void _on_shift(void *ast_p, const Token *token)
 {
 }
@@ -174,6 +178,7 @@ static int _test_setup_fsm(void *object, void *params)
 	ParserContext *context = (ParserContext *)object;
 
 	context->thread.handler.target = context->ast;
+	context->thread.handler.drop = _on_drop;
 	context->thread.handler.shift = _on_shift;
 	context->thread.handler.reduce = _on_reduce;
 	context->thread.handler.accept = NULL;
