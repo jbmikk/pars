@@ -472,15 +472,15 @@ void ebnf_build_lexer_fsm(Fsm *fsm)
 	fsm_builder_dispose(&builder);
 }
 
-static void _ebnf_pipe_token(void *process, const Token *token)
+static void _ebnf_pipe_token(void *thread, const Token *token)
 {
-	FsmProcess *_process = (FsmProcess *)process;
-	Symbol *comment = symbol_table_get(_process->fsm->table, "comment", 7);
-	Symbol *white_space = symbol_table_get(_process->fsm->table, "white_space", 11);
+	FsmThread *_thread = (FsmThread *)thread;
+	Symbol *comment = symbol_table_get(_thread->fsm->table, "comment", 7);
+	Symbol *white_space = symbol_table_get(_thread->fsm->table, "white_space", 11);
 
 	//Filter white space and tokens
 	if(token->symbol != comment->id && token->symbol != white_space->id) {
-		fsm_process_match(_process, token);
+		fsm_thread_match(_thread, token);
 	}
 }
 
@@ -488,11 +488,11 @@ int ebnf_setup_lexer(void *object, void *params)
 {
 	ParserContext *context = (ParserContext *)object;
 
-	context->lexer_process.handler.target = &context->process;
-	context->lexer_process.handler.drop = NULL;
-	context->lexer_process.handler.shift = NULL;
-	context->lexer_process.handler.reduce = NULL;
-	context->lexer_process.handler.accept = _ebnf_pipe_token;
+	context->lexer_thread.handler.target = &context->thread;
+	context->lexer_thread.handler.drop = NULL;
+	context->lexer_thread.handler.shift = NULL;
+	context->lexer_thread.handler.reduce = NULL;
+	context->lexer_thread.handler.accept = _ebnf_pipe_token;
 
 	return 0;
 }

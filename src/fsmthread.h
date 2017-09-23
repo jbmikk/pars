@@ -7,14 +7,14 @@
 #define FSM_THREAD_OK 0
 #define FSM_THREAD_ERROR 1
 
-typedef struct _FsmProcessNode {
+typedef struct _FsmThreadNode {
 	State *state;
 	int index;
-	struct _FsmProcessNode *next;
-} FsmProcessNode;
+	struct _FsmThreadNode *next;
+} FsmThreadNode;
 
 typedef struct _StateStack {
-	FsmProcessNode *top;
+	FsmThreadNode *top;
 } StateStack;
 
 typedef struct _ModeNode {
@@ -34,22 +34,22 @@ typedef struct _FsmHandler {
 	void (*accept)(void *target, const Token *token);
 } FsmHandler;
 
-typedef struct _FsmProcess {
+typedef struct _FsmThread {
 	Fsm *fsm;
 	int status;
 	State *current;
 	StateStack stack;
 	ModeStack mode_stack;
 	FsmHandler handler;
-} FsmProcess;
+} FsmThread;
 
 #define NULL_HANDLER ((FsmHandler){NULL, NULL, NULL, NULL})
 
-void fsm_process_init(FsmProcess *process, Fsm *fsm);
-void fsm_process_dispose(FsmProcess *process);
+void fsm_thread_init(FsmThread *thread, Fsm *fsm);
+void fsm_thread_dispose(FsmThread *thread);
 
-int fsm_process_start(FsmProcess *process);
-Action *fsm_process_match(FsmProcess *process, const Token *token);
-Action *fsm_process_test(FsmProcess *process, const Token *token);
+int fsm_thread_start(FsmThread *thread);
+Action *fsm_thread_match(FsmThread *thread, const Token *token);
+Action *fsm_thread_test(FsmThread *thread, const Token *token);
 
 #endif //FSM_THREAD_H

@@ -8,8 +8,8 @@
 #include "controlloop.h"
 #include "test.h"
 
-#define MATCH(S, Y) fsm_process_match(&(S), &(struct _Token){ 0, 0, (Y)});
-#define TEST(S, Y) fsm_process_test(&(S), &(struct _Token){ 0, 0, (Y)});
+#define MATCH(S, Y) fsm_thread_match(&(S), &(struct _Token){ 0, 0, (Y)});
+#define TEST(S, Y) fsm_thread_test(&(S), &(struct _Token){ 0, 0, (Y)});
 
 #define nzs(S) (S), (strlen(S))
 
@@ -144,20 +144,20 @@ static void _build_siblings_with_children(Fsm *fsm)
 	fsm_builder_dispose(&builder);
 }
 
-static void _test_pipe_token(void *process, const Token *token)
+static void _test_pipe_token(void *thread, const Token *token)
 {
-	fsm_process_match((FsmProcess *)process, token);
+	fsm_thread_match((FsmThread *)thread, token);
 }
 
 static int _test_setup_lexer(void *object, void *params)
 {
 	ParserContext *context = (ParserContext *)object;
 
-	context->lexer_process.handler.target = &context->process;
-	context->lexer_process.handler.drop = NULL;
-	context->lexer_process.handler.shift = NULL;
-	context->lexer_process.handler.reduce = NULL;
-	context->lexer_process.handler.accept = _test_pipe_token;
+	context->lexer_thread.handler.target = &context->thread;
+	context->lexer_thread.handler.drop = NULL;
+	context->lexer_thread.handler.shift = NULL;
+	context->lexer_thread.handler.reduce = NULL;
+	context->lexer_thread.handler.accept = _test_pipe_token;
 	return 0;
 }
 
@@ -173,10 +173,10 @@ static int _test_setup_fsm(void *object, void *params)
 {
 	ParserContext *context = (ParserContext *)object;
 
-	context->process.handler.target = context->ast;
-	context->process.handler.shift = _on_shift;
-	context->process.handler.reduce = _on_reduce;
-	context->process.handler.accept = NULL;
+	context->thread.handler.target = context->ast;
+	context->thread.handler.shift = _on_shift;
+	context->thread.handler.reduce = _on_reduce;
+	context->thread.handler.accept = NULL;
 
 	return 0;
 }

@@ -20,14 +20,14 @@ void parser_context_init(ParserContext *context, Parser *parser)
 	context->parse_error = parser->parse_error;
 	context->parse_error.object = context;
 
-	fsm_process_init(&context->process, &parser->fsm);
-	fsm_process_init(&context->lexer_process, &parser->lexer_fsm);
+	fsm_thread_init(&context->thread, &parser->fsm);
+	fsm_thread_init(&context->lexer_thread, &parser->lexer_fsm);
 }
 
 void parser_context_dispose(ParserContext *context)
 {
-	fsm_process_dispose(&context->process);
-	fsm_process_dispose(&context->lexer_process);
+	fsm_thread_dispose(&context->thread);
+	fsm_thread_dispose(&context->lexer_thread);
 }
 
 void parser_context_set_input(ParserContext *context, Input *input)
@@ -51,22 +51,22 @@ int parser_context_execute(ParserContext *context)
 	listener_notify(&context->parse_setup_fsm, NULL);
 	listener_notify(&context->parse_start, NULL);
 
-	fsm_process_start(&context->process);
-	fsm_process_start(&context->lexer_process);
+	fsm_thread_start(&context->thread);
+	fsm_thread_start(&context->lexer_thread);
 
 	int error = listener_notify(&context->parse_loop, NULL);
 	check(!error, "Error during parse.");
 
 	listener_notify(&context->parse_end, NULL);
 
-	fsm_process_dispose(&context->process);
-	fsm_process_dispose(&context->lexer_process);
+	fsm_thread_dispose(&context->thread);
+	fsm_thread_dispose(&context->lexer_thread);
 
 	return 0;
 error:
 	//TODO: free
-	fsm_process_dispose(&context->process);
-	fsm_process_dispose(&context->lexer_process);
+	fsm_thread_dispose(&context->thread);
+	fsm_thread_dispose(&context->lexer_thread);
 
 	listener_notify(&context->parse_error, NULL);
 
