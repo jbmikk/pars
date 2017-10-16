@@ -8,7 +8,7 @@ int control_loop_linear(void *object, void *params)
 {
 	ParserContext *context = (ParserContext *)object;
 	Token token;
-	token_init(&token, 0, 0, 0);
+	token_init(&token, 0, 0, 0, 0);
 
 	do {
 		input_next_token(context->input, &token, &token);
@@ -39,15 +39,15 @@ int control_loop_ast(void *object, void *params)
 {
 	ParserContext *context = (ParserContext *)object;
 	Token token;
-	token_init(&token, 0, 0, 0);
+	token_init(&token, 0, 0, 0, 0);
 
 	Symbol *t_down = symbol_table_get(&context->parser->table, "__tdown", 7);
 	Symbol *t_up = symbol_table_get(&context->parser->table, "__tup", 5);
 
 	Token token_down;
-	token_init(&token_down, 0, 0, t_down->id);
+	token_init(&token_down, 0, 0, t_down->id, 0);
 	Token token_up;
-	token_init(&token_up, 0, 0, t_up->id);
+	token_init(&token_up, 0, 0, t_up->id, 0);
 
 	AstCursor cursor;
 	ast_cursor_init(&cursor, context->input_ast);

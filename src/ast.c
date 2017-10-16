@@ -34,7 +34,7 @@ void ast_node_dispose(AstNode *node)
 
 void ast_init(Ast *ast, Input *input, SymbolTable *table)
 {
-	ast_node_init(&ast->root, NULL, &(Token){0, 0, 0});
+	ast_node_init(&ast->root, NULL, &(Token){0, 0, 0, 0});
 	ast->input = input;
 	ast->table = table;
 }

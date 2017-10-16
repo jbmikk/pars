@@ -8,8 +8,8 @@
 #include "controlloop.h"
 #include "test.h"
 
-#define MATCH(S, Y) fsm_process_match(&(S), &(struct _Token){ 0, 0, (Y)});
-#define TEST(S, Y) fsm_process_test(&(S), &(struct _Token){ 0, 0, (Y)});
+#define MATCH(S, Y) fsm_process_match(&(S), &(struct _Token){ 0, 0, (Y), 0});
+#define TEST(S, Y) fsm_process_test(&(S), &(struct _Token){ 0, 0, (Y), 0});
 
 #define nzs(S) (S), (strlen(S))
 
@@ -236,8 +236,8 @@ void _parser_basic_parse(){
 	ast_init(&ast, NULL, &fix.parser.table);
 
 	ast_builder_init(&builder, &ast);
-	ast_builder_append_follow(&builder, &(Token){1, 1, 'a'});
-	ast_builder_append(&builder, &(Token){2, 1, 'b'});
+	ast_builder_append_follow(&builder, &(Token){1, 1, 'a', 0});
+	ast_builder_append(&builder, &(Token){2, 1, 'b', 0});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
@@ -264,9 +264,9 @@ static void _parse_parent_and_siblings_test(){
 	ast_init(&ast, NULL, &fix.parser.table);
 
 	ast_builder_init(&builder, &ast);
-	ast_builder_append_follow(&builder, &(Token){1, 1, 'a'});
-	ast_builder_append(&builder, &(Token){2, 1, 'b'});
-	ast_builder_append(&builder, &(Token){3, 1, 'c'});
+	ast_builder_append_follow(&builder, &(Token){1, 1, 'a', 0});
+	ast_builder_append(&builder, &(Token){2, 1, 'b', 0});
+	ast_builder_append(&builder, &(Token){3, 1, 'c', 0});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
@@ -293,13 +293,13 @@ static void _parse_sibling_with_children_test(){
 	ast_init(&ast, NULL, &fix.parser.table);
 
 	ast_builder_init(&builder, &ast);
-	ast_builder_append_follow(&builder, &(Token){1, 1, 'a'});
-	ast_builder_append(&builder, &(Token){2, 1, 'b'});
-	ast_builder_append(&builder, &(Token){3, 1, 'c'});
+	ast_builder_append_follow(&builder, &(Token){1, 1, 'a', 0});
+	ast_builder_append(&builder, &(Token){2, 1, 'b', 0});
+	ast_builder_append(&builder, &(Token){3, 1, 'c', 0});
 	ast_builder_parent(&builder);
-	ast_builder_append_follow(&builder, &(Token){4, 1, 'd'});
-	ast_builder_append(&builder, &(Token){5, 1, 'e'});
-	ast_builder_append(&builder, &(Token){6, 1, 'f'});
+	ast_builder_append_follow(&builder, &(Token){4, 1, 'd', 0});
+	ast_builder_append(&builder, &(Token){5, 1, 'e', 0});
+	ast_builder_append(&builder, &(Token){6, 1, 'f', 0});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
@@ -326,9 +326,9 @@ static void _parse_parent_child_nonterminal(){
 	ast_init(&ast, NULL, &fix.parser.table);
 
 	ast_builder_init(&builder, &ast);
-	ast_builder_append_follow(&builder, &(Token){1, 1, 'a'});
-	ast_builder_append(&builder, &(Token){2, 1, 'b'});
-	ast_builder_append(&builder, &(Token){3, 1, 'c'});
+	ast_builder_append_follow(&builder, &(Token){1, 1, 'a', 0});
+	ast_builder_append(&builder, &(Token){2, 1, 'b', 0});
+	ast_builder_append(&builder, &(Token){3, 1, 'c', 0});
 	ast_builder_done(&builder);
 	ast_builder_dispose(&builder);
 
