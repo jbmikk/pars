@@ -3,7 +3,7 @@
 
 #include "ast.h"
 
-typedef struct _AstBuilder {
+typedef struct AstBuilder {
 	Ast *ast;
 	AstNode *current;
 	AstNode *previous;

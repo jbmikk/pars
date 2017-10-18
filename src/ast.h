@@ -7,19 +7,19 @@
 #include "symbols.h"
 #include "token.h"
 
-typedef struct _AstNode {
+typedef struct AstNode {
 	Token token;
 	Node children;
-	struct _AstNode *parent;
+	struct AstNode *parent;
 } AstNode;
 
-typedef struct _Ast {
+typedef struct Ast {
 	AstNode root;
 	SymbolTable *table;
 	Input *input;
 } Ast;
 
-typedef struct _AstCursor {
+typedef struct AstCursor {
 	Ast *ast;
 	AstNode *current;
 	int offset;

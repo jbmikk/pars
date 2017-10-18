@@ -7,7 +7,7 @@
 
 #endif //FSM_PROCESS_H
 
-typedef struct _FsmProcess {
+typedef struct FsmProcess {
 	Fsm *fsm;
 	int status;
 	FsmThread thread;

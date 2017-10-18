@@ -3,18 +3,18 @@
 
 #include "radixtree.h"
 
-typedef struct _Range {
+typedef struct Range {
 	int start;
 	int end;
 } Range;
 
-typedef struct _Symbol {
+typedef struct Symbol {
 	int id;
 	char *name;
 	int length;
 } Symbol;
 
-typedef struct _SymbolTable {
+typedef struct SymbolTable {
 	Node symbols;
 	Node symbols_by_id;
 	int id_base;

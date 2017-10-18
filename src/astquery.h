@@ -3,7 +3,7 @@
 
 #include "ast.h"
 
-typedef struct _AstQuery {
+typedef struct AstQuery {
 	AstCursor cursor;
 	int *symbols;
 	unsigned short length;

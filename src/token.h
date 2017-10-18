@@ -5,7 +5,7 @@ typedef enum {
 	L_EOF = 0
 } LToken;
 
-typedef struct _Token {
+typedef struct Token {
 	unsigned int index;
 	unsigned int length;
 	int symbol;

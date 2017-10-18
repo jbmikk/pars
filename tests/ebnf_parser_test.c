@@ -6,8 +6,8 @@
 #include "fsmprocess.h"
 #include "test.h"
 
-#define MATCH(S, Y) fsm_process_match(&(S), &(struct _Token){ 0, 0, (Y)});
-#define TEST(S, Y) fsm_process_test(&(S), &(struct _Token){ 0, 0, (Y)});
+#define MATCH(S, Y) fsm_process_match(&(S), &(struct Token){ 0, 0, (Y)});
+#define TEST(S, Y) fsm_process_test(&(S), &(struct Token){ 0, 0, (Y)});
 
 #define nzs(S) (S), (strlen(S))
 

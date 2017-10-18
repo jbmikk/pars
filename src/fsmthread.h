@@ -7,22 +7,22 @@
 #define FSM_THREAD_OK 0
 #define FSM_THREAD_ERROR 1
 
-typedef struct _FsmThreadNode {
+typedef struct FsmThreadNode {
 	State *state;
 	int index;
-	struct _FsmThreadNode *next;
+	struct FsmThreadNode *next;
 } FsmThreadNode;
 
-typedef struct _StateStack {
+typedef struct StateStack {
 	FsmThreadNode *top;
 } StateStack;
 
-typedef struct _ModeNode {
+typedef struct ModeNode {
 	State *state;
-	struct _ModeNode *next;
+	struct ModeNode *next;
 } ModeNode;
 
-typedef struct _ModeStack {
+typedef struct ModeStack {
 	ModeNode *top;
 } ModeStack;
 

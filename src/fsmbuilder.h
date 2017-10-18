@@ -3,13 +3,13 @@
 
 #include "fsm.h"
 
-typedef struct _FsmFrame {
+typedef struct FsmFrame {
 	State *start;
 	State *continuation;
-	struct _FsmFrame *next;
+	struct FsmFrame *next;
 } FsmFrame;
 
-typedef struct _FsmBuilder {
+typedef struct FsmBuilder {
 	Fsm *fsm;
 	Action *action;
 	State *state;

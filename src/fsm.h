@@ -30,13 +30,13 @@
 #define NONTERMINAL_CLEAR 0
 #define NONTERMINAL_RETURN_REF 1
 
-typedef struct _State {
+typedef struct State {
 	Node actions;
 	Node refs;
 	char status;
 } State;
 
-typedef struct _Action {
+typedef struct Action {
 	char type;
 	char flags;
 	int reduction;
@@ -45,7 +45,7 @@ typedef struct _Action {
 	State *state;
 } Action;
 
-typedef struct _Nonterminal {
+typedef struct Nonterminal {
 	State *start;
 	State *end;
 	Node refs;
@@ -60,7 +60,7 @@ typedef struct _Nonterminal {
 // Invoking refernces are from a concrete state to a symbol (to be resolved to
 // states). Returning references are from a symbol (to be resolved to an end
 // state) to a concrete state.
-typedef struct _Reference {
+typedef struct Reference {
 	State *state;
 	State *to_state;
 	Symbol *symbol;
@@ -68,7 +68,7 @@ typedef struct _Reference {
 	char status;
 } Reference;
 
-typedef struct _Fsm {
+typedef struct Fsm {
 	SymbolTable *table;
 	Node nonterminals;
 } Fsm;

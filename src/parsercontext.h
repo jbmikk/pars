@@ -7,7 +7,7 @@
 #include "ast.h"
 #include "astbuilder.h"
 
-typedef struct _ParserContext {
+typedef struct ParserContext {
 	Parser *parser;
 	Listener parse_setup_lexer;
 	Listener parse_setup_fsm;

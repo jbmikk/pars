@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include "token.h"
 
-typedef struct _Input {
+typedef struct Input {
 	FILE *file;
 	char *buffer;
 	size_t buffer_size;

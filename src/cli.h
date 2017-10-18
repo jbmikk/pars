@@ -9,7 +9,7 @@
 
 #define BUFFER_SIZE 4096
 
-typedef struct _Params {
+typedef struct Params {
 	char *param;
 	//TODO: Add flags for -v etc
 	//int flags;

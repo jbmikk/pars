@@ -9,9 +9,9 @@
 
 #define nzs(S) (S), (strlen(S))
 
-#define MATCH(S, Y) fsm_thread_match(&(S), &(struct _Token){ 0, 0, (Y)});
-#define MATCH_AT(S, Y, I) fsm_thread_match(&(S), &(struct _Token){ (I), 0, (Y)});
-#define TEST(S, Y) fsm_thread_test(&(S), &(struct _Token){ 0, 0, (Y)});
+#define MATCH(S, Y) fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)});
+#define MATCH_AT(S, Y, I) fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)});
+#define TEST(S, Y) fsm_thread_test(&(S), &(struct Token){ 0, 0, (Y)});
 
 typedef struct {
 	SymbolTable table;

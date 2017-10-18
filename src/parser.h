@@ -4,7 +4,7 @@
 #include "fsm.h"
 #include "listener.h"
 
-typedef struct _Parser {
+typedef struct Parser {
 	SymbolTable table;
 	Fsm fsm;
 	Fsm lexer_fsm;

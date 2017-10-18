@@ -9,7 +9,7 @@ typedef struct Listener {
 } Listener;
 
 //TODO: Maybe have a type for listener arguments?
-//typedef struct _Args {
+//typedef struct Args {
 //} Args;
 
 void listener_init(Listener *listener, ListenerFunction *function, void *object);

@@ -8,8 +8,8 @@
 #include "controlloop.h"
 #include "test.h"
 
-#define MATCH(S, Y) fsm_process_match(&(S), &(struct _Token){ 0, 0, (Y), 0});
-#define TEST(S, Y) fsm_process_test(&(S), &(struct _Token){ 0, 0, (Y), 0});
+#define MATCH(S, Y) fsm_process_match(&(S), &(struct Token){ 0, 0, (Y), 0});
+#define TEST(S, Y) fsm_process_test(&(S), &(struct Token){ 0, 0, (Y), 0});
 
 #define nzs(S) (S), (strlen(S))
 
