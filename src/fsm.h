@@ -1,8 +1,8 @@
 #ifndef FSM_H
 #define FSM_H
 
-#include "structs.h"
 #include "symbols.h"
+#include "rtree.h"
 
 #include <string.h>
 
@@ -31,8 +31,8 @@
 #define NONTERMINAL_RETURN_REF 1
 
 typedef struct State {
-	Node actions;
-	Node refs;
+	RTree actions;
+	RTree refs;
 	char status;
 } State;
 
@@ -48,7 +48,7 @@ typedef struct Action {
 typedef struct Nonterminal {
 	State *start;
 	State *end;
-	Node refs;
+	RTree refs;
 	//mode == 0 means no parent mode.
 	int mode;
 	//TODO: Only necessary for setting accept action flags.
@@ -70,7 +70,7 @@ typedef struct Reference {
 
 typedef struct Fsm {
 	SymbolTable *table;
-	Node nonterminals;
+	RTree nonterminals;
 } Fsm;
 
 
@@ -82,7 +82,8 @@ Nonterminal *fsm_create_nonterminal(Fsm *fsm, char *name, int length);
 
 State *fsm_get_state(Fsm *fsm, char *name, int length);
 State *fsm_get_state_by_id(Fsm *fsm, int symbol);
-void fsm_get_states(Node *states, State *state);
+//TODO: Is this signature ok?
+void fsm_get_states(RTree *states, State *state);
 Symbol *fsm_get_symbol(Fsm *fsm, char *name, int length);
 Symbol *fsm_get_symbol_by_id(Fsm *fsm, int id);
 int fsm_get_symbol_id(Fsm *fsm, char *name, int length);

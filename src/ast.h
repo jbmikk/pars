@@ -1,7 +1,7 @@
 #ifndef AST_H
 #define AST_H
 
-#include "radixtree.h"
+#include "rtree.h"
 #include "stack.h"
 #include "input.h"
 #include "symbols.h"
@@ -9,7 +9,7 @@
 
 typedef struct AstNode {
 	Token token;
-	Node children;
+	RTree children;
 	struct AstNode *parent;
 } AstNode;
 
@@ -19,11 +19,13 @@ typedef struct Ast {
 	Input *input;
 } Ast;
 
+DEFINE_STACK(AstNode *, AstNode, astnode);
+
 typedef struct AstCursor {
 	Ast *ast;
 	AstNode *current;
 	int offset;
-	Stack stack;
+	StackAstNode stack;
 } AstCursor;
 
 void ast_node_init(AstNode *node, AstNode *parent, const Token *token);

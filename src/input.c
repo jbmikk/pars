@@ -2,6 +2,8 @@
 #include "cmemory.h"
 #include "dbg.h"
 
+#include <stdlib.h>
+
 void input_init(Input *input)
 {
 	input->file = NULL;
@@ -28,7 +30,7 @@ int input_open_file(Input *input, char *pathname)
 	length = ftell(file);
 	fseek(file, 0, SEEK_SET);
 	if(length > 0) {
-		buffer = c_new(char, length);
+		buffer = malloc(sizeof(char) * length);
 		length = fread(buffer, 1, length, file);
 	} else {
 		buffer = NULL;
@@ -45,7 +47,7 @@ error:
 void input_dispose(Input *input)
 {
 	if(input->file) {
-		c_delete(input->buffer);
+		free(input->buffer);
 		input->buffer = NULL;
 		fclose(input->file);
 		input->file = NULL;

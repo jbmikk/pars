@@ -1,6 +1,7 @@
 #include "fsmthread.h"
 
 #include "cmemory.h"
+#include <stdlib.h>
 #include <stdio.h>
 
 #ifdef FSM_TRACE
@@ -22,7 +23,7 @@
 
 static void _mode_push(FsmThread *thread, int symbol)
 {
-	ModeNode *node = c_new(ModeNode, 1);
+	ModeNode *node = malloc(sizeof(ModeNode));
 	node->state = fsm_get_state_by_id(thread->fsm, symbol);
 	node->next = thread->mode_stack.top;
 	thread->mode_stack.top = node;
@@ -32,7 +33,7 @@ static void _mode_pop(FsmThread *thread)
 {
 	ModeNode *top = thread->mode_stack.top;
 	thread->mode_stack.top = top->next;
-	c_delete(top);
+	free(top);
 }
 
 static void _mode_reset(FsmThread *thread)
@@ -42,7 +43,7 @@ static void _mode_reset(FsmThread *thread)
 
 static void _state_push(FsmThread *thread, unsigned int index)
 {
-	FsmThreadNode *node = c_new(FsmThreadNode, 1);
+	FsmThreadNode *node = malloc(sizeof(FsmThreadNode));
 	node->state = thread->current;
 	node->index = index;
 	node->next = thread->stack.top;
@@ -55,7 +56,7 @@ static unsigned int _state_pop(FsmThread *thread)
 	unsigned int index = top->index;
 	thread->current = top->state;
 	thread->stack.top = top->next;
-	c_delete(top);
+	free(top);
 	return index;
 }
 

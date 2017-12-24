@@ -1,6 +1,7 @@
 #include "astbuilder.h"
 #include "cmemory.h"
 
+#include <stdlib.h>
 #include <stdio.h>
 
 #ifdef AST_TRACE
@@ -12,19 +13,19 @@
 
 static void _node_bind_to_parent(AstNode *node)
 {
-	AstNode* pre = (AstNode*)radix_tree_get_ple_int(&node->parent->children, node->token.index);
+	AstNode* pre = (AstNode*)rtree_get_ple_int(&node->parent->children, node->token.index);
 	// TODO: Review algorithm: should avoid creating duplicate nodes when
 	// dropping nonterminals and then closing previous nodes.
 	if(pre) {
 		ast_node_dispose(pre);
-		c_delete(pre);
+		free(pre);
 	}
-	radix_tree_set_ple_int(&node->parent->children, node->token.index, node);
+	rtree_set_ple_int(&node->parent->children, node->token.index, node);
 }
 
 static AstNode *_node_append(AstBuilder *builder, const Token *token)
 {
-	AstNode *node = c_new(AstNode, 1);
+	AstNode *node = malloc(sizeof(AstNode));
 	ast_node_init(node, builder->current, token);
 
 	_node_bind_to_parent(node);
@@ -80,7 +81,7 @@ void ast_builder_drop(void *builder_p, const Token *token)
 void ast_builder_shift(void *builder_p, const Token *token)
 {
 	AstBuilder *builder = (AstBuilder *)builder_p;
-	AstNode *node = c_new(AstNode, 1);
+	AstNode *node = malloc(sizeof(AstNode));
 	ast_node_init(node, builder->current, &(Token){token->index, 0, 0, 0});
 
 	trace(node, "open", '?', token->index, 0);

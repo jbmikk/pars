@@ -1,19 +1,20 @@
 #include "fsm.h"
 
 #include "cmemory.h"
-#include "radixtree.h"
+#include "rtree.h"
 #include "arrays.h"
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
 
 void fsm_init(Fsm *fsm, SymbolTable *table)
 {
 	fsm->table = table;
-	radix_tree_init(&fsm->nonterminals);
+	rtree_init(&fsm->nonterminals);
 }
 
-void fsm_get_states(Node *states, State *state)
+void fsm_get_states(RTree *states, State *state)
 {
 	unsigned char buffer[sizeof(intptr_t)];
 	unsigned int size;
@@ -22,28 +23,28 @@ void fsm_get_states(Node *states, State *state)
 		//TODO: Should have a separate ptr_to_array function
 		int_to_array(buffer, &size, (intptr_t)state);
 
-		Action *in_states = radix_tree_get(states, buffer, size);
+		Action *in_states = rtree_get(states, buffer, size);
 
 		if(!in_states) {
-			radix_tree_set(states, buffer, size, state);
+			rtree_set(states, buffer, size, state);
 
 			Iterator it;
 
 			//Jump to other states
 			Action *ac;
-			radix_tree_iterator_init(&it, &(state->actions));
-			while((ac = (Action *)radix_tree_iterator_next(&it))) {
+			rtree_iterator_init(&it, &(state->actions));
+			while((ac = (Action *)rtree_iterator_next(&it))) {
 				fsm_get_states(states, ac->state);
 			}
-			radix_tree_iterator_dispose(&it);
+			rtree_iterator_dispose(&it);
 
 			//Jump to references
 			Reference *ref;
-			radix_tree_iterator_init(&it, &state->refs);
-			while((ref = (Reference *)radix_tree_iterator_next(&it))) {
+			rtree_iterator_init(&it, &state->refs);
+			while((ref = (Reference *)rtree_iterator_next(&it))) {
 				fsm_get_states(states, ref->to_state);
 			}
-			radix_tree_iterator_dispose(&it);
+			rtree_iterator_dispose(&it);
 		}
 
 	}
@@ -51,40 +52,40 @@ void fsm_get_states(Node *states, State *state)
 
 void fsm_dispose(Fsm *fsm)
 {
-	Node all_states;
+	RTree all_states;
 
 	Nonterminal *nt;
 	Iterator it;
 
-	radix_tree_init(&all_states);
+	rtree_init(&all_states);
 
-	radix_tree_iterator_init(&it, &fsm->nonterminals);
-	while((nt = (Nonterminal *)radix_tree_iterator_next(&it))) {
+	rtree_iterator_init(&it, &fsm->nonterminals);
+	while((nt = (Nonterminal *)rtree_iterator_next(&it))) {
 		//Just in case some nonterminal is not reachable through start
 		fsm_get_states(&all_states, nt->start);
 		nonterminal_dispose(nt);
-		c_delete(nt);
+		free(nt);
 	}
-	radix_tree_iterator_dispose(&it);
+	rtree_iterator_dispose(&it);
 
-	radix_tree_dispose(&fsm->nonterminals);
+	rtree_dispose(&fsm->nonterminals);
 
 	//Delete all states
 	State *st;
-	radix_tree_iterator_init(&it, &all_states);
-	while((st = (State *)radix_tree_iterator_next(&it))) {
+	rtree_iterator_init(&it, &all_states);
+	while((st = (State *)rtree_iterator_next(&it))) {
 		state_dispose(st);
-		c_delete(st);
+		free(st);
 	}
-	radix_tree_iterator_dispose(&it);
-	radix_tree_dispose(&all_states);
+	rtree_iterator_dispose(&it);
+	rtree_dispose(&all_states);
 
 	fsm->table = NULL;
 }
 
 Nonterminal *fsm_get_nonterminal_by_id(Fsm *fsm, int symbol)
 {
-	return (Nonterminal *)radix_tree_get_int(&fsm->nonterminals, symbol);
+	return (Nonterminal *)rtree_get_int(&fsm->nonterminals, symbol);
 }
 
 Nonterminal *fsm_get_nonterminal(Fsm *fsm, char *name, int length)
@@ -98,11 +99,11 @@ Nonterminal *fsm_create_nonterminal(Fsm *fsm, char *name, int length)
 	Nonterminal *nonterminal = fsm_get_nonterminal(fsm, name, length);
 	if(!nonterminal) {
 		Symbol *symbol = symbol_table_add(fsm->table, name, length);
-		nonterminal = c_new(Nonterminal, 1);
+		nonterminal = malloc(sizeof(Nonterminal));
 		nonterminal_init(nonterminal);
-		nonterminal->start = c_new(State, 1);
+		nonterminal->start = malloc(sizeof(State));
 		state_init(nonterminal->start);
-		radix_tree_set_int(&fsm->nonterminals, symbol->id, nonterminal);
+		rtree_set_int(&fsm->nonterminals, symbol->id, nonterminal);
 		//TODO: Add to nonterminal struct: 
 		// * detect circular references.
 	}

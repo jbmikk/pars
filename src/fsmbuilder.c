@@ -3,6 +3,7 @@
 #include "cmemory.h"
 #include "arrays.h"
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
 
@@ -40,7 +41,7 @@ void fsm_builder_dispose(FsmBuilder *builder)
 	while(builder->stack) {
 		FsmFrame *frame = builder->stack;
 		builder->stack = frame->next;
-		c_delete(frame);
+		free(frame);
 	}
 	builder->stack = NULL;
 	builder->action = NULL;
@@ -50,7 +51,7 @@ void fsm_builder_dispose(FsmBuilder *builder)
 
 static void _push_frame(FsmBuilder *builder, State *start, State *cont) 
 {
-	FsmFrame *frame = c_new(FsmFrame, 1);
+	FsmFrame *frame = malloc(sizeof(FsmFrame));
 	frame->start = start;
 	frame->continuation = cont;
 	frame->next = builder->stack;
@@ -62,7 +63,7 @@ static void _pop_frame(FsmBuilder *builder)
 
 	FsmFrame *frame = builder->stack;
 	builder->stack = frame->next;
-	c_delete(frame);
+	free(frame);
 }
 
 static void _append_state(FsmBuilder *builder, State *state)
@@ -88,7 +89,7 @@ static void _transition(FsmBuilder *builder, Action *action)
 static void _ensure_state(FsmBuilder *builder)
 {
 	if(!builder->state) {
-		State *state = c_new(State, 1);
+		State *state = malloc(sizeof(State));
 		state_init(state);
 		_append_state(builder, state);
 	}
@@ -142,7 +143,7 @@ void fsm_builder_group_start(FsmBuilder *builder)
 	_ensure_state(builder);
 
 	State *start = builder->state;
-	State *cont = c_new(State, 1);
+	State *cont = malloc(sizeof(State));
 	state_init(cont);
 
 	trace_state("add", cont, "continuation");
@@ -159,7 +160,7 @@ void fsm_builder_loop_group_start(FsmBuilder *builder)
 {
 	_ensure_state(builder);
 
-	State *start = c_new(State, 1);
+	State *start = malloc(sizeof(State));
 	state_init(start);
 
 	State *cont = start;
@@ -184,7 +185,7 @@ void fsm_builder_option_group_start(FsmBuilder *builder)
 	_ensure_state(builder);
 
 	State *start = builder->state;
-	State *cont = c_new(State, 1);
+	State *cont = malloc(sizeof(State));
 	state_init(cont);
 
 	state_add_reference(start, NULL, cont);
@@ -386,9 +387,9 @@ static void _set_lexer_start(FsmBuilder *builder, int eof_symbol)
         Iterator it;
 	Nonterminal *nt;
 	State *start;
-	radix_tree_iterator_init(&it, &builder->fsm->nonterminals);
+	rtree_iterator_init(&it, &builder->fsm->nonterminals);
 
-	while((nt = (Nonterminal *)radix_tree_iterator_next(&it))) {
+	while((nt = (Nonterminal *)rtree_iterator_next(&it))) {
 		//Skip modeless nonterminals (they are modes themselves)
 		if(!nt->mode) {
 			continue;
@@ -399,7 +400,7 @@ static void _set_lexer_start(FsmBuilder *builder, int eof_symbol)
 		//Different kind of nonterminal reference
 		_lexer_nonterminal(builder, array_to_int(it.key, it.size));
 	}
-	radix_tree_iterator_dispose(&it);
+	rtree_iterator_dispose(&it);
 
 	start = fsm_get_state(builder->fsm, nzs(".default"));
 	_move_to(builder, start);
@@ -423,8 +424,8 @@ int _solve_return_references(FsmBuilder *builder, Nonterminal *nt) {
 		goto end;
 	}
 
-	radix_tree_iterator_init(&it, &nt->refs);
-	while((ref = (Reference *)radix_tree_iterator_next(&it))) {
+	rtree_iterator_init(&it, &nt->refs);
+	while((ref = (Reference *)rtree_iterator_next(&it))) {
 		Symbol *sb = ref->symbol;
 
 		if(ref->status == REF_SOLVED) {
@@ -432,7 +433,7 @@ int _solve_return_references(FsmBuilder *builder, Nonterminal *nt) {
 			continue;
 		}
 
-		Action *cont = radix_tree_get_int(&ref->state->actions, sb->id);
+		Action *cont = rtree_get_int(&ref->state->actions, sb->id);
 
 		//There could be many references here:
 		// * When the calling NT's end state matches the continuation, there
@@ -462,7 +463,7 @@ int _solve_return_references(FsmBuilder *builder, Nonterminal *nt) {
 		state_add_reduce_follow_set(nt->end, cont->state, sb->id);
 		ref->status = REF_SOLVED;
 	}
-	radix_tree_iterator_dispose(&it);
+	rtree_iterator_dispose(&it);
 
 	if(!unsolved) {
 		nt->status = NONTERMINAL_CLEAR;
@@ -489,8 +490,8 @@ int _solve_invoke_references(FsmBuilder *builder, State *state) {
 
 	trace_state("solve refs for state", state, "");
 
-	radix_tree_iterator_init(&it, &state->refs);
-	while((ref = (Reference *)radix_tree_iterator_next(&it))) {
+	rtree_iterator_init(&it, &state->refs);
+	while((ref = (Reference *)rtree_iterator_next(&it))) {
 
 		if(ref->status == REF_SOLVED) {
 			//ref already solved
@@ -515,7 +516,7 @@ int _solve_invoke_references(FsmBuilder *builder, State *state) {
 		);
 		reference_solve_first_set(ref, &unsolved);
 	}
-	radix_tree_iterator_dispose(&it);
+	rtree_iterator_dispose(&it);
 
 	if(!unsolved) {
 		state->status &= ~STATE_INVOKE_REF;
@@ -537,15 +538,15 @@ void _solve_references(FsmBuilder *builder) {
 
 	//TODO: Are all states reachable through start?
 	//TODO: Do all states exist this point and are connected?
-	Node all_states;
+	RTree all_states;
 
 retry:
-	radix_tree_init(&all_states);
+	rtree_init(&all_states);
 	fsm_get_states(&all_states, fsm_get_state(builder->fsm, nzs(".default")));
 
 	some_unsolved = 0;
-	radix_tree_iterator_init(&it, &builder->fsm->nonterminals);
-	while((nt  = (Nonterminal *)radix_tree_iterator_next(&it))) {
+	rtree_iterator_init(&it, &builder->fsm->nonterminals);
+	while((nt  = (Nonterminal *)rtree_iterator_next(&it))) {
 		/* keys are symbol ids, not strings.
 		trace_symbol(
 			"solve return references", 
@@ -557,17 +558,17 @@ retry:
 		//TODO: Should avoid collecting states multiple times
 		fsm_get_states(&all_states, nt->start);
 	}
-	radix_tree_iterator_dispose(&it);
+	rtree_iterator_dispose(&it);
 
 	//Solve return
 	State *state;
-	radix_tree_iterator_init(&it, &all_states);
-	while((state = (State *)radix_tree_iterator_next(&it))) {
+	rtree_iterator_init(&it, &all_states);
+	while((state = (State *)rtree_iterator_next(&it))) {
 		some_unsolved |= _solve_invoke_references(builder, state);
 	}
-	radix_tree_iterator_dispose(&it);
+	rtree_iterator_dispose(&it);
 
-	radix_tree_dispose(&all_states);
+	rtree_dispose(&all_states);
 
 	if(some_unsolved) {
 		//Keep trying until no refs pending.

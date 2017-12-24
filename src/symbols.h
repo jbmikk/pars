@@ -1,7 +1,7 @@
 #ifndef SYMBOLS_H
 #define SYMBOLS_H
 
-#include "radixtree.h"
+#include "rtree.h"
 
 typedef struct Range {
 	int start;
@@ -15,8 +15,8 @@ typedef struct Symbol {
 } Symbol;
 
 typedef struct SymbolTable {
-	Node symbols;
-	Node symbols_by_id;
+	RTree symbols;
+	RTree symbols_by_id;
 	int id_base;
 } SymbolTable;
 

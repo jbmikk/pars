@@ -1,8 +1,9 @@
 #include "fsm.h"
 
 #include "cmemory.h"
-#include "radixtree.h"
+#include "rtree.h"
 #include "arrays.h"
+#include <stdlib.h>
 #include <stdio.h>
 
 //# State functions
@@ -27,14 +28,14 @@
 
 void state_init(State *state)
 {
-	radix_tree_init(&state->actions);
-	radix_tree_init(&state->refs);
+	rtree_init(&state->actions);
+	rtree_init(&state->refs);
 	state->status = STATE_CLEAR;
 }
 
 void state_add_reference(State *state, Symbol *symbol, State *to_state)
 {
-	Reference *ref = c_new(Reference, 1);
+	Reference *ref = malloc(sizeof(Reference));
 	ref->state = state;
 	ref->to_state = to_state;
 	//TODO: Is it really necessary? Not used right now.
@@ -42,7 +43,7 @@ void state_add_reference(State *state, Symbol *symbol, State *to_state)
 	ref->status = REF_PENDING;
 
 	//Is ref key ok?
-	radix_tree_set_intptr(&state->refs, (intptr_t)ref, ref);
+	rtree_set_intptr(&state->refs, (intptr_t)ref, ref);
 	state->status |= STATE_INVOKE_REF;
 }
 
@@ -52,23 +53,23 @@ void state_dispose(State *state)
 
 	//Delete all actions
 	Action *ac;
-	radix_tree_iterator_init(&it, &state->actions);
-	while((ac = (Action *)radix_tree_iterator_next(&it))) {
-		c_delete(ac);
+	rtree_iterator_init(&it, &state->actions);
+	while((ac = (Action *)rtree_iterator_next(&it))) {
+		free(ac);
 	}
-	radix_tree_iterator_dispose(&it);
+	rtree_iterator_dispose(&it);
 
-	radix_tree_dispose(&state->actions);
+	rtree_dispose(&state->actions);
 
 	//Delete all references
 	Reference *ref;
-	radix_tree_iterator_init(&it, &state->refs);
-	while((ref = (Reference *)radix_tree_iterator_next(&it))) {
-		c_delete(ref);
+	rtree_iterator_init(&it, &state->refs);
+	while((ref = (Reference *)rtree_iterator_next(&it))) {
+		free(ref);
 	}
-	radix_tree_iterator_dispose(&it);
+	rtree_iterator_dispose(&it);
 
-	radix_tree_dispose(&state->refs);
+	rtree_dispose(&state->refs);
 }
 
 static Action *_state_get_transition(State *state, unsigned char *buffer, unsigned int size)
@@ -76,10 +77,10 @@ static Action *_state_get_transition(State *state, unsigned char *buffer, unsign
 	Action *action;
 	Action *range;
 	
-	action = (Action *)radix_tree_get(&state->actions, buffer, size);
+	action = (Action *)rtree_get(&state->actions, buffer, size);
 
 	if(!action) {
-		range = (Action *)radix_tree_get_prev(&state->actions, buffer, size);
+		range = (Action *)rtree_get_prev(&state->actions, buffer, size);
 		if(range && (range->flags & ACTION_FLAG_RANGE)) {
 			int symbol = array_to_int(buffer, size);
 			//TODO: Fix negative symbols in transitions.
@@ -122,17 +123,17 @@ static Action *_state_add_buffer(State *state, unsigned char *buffer, unsigned i
 			);
 			//TODO: add sentinel ?
 		}
-		c_delete(action);
+		free(action);
 		action = NULL;
 	} else {
-		radix_tree_set(&state->actions, buffer, size, action);
+		rtree_set(&state->actions, buffer, size, action);
 	}
 	return action;
 }
 
 Action *state_add(State *state, int symbol, int type, int reduction)
 {
-	Action * action = c_new(Action, 1);
+	Action * action = malloc(sizeof(Action));
 	action_init(action, type, reduction, NULL, 0, 0);
 
 	unsigned char buffer[sizeof(int)];
@@ -173,7 +174,7 @@ Action *state_add(State *state, int symbol, int type, int reduction)
 
 Action *state_add_range(State *state, Range range, int type, int reduction)
 {
-	Action *action = c_new(Action, 1);
+	Action *action = malloc(sizeof(Action));
 	Action *cont;
 
 	unsigned char buffer[sizeof(int)];
@@ -196,7 +197,7 @@ Action *state_add_range(State *state, Range range, int type, int reduction)
 			trace("add", state, action, range.start, "range-action", 0);
 		}
 	} else {
-		c_delete(action);
+		free(action);
 	}
 	return cont;
 }
@@ -206,9 +207,9 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 {
 	Action *action, *clone;
 	Iterator it;
-	radix_tree_iterator_init(&it, &(ref->to_state->actions));
+	rtree_iterator_init(&it, &(ref->to_state->actions));
 
-	while((action = (Action *)radix_tree_iterator_next(&it))) {
+	while((action = (Action *)rtree_iterator_next(&it))) {
 		//TODO: Make type for clone a parameter, do not override by
 		// default.
 
@@ -281,7 +282,7 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 
 			//TODO: should only merge if actions are identical
 			//TODO: Make this work with ranges.
-			State *merge = c_new(State, 1);
+			State *merge = malloc(sizeof(State));
 			state_init(merge);
 
 			//Merge first set for the actions continuations.
@@ -295,7 +296,7 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 		} else {
 
 			//No collision detected, clone the action an add it.
-			clone = c_new(Action, 1);
+			clone = malloc(sizeof(Action));
 			action_init(clone, clone_type, action->reduction, action->state, action->flags, action->end_symbol);
 
 			trace(
@@ -311,7 +312,7 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 		}
 		ref->status = REF_SOLVED;
 	}
-	radix_tree_iterator_dispose(&it);
+	rtree_iterator_dispose(&it);
 }
 
 void state_add_reduce_follow_set(State *from, State *to, int symbol)
@@ -322,15 +323,15 @@ void state_add_reduce_follow_set(State *from, State *to, int symbol)
 	// Empty transitions should not be cloned.
 	// They should be followed recursively to get the whole follow set,
 	// otherwise me might loose reductions.
-	radix_tree_iterator_init(&it, &(to->actions));
-	while((ac = (Action *)radix_tree_iterator_next(&it))) {
-		Action *reduce = c_new(Action, 1);
+	rtree_iterator_init(&it, &(to->actions));
+	while((ac = (Action *)rtree_iterator_next(&it))) {
+		Action *reduce = malloc(sizeof(Action));
 		action_init(reduce, ACTION_REDUCE, symbol, NULL, ac->flags, ac->end_symbol);
 
 		_state_add_buffer(from, it.key, it.size, reduce);
 		trace("add", from, reduce, array_to_int(it.key, it.size), "reduce-follow", symbol);
 	}
-	radix_tree_iterator_dispose(&it);
+	rtree_iterator_dispose(&it);
 }
 
 Action *state_get_transition(State *state, int symbol)
@@ -358,7 +359,7 @@ void action_init(Action *action, char type, int reduction, State *state, char fl
 
 void nonterminal_init(Nonterminal *nonterminal)
 {
-	radix_tree_init(&nonterminal->refs);
+	rtree_init(&nonterminal->refs);
 	nonterminal->status = NONTERMINAL_CLEAR;
 	nonterminal->start = NULL;
 	nonterminal->end = NULL;
@@ -369,14 +370,14 @@ void nonterminal_init(Nonterminal *nonterminal)
 
 void nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *symbol)
 {
-	Reference *ref = c_new(Reference, 1);
+	Reference *ref = malloc(sizeof(Reference));
 	ref->state = state;
 	ref->to_state = NULL;
 	//TODO: Is it used?
 	ref->symbol = symbol;
 	ref->status = REF_PENDING;
 	//TODO: is ref key ok?
-	radix_tree_set_intptr(&nonterminal->refs, (intptr_t)ref, ref);
+	rtree_set_intptr(&nonterminal->refs, (intptr_t)ref, ref);
 	nonterminal->status |= NONTERMINAL_RETURN_REF;
 
 	//Set end state status if exists
@@ -391,11 +392,11 @@ void nonterminal_dispose(Nonterminal *nonterminal)
 	Reference *ref;
 	Iterator it;
 
-	radix_tree_iterator_init(&it, &nonterminal->refs);
-	while((ref = (Reference *)radix_tree_iterator_next(&it))) {
-		c_delete(ref);
+	rtree_iterator_init(&it, &nonterminal->refs);
+	while((ref = (Reference *)rtree_iterator_next(&it))) {
+		free(ref);
 	}
-	radix_tree_iterator_dispose(&it);
+	rtree_iterator_dispose(&it);
 
-	radix_tree_dispose(&nonterminal->refs);
+	rtree_dispose(&nonterminal->refs);
 }
