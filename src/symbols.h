@@ -14,9 +14,11 @@ typedef struct Symbol {
 	int length;
 } Symbol;
 
+DEFINE_BMAP(int, Symbol *, Symbol, symbol)
+
 typedef struct SymbolTable {
 	RTree symbols;
-	RTree symbols_by_id;
+	BMapSymbol symbols_by_id;
 	int id_base;
 } SymbolTable;
 
