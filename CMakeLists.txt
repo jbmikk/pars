@@ -52,7 +52,7 @@ include_directories("${CMAKE_BINARY_DIR}/xdstlib-prefix/src/xdstlib/src")
 externalproject_add(
         xdstlib
         GIT_REPOSITORY git@github.com:jbmikk/dstlib.git
-        GIT_TAG 0.5.2
+        GIT_TAG 0.6.0
         DOWNLOAD_NAME dstlib
         DOWNLOAD_DIR dstlib
         INSTALL_COMMAND ""
