@@ -8,10 +8,12 @@
 #include <stdio.h>
 #include <stdint.h>
 
+DEFINE_BMAP_FUNCTIONS(int, Nonterminal *, Nonterminal, nonterminal, IMPLEMENTATION)
+
 void fsm_init(Fsm *fsm, SymbolTable *table)
 {
 	fsm->table = table;
-	rtree_init(&fsm->nonterminals);
+	bmap_nonterminal_init(&fsm->nonterminals);
 }
 
 void fsm_get_states(RTree *states, State *state)
@@ -56,19 +58,21 @@ void fsm_dispose(Fsm *fsm)
 
 	Nonterminal *nt;
 	Iterator it;
+	BMapCursorNonterminal cursor;
 
 	rtree_init(&all_states);
 
-	rtree_iterator_init(&it, &fsm->nonterminals);
-	while((nt = (Nonterminal *)rtree_iterator_next(&it))) {
+	bmap_cursor_nonterminal_init(&cursor, &fsm->nonterminals);
+	while(bmap_cursor_nonterminal_next(&cursor)) {
+		nt = bmap_cursor_nonterminal_current(&cursor)->nonterminal;
 		//Just in case some nonterminal is not reachable through start
 		fsm_get_states(&all_states, nt->start);
 		nonterminal_dispose(nt);
 		free(nt);
 	}
-	rtree_iterator_dispose(&it);
+	bmap_cursor_nonterminal_dispose(&cursor);
 
-	rtree_dispose(&fsm->nonterminals);
+	bmap_nonterminal_dispose(&fsm->nonterminals);
 
 	//Delete all states
 	State *st;
@@ -85,7 +89,8 @@ void fsm_dispose(Fsm *fsm)
 
 Nonterminal *fsm_get_nonterminal_by_id(Fsm *fsm, int symbol)
 {
-	return (Nonterminal *)rtree_get_int(&fsm->nonterminals, symbol);
+	BMapEntryNonterminal *entry = bmap_nonterminal_get(&fsm->nonterminals, symbol);
+	return entry? entry->nonterminal: NULL;
 }
 
 Nonterminal *fsm_get_nonterminal(Fsm *fsm, char *name, int length)
@@ -103,7 +108,7 @@ Nonterminal *fsm_create_nonterminal(Fsm *fsm, char *name, int length)
 		nonterminal_init(nonterminal);
 		nonterminal->start = malloc(sizeof(State));
 		state_init(nonterminal->start);
-		rtree_set_int(&fsm->nonterminals, symbol->id, nonterminal);
+		bmap_nonterminal_insert(&fsm->nonterminals, symbol->id, nonterminal);
 		//TODO: Add to nonterminal struct: 
 		// * detect circular references.
 	}

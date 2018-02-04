@@ -384,12 +384,15 @@ static void _set_start(FsmBuilder *builder, int eof_symbol)
 
 static void _set_lexer_start(FsmBuilder *builder, int eof_symbol)
 {
-        Iterator it;
+	BMapCursorNonterminal cursor;
+	BMapEntryNonterminal *entry;
 	Nonterminal *nt;
 	State *start;
-	rtree_iterator_init(&it, &builder->fsm->nonterminals);
+	bmap_cursor_nonterminal_init(&cursor, &builder->fsm->nonterminals);
 
-	while((nt = (Nonterminal *)rtree_iterator_next(&it))) {
+	while(bmap_cursor_nonterminal_next(&cursor)) {
+		entry = bmap_cursor_nonterminal_current(&cursor);
+		nt = entry->nonterminal;
 		//Skip modeless nonterminals (they are modes themselves)
 		if(!nt->mode) {
 			continue;
@@ -398,9 +401,9 @@ static void _set_lexer_start(FsmBuilder *builder, int eof_symbol)
 		start = fsm_get_state_by_id(builder->fsm, nt->mode);
 		_move_to(builder, start);
 		//Different kind of nonterminal reference
-		_lexer_nonterminal(builder, array_to_int(it.key, it.size));
+		_lexer_nonterminal(builder, entry->key);
 	}
-	rtree_iterator_dispose(&it);
+	bmap_cursor_nonterminal_dispose(&cursor);
 
 	start = fsm_get_state(builder->fsm, nzs(".default"));
 	_move_to(builder, start);
@@ -533,6 +536,7 @@ end:
 
 void _solve_references(FsmBuilder *builder) {
         Iterator it;
+	BMapCursorNonterminal cursor;
 	Nonterminal *nt;
 	int some_unsolved;
 
@@ -545,8 +549,9 @@ retry:
 	fsm_get_states(&all_states, fsm_get_state(builder->fsm, nzs(".default")));
 
 	some_unsolved = 0;
-	rtree_iterator_init(&it, &builder->fsm->nonterminals);
-	while((nt  = (Nonterminal *)rtree_iterator_next(&it))) {
+	bmap_cursor_nonterminal_init(&cursor, &builder->fsm->nonterminals);
+	while(bmap_cursor_nonterminal_next(&cursor)) {
+		nt = bmap_cursor_nonterminal_current(&cursor)->nonterminal;
 		/* keys are symbol ids, not strings.
 		trace_symbol(
 			"solve return references", 
@@ -558,7 +563,7 @@ retry:
 		//TODO: Should avoid collecting states multiple times
 		fsm_get_states(&all_states, nt->start);
 	}
-	rtree_iterator_dispose(&it);
+	bmap_cursor_nonterminal_dispose(&cursor);
 
 	//Solve return
 	State *state;

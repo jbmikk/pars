@@ -68,11 +68,15 @@ typedef struct Reference {
 	char status;
 } Reference;
 
+DEFINE_BMAP(int, Nonterminal *, Nonterminal, nonterminal)
+
 typedef struct Fsm {
 	SymbolTable *table;
-	RTree nonterminals;
+	BMapNonterminal nonterminals;
 } Fsm;
 
+
+DEFINE_BMAP_FUNCTIONS(int, Nonterminal *, Nonterminal, nonterminal, PROTOTYPE)
 
 void fsm_init(Fsm *fsm, SymbolTable *table);
 void fsm_dispose(Fsm *fsm);
