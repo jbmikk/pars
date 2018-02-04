@@ -122,7 +122,7 @@ void ast_builder_reduce(void *builder_p, const Token *token)
 void ast_builder_done(AstBuilder *builder)
 {
 	if(builder->previous != NULL) {
-		trace(builder->previous, "done", 0, builder->previous->index, 0);
+		trace(builder->previous, "done", 0, builder->previous->token.index, 0);
 		_node_bind_to_parent(builder->previous);
 		builder->previous = NULL;
 	} else {
