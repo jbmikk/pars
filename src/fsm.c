@@ -30,17 +30,18 @@ void fsm_get_states(RTree *states, State *state)
 		if(!in_states) {
 			rtree_set(states, buffer, size, state);
 
-			Iterator it;
-
 			//Jump to other states
+			BMapCursorAction cursor;
 			Action *ac;
-			rtree_iterator_init(&it, &(state->actions));
-			while((ac = (Action *)rtree_iterator_next(&it))) {
+			bmap_cursor_action_init(&cursor, &state->actions);
+			while(bmap_cursor_action_next(&cursor)) {
+				ac = bmap_cursor_action_current(&cursor)->action;
 				fsm_get_states(states, ac->state);
 			}
-			rtree_iterator_dispose(&it);
+			bmap_cursor_action_dispose(&cursor);
 
 			//Jump to references
+			Iterator it;
 			Reference *ref;
 			rtree_iterator_init(&it, &state->refs);
 			while((ref = (Reference *)rtree_iterator_next(&it))) {

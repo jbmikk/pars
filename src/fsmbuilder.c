@@ -436,7 +436,8 @@ int _solve_return_references(FsmBuilder *builder, Nonterminal *nt) {
 			continue;
 		}
 
-		Action *cont = rtree_get_int(&ref->state->actions, sb->id);
+		BMapEntryAction *entry = bmap_action_get(&ref->state->actions, sb->id);
+		Action *cont = entry? entry->action: NULL;
 
 		//There could be many references here:
 		// * When the calling NT's end state matches the continuation, there

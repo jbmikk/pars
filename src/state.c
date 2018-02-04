@@ -26,9 +26,11 @@
 #define trace(M, T1, T2, S, A, R)
 #endif
 
+DEFINE_BMAP_FUNCTIONS(int, Action *, Action, action, IMPLEMENTATION)
+
 void state_init(State *state)
 {
-	rtree_init(&state->actions);
+	bmap_action_init(&state->actions);
 	rtree_init(&state->refs);
 	state->status = STATE_CLEAR;
 }
@@ -49,20 +51,22 @@ void state_add_reference(State *state, Symbol *symbol, State *to_state)
 
 void state_dispose(State *state)
 {
-	Iterator it;
+	BMapCursorAction cursor;
 
 	//Delete all actions
 	Action *ac;
-	rtree_iterator_init(&it, &state->actions);
-	while((ac = (Action *)rtree_iterator_next(&it))) {
+	bmap_cursor_action_init(&cursor, &state->actions);
+	while(bmap_cursor_action_next(&cursor)) {
+		ac = bmap_cursor_action_current(&cursor)->action;
 		free(ac);
 	}
-	rtree_iterator_dispose(&it);
+	bmap_cursor_action_dispose(&cursor);
 
-	rtree_dispose(&state->actions);
+	bmap_action_dispose(&state->actions);
 
 	//Delete all references
 	Reference *ref;
+	Iterator it;
 	rtree_iterator_init(&it, &state->refs);
 	while((ref = (Reference *)rtree_iterator_next(&it))) {
 		free(ref);
@@ -72,17 +76,17 @@ void state_dispose(State *state)
 	rtree_dispose(&state->refs);
 }
 
-static Action *_state_get_transition(State *state, unsigned char *buffer, unsigned int size)
+static Action *_state_get_transition(State *state, int symbol)
 {
-	Action *action;
+	Action *action = NULL;
 	Action *range;
 	
-	action = (Action *)rtree_get(&state->actions, buffer, size);
+	BMapEntryAction *entry = bmap_action_get(&state->actions, symbol);
 
-	if(!action) {
-		range = (Action *)rtree_get_prev(&state->actions, buffer, size);
+	if(!entry) {
+		entry = bmap_action_get_lt(&state->actions, symbol);
+		range = entry? entry->action: NULL;
 		if(range && (range->flags & ACTION_FLAG_RANGE)) {
-			int symbol = array_to_int(buffer, size);
 			//TODO: Fix negative symbols in transitions.
 			//negative symbols are interpreted as unsigned chars
 			//when doing scans, but as signed ints when converted
@@ -91,13 +95,15 @@ static Action *_state_get_transition(State *state, unsigned char *buffer, unsign
 				action = range;
 			}
 		}
-	} 
+	} else {
+		action = entry->action;
+	}
 	return action;
 }
 
-static Action *_state_add_buffer(State *state, unsigned char *buffer, unsigned int size, Action *action)
+static Action *_state_add_buffer(State *state, int symbol, Action *action)
 {
-	Action *collision = _state_get_transition(state, buffer, size);
+	Action *collision = _state_get_transition(state, symbol);
 	
 	if(collision) {
 		if(
@@ -108,7 +114,7 @@ static Action *_state_add_buffer(State *state, unsigned char *buffer, unsigned i
 				"dup",
 				state,
 				action,
-				array_to_int(buffer, size),
+				symbol,
 				"skip",
 				action->reduction
 			);
@@ -117,7 +123,7 @@ static Action *_state_add_buffer(State *state, unsigned char *buffer, unsigned i
 				"dup",
 				state,
 				action,
-				array_to_int(buffer, size),
+				symbol,
 				"conflict",
 				action->reduction
 			);
@@ -126,7 +132,7 @@ static Action *_state_add_buffer(State *state, unsigned char *buffer, unsigned i
 		free(action);
 		action = NULL;
 	} else {
-		rtree_set(&state->actions, buffer, size, action);
+		bmap_action_insert(&state->actions, symbol, action);
 	}
 	return action;
 }
@@ -136,10 +142,7 @@ Action *state_add(State *state, int symbol, int type, int reduction)
 	Action * action = malloc(sizeof(Action));
 	action_init(action, type, reduction, NULL, 0, 0);
 
-	unsigned char buffer[sizeof(int)];
-	int_to_padded_array(buffer, symbol);
-
-	action = _state_add_buffer(state, buffer, sizeof(int), action);
+	action = _state_add_buffer(state, symbol, action);
 
 	//TODO: Ambiguos transitions should be handled properly.
 	// There are different types of conflicts that could arise with 
@@ -177,12 +180,9 @@ Action *state_add_range(State *state, Range range, int type, int reduction)
 	Action *action = malloc(sizeof(Action));
 	Action *cont;
 
-	unsigned char buffer[sizeof(int)];
-
 	action_init(action, type, reduction, NULL, ACTION_FLAG_RANGE, range.end);
 
-	int_to_padded_array(buffer, range.start);
-	cont = _state_add_buffer(state, buffer, sizeof(int), action);
+	cont = _state_add_buffer(state, range.start, action);
 
 	if(cont) {
 		if(type == ACTION_SHIFT) {
@@ -206,10 +206,13 @@ Action *state_add_range(State *state, Range range, int type, int reduction)
 void reference_solve_first_set(Reference *ref, int *unsolved)
 {
 	Action *action, *clone;
-	Iterator it;
-	rtree_iterator_init(&it, &(ref->to_state->actions));
+	BMapCursorAction cursor;
+	BMapEntryAction *entry;
+	bmap_cursor_action_init(&cursor, &(ref->to_state->actions));
 
-	while((action = (Action *)rtree_iterator_next(&it))) {
+	while(bmap_cursor_action_next(&cursor)) {
+		entry = bmap_cursor_action_current(&cursor);
+		action = entry->action;
 		//TODO: Make type for clone a parameter, do not override by
 		// default.
 
@@ -223,7 +226,7 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 					"skip",
 					ref->state,
 					action,
-					array_to_int(it.key, it.size),
+					entry->key,
 					"reduction on first-set",
 					0
 				);
@@ -237,7 +240,7 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 		}
 
 		fflush(stdin);
-		Action *col = _state_get_transition(ref->state, it.key, it.size);
+		Action *col = _state_get_transition(ref->state, entry->key);
 
 		if(col) {
 			if(
@@ -251,7 +254,7 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 					"collision",
 					ref->state,
 					action,
-					array_to_int(it.key, it.size),
+					entry->key,
 					"skip duplicate",
 					0
 				);
@@ -263,7 +266,7 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 					"collision",
 					ref->state,
 					action,
-					array_to_int(it.key, it.size),
+					entry->key,
 					"unhandled",
 					0
 				);
@@ -275,7 +278,7 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 				"collision",
 				ref->state,
 				col,
-				array_to_int(it.key, it.size),
+				entry->key,
 				"deambiguate state",
 				0
 			);
@@ -303,42 +306,43 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 				"add",
 				ref->state,
 				clone,
-				array_to_int(it.key, it.size),
+				entry->key,
 				"first-set",
 				0
 			);
 
-			_state_add_buffer(ref->state, it.key, it.size, clone);
+			_state_add_buffer(ref->state, entry->key, clone);
 		}
 		ref->status = REF_SOLVED;
 	}
-	rtree_iterator_dispose(&it);
+	bmap_cursor_action_dispose(&cursor);
 }
 
 void state_add_reduce_follow_set(State *from, State *to, int symbol)
 {
 	Action *ac;
-	Iterator it;
+	BMapCursorAction cursor;
+	BMapEntryAction *entry;
 
 	// Empty transitions should not be cloned.
 	// They should be followed recursively to get the whole follow set,
 	// otherwise me might loose reductions.
-	rtree_iterator_init(&it, &(to->actions));
-	while((ac = (Action *)rtree_iterator_next(&it))) {
+	bmap_cursor_action_init(&cursor, &to->actions);
+	while(bmap_cursor_action_next(&cursor)) {
+		entry = bmap_cursor_action_current(&cursor);
+		ac = entry->action;
 		Action *reduce = malloc(sizeof(Action));
 		action_init(reduce, ACTION_REDUCE, symbol, NULL, ac->flags, ac->end_symbol);
 
-		_state_add_buffer(from, it.key, it.size, reduce);
+		_state_add_buffer(from, entry->key, reduce);
 		trace("add", from, reduce, array_to_int(it.key, it.size), "reduce-follow", symbol);
 	}
-	rtree_iterator_dispose(&it);
+	bmap_cursor_action_dispose(&cursor);
 }
 
 Action *state_get_transition(State *state, int symbol)
 {
-	unsigned char buffer[sizeof(int)];
-	int_to_padded_array(buffer, symbol);
-	return _state_get_transition(state, buffer, sizeof(int));
+	return _state_get_transition(state, symbol);
 }
 
 
