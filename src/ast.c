@@ -12,26 +12,29 @@
 
 DEFINE_STACK_FUNCTIONS(AstNode *, AstNode, astnode, IMPLEMENTATION);
 
+DEFINE_BMAP_FUNCTIONS(unsigned int, AstNode *, AstNode, astnode, IMPLEMENTATION)
+
 void ast_node_init(AstNode *node, AstNode *parent, const Token *token)
 {
 	node->token = *token;
-	rtree_init(&node->children);
+	bmap_astnode_init(&node->children);
 	node->parent = parent;
 }
 
 void ast_node_dispose(AstNode *node)
 {
 	AstNode *an;
-	Iterator it;
+	BMapCursorAstNode cursor;
 
-	rtree_iterator_init(&it, &node->children);
-	while((an = (AstNode *)rtree_iterator_next(&it))) {
+	bmap_cursor_astnode_init(&cursor, &node->children);
+	while(bmap_cursor_astnode_next(&cursor)) {
+		an = bmap_cursor_astnode_current(&cursor)->astnode;
 		ast_node_dispose(an);
 		free(an);
 	}
-	rtree_iterator_dispose(&it);
+	bmap_cursor_astnode_dispose(&cursor);
 
-	rtree_dispose(&node->children);
+	bmap_astnode_dispose(&node->children);
 }
 
 
@@ -48,7 +51,7 @@ void ast_dispose(Ast *ast)
 
 	//In order to dispose multiple times we need to delete old references
 	//Another solution would be to make the root node dynamic.
-	rtree_init(&ast->root.children);
+	bmap_astnode_init(&ast->root.children);
 	ast->table = NULL;
 }
 
@@ -73,10 +76,11 @@ void ast_cursor_pop(AstCursor *cursor)
 
 static AstNode *_get_next_sibling(AstNode *node) {
 	AstNode *parent = node->parent;
-	AstNode *sibling;
+	BMapEntryAstNode *entry;
 
-	sibling = (AstNode *)rtree_get_next_ple_int(&parent->children, node->token.index);
-	return sibling;
+	entry = bmap_astnode_get_gt(&parent->children, node->token.index);
+
+	return entry? entry->astnode: NULL;
 }
 
 static AstNode *_depth_out_next(AstCursor *cursor, AstNode *base)
@@ -119,10 +123,11 @@ static AstNode *_depth_next(AstCursor *cursor, AstNode *base)
 	} else {
 		//Get first children
 		AstNode *current = cursor->current;
-		next = (AstNode *)rtree_get_next(&current->children, NULL, 0);
-		if(next == NULL) {
+		BMapEntryAstNode *entry = bmap_astnode_first(&current->children);
+		if(entry == NULL) {
 			next = _depth_out_next(cursor, base);
 		} else {
+			next = entry->astnode;
 			cursor->offset++;
 		}
 	}
@@ -216,12 +221,14 @@ void ast_cursor_dispose(AstCursor *cursor)
 
 void ast_print_node(Ast *ast, AstNode *node, int level) {
 	
-	AstNode *next = (AstNode *)rtree_get_next(&node->children, NULL, 0);
+	BMapEntryAstNode *entry = bmap_astnode_first(&node->children);
 	Symbol *sy;
 
-	if(!next) {
+	if(!entry) {
 		return;
 	}
+
+	AstNode *next = entry->astnode;
 
 	do {
 		char *src = NULL;

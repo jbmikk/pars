@@ -13,14 +13,15 @@
 
 static void _node_bind_to_parent(AstNode *node)
 {
-	AstNode* pre = (AstNode*)rtree_get_ple_int(&node->parent->children, node->token.index);
+	BMapEntryAstNode *pre = bmap_astnode_get(&node->parent->children, node->token.index);
 	// TODO: Review algorithm: should avoid creating duplicate nodes when
 	// dropping nonterminals and then closing previous nodes.
 	if(pre) {
-		ast_node_dispose(pre);
-		free(pre);
+		ast_node_dispose(pre->astnode);
+		free(pre->astnode);
+		bmap_astnode_delete(&node->parent->children, node->token.index);
 	}
-	rtree_set_ple_int(&node->parent->children, node->token.index, node);
+	bmap_astnode_insert(&node->parent->children, node->token.index, node);
 }
 
 static AstNode *_node_append(AstBuilder *builder, const Token *token)

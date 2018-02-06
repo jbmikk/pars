@@ -7,11 +7,15 @@
 #include "symbols.h"
 #include "token.h"
 
-typedef struct AstNode {
+typedef struct AstNode AstNode;
+
+DEFINE_BMAP(unsigned int, AstNode *, AstNode, astnode)
+
+struct AstNode {
 	Token token;
-	RTree children;
+	BMapAstNode children;
 	struct AstNode *parent;
-} AstNode;
+};
 
 typedef struct Ast {
 	AstNode root;
@@ -27,6 +31,9 @@ typedef struct AstCursor {
 	int offset;
 	StackAstNode stack;
 } AstCursor;
+
+
+DEFINE_BMAP_FUNCTIONS(unsigned int, AstNode *, AstNode, astnode, PROTOTYPE)
 
 void ast_node_init(AstNode *node, AstNode *parent, const Token *token);
 void ast_node_dispose(AstNode *node);
