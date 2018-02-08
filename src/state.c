@@ -335,7 +335,7 @@ void state_add_reduce_follow_set(State *from, State *to, int symbol)
 		action_init(reduce, ACTION_REDUCE, symbol, NULL, ac->flags, ac->end_symbol);
 
 		_state_add_buffer(from, entry->key, reduce);
-		trace("add", from, reduce, array_to_int(it.key, it.size), "reduce-follow", symbol);
+		trace("add", from, reduce, entry->key, "reduce-follow", symbol);
 	}
 	bmap_cursor_action_dispose(&cursor);
 }
