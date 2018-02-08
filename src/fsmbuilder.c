@@ -420,15 +420,16 @@ static void _set_lexer_start(FsmBuilder *builder, int eof_symbol)
 
 int _solve_return_references(FsmBuilder *builder, Nonterminal *nt) {
 	int unsolved = 0;
-        Iterator it;
+	BMapCursorReference rcursor;
 	Reference *ref;
 
 	if(nt->status == NONTERMINAL_CLEAR) {
 		goto end;
 	}
 
-	rtree_iterator_init(&it, &nt->refs);
-	while((ref = (Reference *)rtree_iterator_next(&it))) {
+	bmap_cursor_ref_init(&rcursor, &nt->refs);
+	while(bmap_cursor_ref_next(&rcursor)) {
+		ref = bmap_cursor_ref_current(&rcursor)->ref;
 		Symbol *sb = ref->symbol;
 
 		if(ref->status == REF_SOLVED) {
@@ -467,7 +468,7 @@ int _solve_return_references(FsmBuilder *builder, Nonterminal *nt) {
 		state_add_reduce_follow_set(nt->end, cont->state, sb->id);
 		ref->status = REF_SOLVED;
 	}
-	rtree_iterator_dispose(&it);
+	bmap_cursor_ref_dispose(&rcursor);
 
 	if(!unsolved) {
 		nt->status = NONTERMINAL_CLEAR;
@@ -485,7 +486,6 @@ end:
 
 int _solve_invoke_references(FsmBuilder *builder, State *state) {
 	int unsolved = 0;
-        Iterator it;
 	Reference *ref;
 
 	if(state->status == STATE_CLEAR) {
@@ -494,8 +494,10 @@ int _solve_invoke_references(FsmBuilder *builder, State *state) {
 
 	trace_state("solve refs for state", state, "");
 
-	rtree_iterator_init(&it, &state->refs);
-	while((ref = (Reference *)rtree_iterator_next(&it))) {
+	BMapCursorReference rcursor;
+	bmap_cursor_ref_init(&rcursor, &state->refs);
+	while(bmap_cursor_ref_next(&rcursor)) {
+		ref = bmap_cursor_ref_current(&rcursor)->ref;
 
 		if(ref->status == REF_SOLVED) {
 			//ref already solved
@@ -520,7 +522,7 @@ int _solve_invoke_references(FsmBuilder *builder, State *state) {
 		);
 		reference_solve_first_set(ref, &unsolved);
 	}
-	rtree_iterator_dispose(&it);
+	bmap_cursor_ref_dispose(&rcursor);
 
 	if(!unsolved) {
 		state->status &= ~STATE_INVOKE_REF;

@@ -31,12 +31,15 @@
 #define NONTERMINAL_RETURN_REF 1
 
 typedef struct Action Action;
+typedef struct Reference Reference;
 
 DEFINE_BMAP(int, Action *, Action, action)
 
+DEFINE_BMAP(intptr_t, Reference *, Reference, ref)
+
 typedef struct State {
 	BMapAction actions;
-	RTree refs;
+	BMapReference refs;
 	char status;
 } State;
 
@@ -52,7 +55,7 @@ struct Action {
 typedef struct Nonterminal {
 	State *start;
 	State *end;
-	RTree refs;
+	BMapReference refs;
 	//mode == 0 means no parent mode.
 	int mode;
 	//TODO: Only necessary for setting accept action flags.
@@ -87,6 +90,8 @@ DEFINE_BMAP_FUNCTIONS(int, Action *, Action, action, PROTOTYPE)
 DEFINE_BMAP_FUNCTIONS(int, Nonterminal *, Nonterminal, nonterminal, PROTOTYPE)
 
 DEFINE_BMAP_FUNCTIONS(intptr_t, State *, State, state, PROTOTYPE)
+
+DEFINE_BMAP_FUNCTIONS(intptr_t, Reference*, Reference, ref, PROTOTYPE)
 
 void fsm_init(Fsm *fsm, SymbolTable *table);
 void fsm_dispose(Fsm *fsm);

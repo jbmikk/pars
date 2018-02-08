@@ -28,10 +28,12 @@
 
 DEFINE_BMAP_FUNCTIONS(int, Action *, Action, action, IMPLEMENTATION)
 
+DEFINE_BMAP_FUNCTIONS(intptr_t, Reference*, Reference, ref, IMPLEMENTATION)
+
 void state_init(State *state)
 {
 	bmap_action_init(&state->actions);
-	rtree_init(&state->refs);
+	bmap_ref_init(&state->refs);
 	state->status = STATE_CLEAR;
 }
 
@@ -45,7 +47,8 @@ void state_add_reference(State *state, Symbol *symbol, State *to_state)
 	ref->status = REF_PENDING;
 
 	//Is ref key ok?
-	rtree_set_intptr(&state->refs, (intptr_t)ref, ref);
+	//TODO: Can refs be overwritten? Possible leak!
+	bmap_ref_insert(&state->refs, (intptr_t)ref, ref);
 	state->status |= STATE_INVOKE_REF;
 }
 
@@ -66,14 +69,15 @@ void state_dispose(State *state)
 
 	//Delete all references
 	Reference *ref;
-	Iterator it;
-	rtree_iterator_init(&it, &state->refs);
-	while((ref = (Reference *)rtree_iterator_next(&it))) {
+	BMapCursorReference rcursor;
+	bmap_cursor_ref_init(&rcursor, &state->refs);
+	while(bmap_cursor_ref_next(&rcursor)) {
+		ref = bmap_cursor_ref_current(&rcursor)->ref;
 		free(ref);
 	}
-	rtree_iterator_dispose(&it);
+	bmap_cursor_ref_dispose(&rcursor);
 
-	rtree_dispose(&state->refs);
+	bmap_ref_dispose(&state->refs);
 }
 
 static Action *_state_get_transition(State *state, int symbol)
@@ -363,7 +367,7 @@ void action_init(Action *action, char type, int reduction, State *state, char fl
 
 void nonterminal_init(Nonterminal *nonterminal)
 {
-	rtree_init(&nonterminal->refs);
+	bmap_ref_init(&nonterminal->refs);
 	nonterminal->status = NONTERMINAL_CLEAR;
 	nonterminal->start = NULL;
 	nonterminal->end = NULL;
@@ -381,7 +385,7 @@ void nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *s
 	ref->symbol = symbol;
 	ref->status = REF_PENDING;
 	//TODO: is ref key ok?
-	rtree_set_intptr(&nonterminal->refs, (intptr_t)ref, ref);
+	bmap_ref_insert(&nonterminal->refs, (intptr_t)ref, ref);
 	nonterminal->status |= NONTERMINAL_RETURN_REF;
 
 	//Set end state status if exists
@@ -394,13 +398,14 @@ void nonterminal_dispose(Nonterminal *nonterminal)
 {
 	//Delete all references
 	Reference *ref;
-	Iterator it;
+	BMapCursorReference rcursor;
 
-	rtree_iterator_init(&it, &nonterminal->refs);
-	while((ref = (Reference *)rtree_iterator_next(&it))) {
+	bmap_cursor_ref_init(&rcursor, &nonterminal->refs);
+	while(bmap_cursor_ref_next(&rcursor)) {
+		ref = bmap_cursor_ref_current(&rcursor)->ref;
 		free(ref);
 	}
-	rtree_iterator_dispose(&it);
+	bmap_cursor_ref_dispose(&rcursor);
 
-	rtree_dispose(&nonterminal->refs);
+	bmap_ref_dispose(&nonterminal->refs);
 }

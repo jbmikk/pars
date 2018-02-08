@@ -39,13 +39,14 @@ void fsm_get_states(BMapState *states, State *state)
 			bmap_cursor_action_dispose(&cursor);
 
 			//Jump to references
-			Iterator it;
+			BMapCursorReference rcursor;
 			Reference *ref;
-			rtree_iterator_init(&it, &state->refs);
-			while((ref = (Reference *)rtree_iterator_next(&it))) {
+			bmap_cursor_ref_init(&rcursor, &state->refs);
+			while(bmap_cursor_ref_next(&rcursor)) {
+				ref = bmap_cursor_ref_current(&rcursor)->ref;
 				fsm_get_states(states, ref->to_state);
 			}
-			rtree_iterator_dispose(&it);
+			bmap_cursor_ref_dispose(&rcursor);
 		}
 
 	}
