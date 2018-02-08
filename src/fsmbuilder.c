@@ -536,17 +536,16 @@ end:
 }
 
 void _solve_references(FsmBuilder *builder) {
-        Iterator it;
 	BMapCursorNonterminal cursor;
 	Nonterminal *nt;
 	int some_unsolved;
 
 	//TODO: Are all states reachable through start?
 	//TODO: Do all states exist this point and are connected?
-	RTree all_states;
+	BMapState all_states;
 
 retry:
-	rtree_init(&all_states);
+	bmap_state_init(&all_states);
 	fsm_get_states(&all_states, fsm_get_state(builder->fsm, nzs(".default")));
 
 	some_unsolved = 0;
@@ -568,13 +567,15 @@ retry:
 
 	//Solve return
 	State *state;
-	rtree_iterator_init(&it, &all_states);
-	while((state = (State *)rtree_iterator_next(&it))) {
+	BMapCursorState scursor;
+	bmap_cursor_state_init(&scursor, &all_states);
+	while(bmap_cursor_state_next(&scursor)) {
+		state = bmap_cursor_state_current(&scursor)->state;
 		some_unsolved |= _solve_invoke_references(builder, state);
 	}
-	rtree_iterator_dispose(&it);
+	bmap_cursor_state_dispose(&scursor);
 
-	rtree_dispose(&all_states);
+	bmap_state_dispose(&all_states);
 
 	if(some_unsolved) {
 		//Keep trying until no refs pending.

@@ -74,6 +74,8 @@ typedef struct Reference {
 
 DEFINE_BMAP(int, Nonterminal *, Nonterminal, nonterminal)
 
+DEFINE_BMAP(intptr_t, State *, State, state)
+
 typedef struct Fsm {
 	SymbolTable *table;
 	BMapNonterminal nonterminals;
@@ -84,6 +86,8 @@ DEFINE_BMAP_FUNCTIONS(int, Action *, Action, action, PROTOTYPE)
 
 DEFINE_BMAP_FUNCTIONS(int, Nonterminal *, Nonterminal, nonterminal, PROTOTYPE)
 
+DEFINE_BMAP_FUNCTIONS(intptr_t, State *, State, state, PROTOTYPE)
+
 void fsm_init(Fsm *fsm, SymbolTable *table);
 void fsm_dispose(Fsm *fsm);
 
@@ -93,7 +97,7 @@ Nonterminal *fsm_create_nonterminal(Fsm *fsm, char *name, int length);
 State *fsm_get_state(Fsm *fsm, char *name, int length);
 State *fsm_get_state_by_id(Fsm *fsm, int symbol);
 //TODO: Is this signature ok?
-void fsm_get_states(RTree *states, State *state);
+void fsm_get_states(BMapState *states, State *state);
 Symbol *fsm_get_symbol(Fsm *fsm, char *name, int length);
 Symbol *fsm_get_symbol_by_id(Fsm *fsm, int id);
 int fsm_get_symbol_id(Fsm *fsm, char *name, int length);

@@ -8,7 +8,11 @@
 #include <stdio.h>
 #include <stdint.h>
 
+
 DEFINE_BMAP_FUNCTIONS(int, Nonterminal *, Nonterminal, nonterminal, IMPLEMENTATION)
+
+DEFINE_BMAP_FUNCTIONS(intptr_t, State *, State, state, IMPLEMENTATION)
+
 
 void fsm_init(Fsm *fsm, SymbolTable *table)
 {
@@ -16,19 +20,13 @@ void fsm_init(Fsm *fsm, SymbolTable *table)
 	bmap_nonterminal_init(&fsm->nonterminals);
 }
 
-void fsm_get_states(RTree *states, State *state)
+void fsm_get_states(BMapState *states, State *state)
 {
-	unsigned char buffer[sizeof(intptr_t)];
-	unsigned int size;
-
 	if(state) {
-		//TODO: Should have a separate ptr_to_array function
-		int_to_array(buffer, &size, (intptr_t)state);
-
-		Action *in_states = rtree_get(states, buffer, size);
+		BMapEntryState *in_states = bmap_state_get(states, (intptr_t)state);
 
 		if(!in_states) {
-			rtree_set(states, buffer, size, state);
+			bmap_state_insert(states, (intptr_t)state, state);
 
 			//Jump to other states
 			BMapCursorAction cursor;
@@ -55,13 +53,12 @@ void fsm_get_states(RTree *states, State *state)
 
 void fsm_dispose(Fsm *fsm)
 {
-	RTree all_states;
+	BMapState all_states;
 
 	Nonterminal *nt;
-	Iterator it;
 	BMapCursorNonterminal cursor;
 
-	rtree_init(&all_states);
+	bmap_state_init(&all_states);
 
 	bmap_cursor_nonterminal_init(&cursor, &fsm->nonterminals);
 	while(bmap_cursor_nonterminal_next(&cursor)) {
@@ -77,13 +74,15 @@ void fsm_dispose(Fsm *fsm)
 
 	//Delete all states
 	State *st;
-	rtree_iterator_init(&it, &all_states);
-	while((st = (State *)rtree_iterator_next(&it))) {
+	BMapCursorState scursor;
+	bmap_cursor_state_init(&scursor, &all_states);
+	while(bmap_cursor_state_next(&scursor)) {
+		st = bmap_cursor_state_current(&scursor)->state;
 		state_dispose(st);
 		free(st);
 	}
-	rtree_iterator_dispose(&it);
-	rtree_dispose(&all_states);
+	bmap_cursor_state_dispose(&scursor);
+	bmap_state_dispose(&all_states);
 
 	fsm->table = NULL;
 }
