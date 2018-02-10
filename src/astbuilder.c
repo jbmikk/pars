@@ -29,6 +29,7 @@ static AstNode *_node_append(AstBuilder *builder, const Token *token)
 	AstNode *node = malloc(sizeof(AstNode));
 	ast_node_init(node, builder->current, token);
 
+	// Append to parent, there is no doubt who the father is.
 	_node_bind_to_parent(node);
 
 	trace(node, "add", token->symbol, token->index, token->length);
@@ -90,9 +91,14 @@ void ast_builder_shift(void *builder_p, const Token *token)
 	if(previous != NULL) {
 		builder->previous = NULL;
 		trace(previous, "previous", '?', previous->token.index, 0);
+
+		// Depending on the index, we determine which father the node
+		// belongs to.
 		if(previous->token.index == node->token.index) {
 			previous->parent = node;
 		}
+
+		// Bind node to its parent
 		_node_bind_to_parent(previous);
 	}
 	builder->current = node;
@@ -114,8 +120,12 @@ void ast_builder_reduce(void *builder_p, const Token *token)
 
 	trace(node, "close", token->symbol, token->index, token->length);
 	if(builder->previous != NULL) {
+		// If there is a pending previous node, bind it to its parent.
 		_node_bind_to_parent(builder->previous);
 	}
+
+	// When a reduction happens, we don't which parent the node belongs to
+	// so we keep it in the previous variable.
 	builder->previous = node;
 	builder->current = node->parent;
 }
@@ -123,6 +133,7 @@ void ast_builder_reduce(void *builder_p, const Token *token)
 void ast_builder_done(AstBuilder *builder)
 {
 	if(builder->previous != NULL) {
+		// If there is a pending previous node, bind it to its parent.
 		trace(builder->previous, "done", 0, builder->previous->token.index, 0);
 		_node_bind_to_parent(builder->previous);
 		builder->previous = NULL;
