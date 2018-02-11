@@ -21,24 +21,22 @@
 #define trace(M, ST, T, S, A, R)
 #endif
 
+DEFINE_STACK_FUNCTIONS(State *, State, state, IMPLEMENTATION);
+
 static void _mode_push(FsmThread *thread, int symbol)
 {
-	ModeNode *node = malloc(sizeof(ModeNode));
-	node->state = fsm_get_state_by_id(thread->fsm, symbol);
-	node->next = thread->mode_stack.top;
-	thread->mode_stack.top = node;
+	State *state = fsm_get_state_by_id(thread->fsm, symbol);
+	stack_state_push(&thread->mode_stack, state);
 }
 
 static void _mode_pop(FsmThread *thread)
 {
-	ModeNode *top = thread->mode_stack.top;
-	thread->mode_stack.top = top->next;
-	free(top);
+	stack_state_pop(&thread->mode_stack);
 }
 
 static void _mode_reset(FsmThread *thread)
 {
-	thread->current = thread->mode_stack.top->state;
+	thread->current = stack_state_top(&thread->mode_stack);
 }
 
 static void _state_push(FsmThread *thread, unsigned int index)
@@ -66,7 +64,7 @@ void fsm_thread_init(FsmThread *thread, Fsm *fsm)
 	thread->fsm = fsm;
 	thread->status = FSM_THREAD_OK;
 	thread->stack.top = NULL;
-	thread->mode_stack.top = NULL;
+	stack_state_init(&thread->mode_stack);
 	thread->handler = NULL_HANDLER;
 }
 
@@ -75,9 +73,7 @@ void fsm_thread_dispose(FsmThread *thread)
 	while(thread->stack.top) {
 		_state_pop(thread);
 	}
-	while(thread->mode_stack.top) {
-		_mode_pop(thread);
-	}
+	stack_state_dispose(&thread->mode_stack);
 }
 
 int fsm_thread_start(FsmThread *thread)

@@ -3,9 +3,12 @@
 
 #include "fsm.h"
 #include "token.h"
+#include "stack.h"
 
 #define FSM_THREAD_OK 0
 #define FSM_THREAD_ERROR 1
+
+DEFINE_STACK(State *, State, state);
 
 typedef struct FsmThreadNode {
 	State *state;
@@ -17,14 +20,6 @@ typedef struct StateStack {
 	FsmThreadNode *top;
 } StateStack;
 
-typedef struct ModeNode {
-	State *state;
-	struct ModeNode *next;
-} ModeNode;
-
-typedef struct ModeStack {
-	ModeNode *top;
-} ModeStack;
 
 typedef struct _FsmHandler {
 	void *target;
@@ -39,7 +34,7 @@ typedef struct _FsmThread {
 	int status;
 	State *current;
 	StateStack stack;
-	ModeStack mode_stack;
+	StackState mode_stack;
 	FsmHandler handler;
 } FsmThread;
 
