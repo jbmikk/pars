@@ -39,7 +39,8 @@ Symbol *symbol_table_get(SymbolTable *table, char *name, unsigned int length)
 
 Symbol *symbol_table_get_by_id(SymbolTable *table, int id)
 {
-	return bmap_symbol_get(&table->symbols_by_id, id)->symbol;
+	BMapEntrySymbol *e = bmap_symbol_get(&table->symbols_by_id, id);
+	return e? e->symbol: NULL;
 }
 
 void symbol_table_dispose(SymbolTable *table)
