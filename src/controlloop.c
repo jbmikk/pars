@@ -41,6 +41,8 @@ int control_loop_ast(void *object, void *params)
 	Token token;
 	token_init(&token, 0, 0, 0);
 
+	unsigned int index = 0;
+
 	Symbol *t_down = symbol_table_get(&context->parser->table, "__tdown", 7);
 	Symbol *t_up = symbol_table_get(&context->parser->table, "__tup", 5);
 
@@ -69,7 +71,8 @@ int control_loop_ast(void *object, void *params)
 			);
 		}
 
-		fsm_process_match(&context->process, &node->token);
+		token_init(&token, index, 0, node->token.symbol);
+		fsm_process_match(&context->process, &token);
 
 		check(
 			context->process.status != FSM_THREAD_ERROR,
@@ -77,6 +80,11 @@ int control_loop_ast(void *object, void *params)
 			"index: %i with symbol: %i, length: %i", node,
 			node->token.index, node->token.symbol, node->token.length
 		);
+
+		// TODO: Should the index be part of the ast?
+		// We need the index for input back tracking. We should be 
+		// able to move the iterator back to the specific node.
+		index++;
 
 		node = ast_cursor_depth_next(&cursor);
 	}
