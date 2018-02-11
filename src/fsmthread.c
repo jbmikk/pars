@@ -23,6 +23,8 @@
 
 DEFINE_STACK_FUNCTIONS(State *, State, state, IMPLEMENTATION);
 
+DEFINE_STACK_FUNCTIONS(FsmThreadNode, FsmThreadNode, fsmthreadnode, IMPLEMENTATION);
+
 static void _mode_push(FsmThread *thread, int symbol)
 {
 	State *state = fsm_get_state_by_id(thread->fsm, symbol);
@@ -41,20 +43,19 @@ static void _mode_reset(FsmThread *thread)
 
 static void _state_push(FsmThread *thread, unsigned int index)
 {
-	FsmThreadNode *node = malloc(sizeof(FsmThreadNode));
-	node->state = thread->current;
-	node->index = index;
-	node->next = thread->stack.top;
-	thread->stack.top = node;
+	FsmThreadNode frame;
+	frame.state = thread->current;
+	frame.index = index;
+	stack_fsmthreadnode_push(&thread->stack, frame);
 }
 
 static unsigned int _state_pop(FsmThread *thread)
 {
-	FsmThreadNode *top = thread->stack.top;
-	unsigned int index = top->index;
-	thread->current = top->state;
-	thread->stack.top = top->next;
-	free(top);
+	FsmThreadNode top = stack_fsmthreadnode_top(&thread->stack);
+	unsigned int index = top.index;
+	thread->current = top.state;
+
+	stack_fsmthreadnode_pop(&thread->stack);
 	return index;
 }
 
@@ -63,16 +64,14 @@ void fsm_thread_init(FsmThread *thread, Fsm *fsm)
 {
 	thread->fsm = fsm;
 	thread->status = FSM_THREAD_OK;
-	thread->stack.top = NULL;
+	stack_fsmthreadnode_init(&thread->stack);
 	stack_state_init(&thread->mode_stack);
 	thread->handler = NULL_HANDLER;
 }
 
 void fsm_thread_dispose(FsmThread *thread)
 {
-	while(thread->stack.top) {
-		_state_pop(thread);
-	}
+	stack_fsmthreadnode_dispose(&thread->stack);
 	stack_state_dispose(&thread->mode_stack);
 }
 

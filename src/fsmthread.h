@@ -13,13 +13,9 @@ DEFINE_STACK(State *, State, state);
 typedef struct FsmThreadNode {
 	State *state;
 	int index;
-	struct FsmThreadNode *next;
 } FsmThreadNode;
 
-typedef struct StateStack {
-	FsmThreadNode *top;
-} StateStack;
-
+DEFINE_STACK(FsmThreadNode, FsmThreadNode, fsmthreadnode);
 
 typedef struct _FsmHandler {
 	void *target;
@@ -33,7 +29,7 @@ typedef struct _FsmThread {
 	Fsm *fsm;
 	int status;
 	State *current;
-	StateStack stack;
+	StackFsmThreadNode stack;
 	StackState mode_stack;
 	FsmHandler handler;
 } FsmThread;
