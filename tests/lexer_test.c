@@ -41,8 +41,8 @@ static void push_token(void *fix, const Token *token)
 }
 
 void t_setup(){
-	token_init(&fix.token, 0, 0, 0, 0);
-	token_init(&fix.prev_token, 0, 0, 0, 0);
+	token_init(&fix.token, 0, 0, 0);
+	token_init(&fix.prev_token, 0, 0, 0);
 
 	symbol_table_init(&fix.table);
 
@@ -69,11 +69,11 @@ void t_teardown(){
 }
 
 void lexer_input_next__integer_token(){
-	fsm_process_match(&fix.process, &(Token) {0, 1, '1', 0});
-	fsm_process_match(&fix.process, &(Token) {1, 1, '2', 0});
-	fsm_process_match(&fix.process, &(Token) {2, 1, '3', 0});
-	fsm_process_match(&fix.process, &(Token) {3, 1, '4', 0});
-	fsm_process_match(&fix.process, &(Token) {4, 0, ' ', 0});
+	fsm_process_match(&fix.process, &(Token) {0, 1, '1'});
+	fsm_process_match(&fix.process, &(Token) {1, 1, '2'});
+	fsm_process_match(&fix.process, &(Token) {2, 1, '3'});
+	fsm_process_match(&fix.process, &(Token) {3, 1, '4'});
+	fsm_process_match(&fix.process, &(Token) {4, 0, ' '});
 	int INTEGER = fsm_get_symbol_id(&fix.fsm, nzs("integer"));
 	t_assert(fix.token.symbol == INTEGER);
 	t_assert(fix.token.index == 0);
@@ -81,19 +81,19 @@ void lexer_input_next__integer_token(){
 }
 
 void lexer_input_next__identifier_token(){
-	fsm_process_match(&fix.process, &(Token) {0, 1, 'a', 0});
-	fsm_process_match(&fix.process, &(Token) {1, 1, 'n', 0});
-	fsm_process_match(&fix.process, &(Token) {2, 1, 'I', 0});
-	fsm_process_match(&fix.process, &(Token) {3, 1, 'd', 0});
-	fsm_process_match(&fix.process, &(Token) {4, 1, 'e', 0});
-	fsm_process_match(&fix.process, &(Token) {5, 1, 'n', 0});
-	fsm_process_match(&fix.process, &(Token) {6, 1, 't', 0});
-	fsm_process_match(&fix.process, &(Token) {7, 1, 'i', 0});
-	fsm_process_match(&fix.process, &(Token) {8, 1, 'f', 0});
-	fsm_process_match(&fix.process, &(Token) {9, 1, 'i', 0});
-	fsm_process_match(&fix.process, &(Token) {10, 1, 'e', 0});
-	fsm_process_match(&fix.process, &(Token) {11, 1, 'r', 0});
-	fsm_process_match(&fix.process, &(Token) {12, 1, ' ', 0});
+	fsm_process_match(&fix.process, &(Token) {0, 1, 'a'});
+	fsm_process_match(&fix.process, &(Token) {1, 1, 'n'});
+	fsm_process_match(&fix.process, &(Token) {2, 1, 'I'});
+	fsm_process_match(&fix.process, &(Token) {3, 1, 'd'});
+	fsm_process_match(&fix.process, &(Token) {4, 1, 'e'});
+	fsm_process_match(&fix.process, &(Token) {5, 1, 'n'});
+	fsm_process_match(&fix.process, &(Token) {6, 1, 't'});
+	fsm_process_match(&fix.process, &(Token) {7, 1, 'i'});
+	fsm_process_match(&fix.process, &(Token) {8, 1, 'f'});
+	fsm_process_match(&fix.process, &(Token) {9, 1, 'i'});
+	fsm_process_match(&fix.process, &(Token) {10, 1, 'e'});
+	fsm_process_match(&fix.process, &(Token) {11, 1, 'r'});
+	fsm_process_match(&fix.process, &(Token) {12, 1, ' '});
 	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
 	t_assert(fix.token.symbol == META_IDENTIFIER);
 	t_assert(fix.token.index == 0);
@@ -101,15 +101,15 @@ void lexer_input_next__identifier_token(){
 }
 
 void lexer_input_next__terminal_string_token(){
-	fsm_process_match(&fix.process, &(Token) {0, 1, '"', 0});
-	fsm_process_match(&fix.process, &(Token) {1, 1, 's', 0});
-	fsm_process_match(&fix.process, &(Token) {2, 1, 't', 0});
-	fsm_process_match(&fix.process, &(Token) {3, 1, 'r', 0});
-	fsm_process_match(&fix.process, &(Token) {4, 1, 'i', 0});
-	fsm_process_match(&fix.process, &(Token) {5, 1, 'n', 0});
-	fsm_process_match(&fix.process, &(Token) {6, 1, 'g', 0});
-	fsm_process_match(&fix.process, &(Token) {7, 1, '"', 0});
-	fsm_process_match(&fix.process, &(Token) {8, 1, ' ', 0});
+	fsm_process_match(&fix.process, &(Token) {0, 1, '"'});
+	fsm_process_match(&fix.process, &(Token) {1, 1, 's'});
+	fsm_process_match(&fix.process, &(Token) {2, 1, 't'});
+	fsm_process_match(&fix.process, &(Token) {3, 1, 'r'});
+	fsm_process_match(&fix.process, &(Token) {4, 1, 'i'});
+	fsm_process_match(&fix.process, &(Token) {5, 1, 'n'});
+	fsm_process_match(&fix.process, &(Token) {6, 1, 'g'});
+	fsm_process_match(&fix.process, &(Token) {7, 1, '"'});
+	fsm_process_match(&fix.process, &(Token) {8, 1, ' '});
 	int TERMINAL_STRING = fsm_get_symbol_id(&fix.fsm, nzs("terminal_string"));
 	t_assert(fix.token.symbol == TERMINAL_STRING);
 	t_assert(fix.token.index == 0);
@@ -120,16 +120,16 @@ void lexer_input_next__skip_white_space(){
 	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
 	int DEFINING_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("defining_symbol"));
 
-	fsm_process_match(&fix.process, &(Token) {0, 1, 'o', 0});
-	fsm_process_match(&fix.process, &(Token) {1, 1, 'n', 0});
-	fsm_process_match(&fix.process, &(Token) {2, 1, 'e', 0});
-	fsm_process_match(&fix.process, &(Token) {3, 1, ' ', 0});
+	fsm_process_match(&fix.process, &(Token) {0, 1, 'o'});
+	fsm_process_match(&fix.process, &(Token) {1, 1, 'n'});
+	fsm_process_match(&fix.process, &(Token) {2, 1, 'e'});
+	fsm_process_match(&fix.process, &(Token) {3, 1, ' '});
 	t_assert(fix.token.symbol == META_IDENTIFIER);
 	t_assert(fix.token.index == 0);
 	t_assert(fix.token.length == 3);
 
-	fsm_process_match(&fix.process, &(Token) {4, 1, '=', 0});
-	fsm_process_match(&fix.process, &(Token) {5, 1, ' ', 0});
+	fsm_process_match(&fix.process, &(Token) {4, 1, '='});
+	fsm_process_match(&fix.process, &(Token) {5, 1, ' '});
 	t_assert(fix.token.symbol == DEFINING_SYMBOL);
 	t_assert(fix.token.index == 4);
 	t_assert(fix.token.length == 1);
@@ -144,59 +144,59 @@ void lexer_input_next__whole_rule(){
 	int DEFINITION_SEPARATOR_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("definition_separator_symbol"));
 	int END_GROUP_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("end_group_symbol"));
 
-	fsm_process_match(&fix.process, &(Token) {0, 1, 'o', 0});
-	fsm_process_match(&fix.process, &(Token) {1, 1, 'n', 0});
-	fsm_process_match(&fix.process, &(Token) {2, 1, 'e', 0});
-	fsm_process_match(&fix.process, &(Token) {3, 1, ' ', 0});
+	fsm_process_match(&fix.process, &(Token) {0, 1, 'o'});
+	fsm_process_match(&fix.process, &(Token) {1, 1, 'n'});
+	fsm_process_match(&fix.process, &(Token) {2, 1, 'e'});
+	fsm_process_match(&fix.process, &(Token) {3, 1, ' '});
 	t_assert(fix.token.symbol == META_IDENTIFIER);
 	t_assert(fix.token.index == 0);
 	t_assert(fix.token.length == 3);
 
-	fsm_process_match(&fix.process, &(Token) {4, 1, '=', 0});
-	fsm_process_match(&fix.process, &(Token) {5, 1, ' ', 0});
+	fsm_process_match(&fix.process, &(Token) {4, 1, '='});
+	fsm_process_match(&fix.process, &(Token) {5, 1, ' '});
 	t_assert(fix.token.symbol == DEFINING_SYMBOL);
 	t_assert(fix.token.index == 4);
 	t_assert(fix.token.length == 1);
 
-	fsm_process_match(&fix.process, &(Token) {6, 1, '"', 0});
-	fsm_process_match(&fix.process, &(Token) {7, 1, '1', 0});
-	fsm_process_match(&fix.process, &(Token) {8, 1, '"', 0});
-	fsm_process_match(&fix.process, &(Token) {9, 1, ',', 0});
+	fsm_process_match(&fix.process, &(Token) {6, 1, '"'});
+	fsm_process_match(&fix.process, &(Token) {7, 1, '1'});
+	fsm_process_match(&fix.process, &(Token) {8, 1, '"'});
+	fsm_process_match(&fix.process, &(Token) {9, 1, ','});
 	t_assert(fix.token.symbol == TERMINAL_STRING);
 	t_assert(fix.token.index == 6);
 	t_assert(fix.token.length == 3);
 
-	fsm_process_match(&fix.process, &(Token) {10, 1, '(', 0});
+	fsm_process_match(&fix.process, &(Token) {10, 1, '('});
 	t_assert(fix.token.symbol == CONCATENATE_SYMBOL);
 	t_assert(fix.token.index == 9);
 	t_assert(fix.token.length == 1);
 
-	fsm_process_match(&fix.process, &(Token) {11, 1, '"', 0});
+	fsm_process_match(&fix.process, &(Token) {11, 1, '"'});
 	t_assert(fix.token.symbol == START_GROUP_SYMBOL);
 	t_assert(fix.token.index == 10);
 	t_assert(fix.token.length == 1);
 
-	fsm_process_match(&fix.process, &(Token) {12, 1, 'a', 0});
-	fsm_process_match(&fix.process, &(Token) {13, 1, '"', 0});
-	fsm_process_match(&fix.process, &(Token) {14, 1, '|', 0});
+	fsm_process_match(&fix.process, &(Token) {12, 1, 'a'});
+	fsm_process_match(&fix.process, &(Token) {13, 1, '"'});
+	fsm_process_match(&fix.process, &(Token) {14, 1, '|'});
 
 	t_assert(fix.token.symbol == TERMINAL_STRING);
 	t_assert(fix.token.index == 11);
 	t_assert(fix.token.length == 3);
 
-	fsm_process_match(&fix.process, &(Token) {15, 1, '"', 0});
+	fsm_process_match(&fix.process, &(Token) {15, 1, '"'});
 	t_assert(fix.token.symbol == DEFINITION_SEPARATOR_SYMBOL);
 	t_assert(fix.token.index == 14);
 	t_assert(fix.token.length == 1);
 
-	fsm_process_match(&fix.process, &(Token) {16, 1, 'b', 0});
-	fsm_process_match(&fix.process, &(Token) {17, 1, '"', 0});
-	fsm_process_match(&fix.process, &(Token) {18, 1, ')', 0});
+	fsm_process_match(&fix.process, &(Token) {16, 1, 'b'});
+	fsm_process_match(&fix.process, &(Token) {17, 1, '"'});
+	fsm_process_match(&fix.process, &(Token) {18, 1, ')'});
 	t_assert(fix.token.symbol == TERMINAL_STRING);
 	t_assert(fix.token.index == 15);
 	t_assert(fix.token.length == 3);
 
-	fsm_process_match(&fix.process, &(Token) {19, 0, L_EOF, 0});
+	fsm_process_match(&fix.process, &(Token) {19, 0, L_EOF});
 	t_assert(fix.prev_token.symbol == END_GROUP_SYMBOL);
 	t_assert(fix.prev_token.index == 18);
 	t_assert(fix.prev_token.length == 1);
@@ -210,19 +210,19 @@ void lexer_input_next__white_token(){
 	int WHITE_SPACE = fsm_get_symbol_id(&fix.fsm, nzs("white_space"));
 	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
 
-	fsm_process_match(&fix.process, &(Token) {0, 1, '\n', 0});
-	fsm_process_match(&fix.process, &(Token) {1, 1, '\r', 0});
-	fsm_process_match(&fix.process, &(Token) {2, 1, '\t', 0});
-	fsm_process_match(&fix.process, &(Token) {3, 1, '\f', 0});
-	fsm_process_match(&fix.process, &(Token) {4, 1, ' ', 0});
-	fsm_process_match(&fix.process, &(Token) {5, 1, 'i', 0});
-	fsm_process_match(&fix.process, &(Token) {6, 1, 'd', 0});
+	fsm_process_match(&fix.process, &(Token) {0, 1, '\n'});
+	fsm_process_match(&fix.process, &(Token) {1, 1, '\r'});
+	fsm_process_match(&fix.process, &(Token) {2, 1, '\t'});
+	fsm_process_match(&fix.process, &(Token) {3, 1, '\f'});
+	fsm_process_match(&fix.process, &(Token) {4, 1, ' '});
+	fsm_process_match(&fix.process, &(Token) {5, 1, 'i'});
+	fsm_process_match(&fix.process, &(Token) {6, 1, 'd'});
 
 	t_assert(fix.token.symbol == WHITE_SPACE);
 	t_assert(fix.token.index == 0);
 	t_assert(fix.token.length == 5);
 
-	fsm_process_match(&fix.process, &(Token) {7, 1, ' ', 0});
+	fsm_process_match(&fix.process, &(Token) {7, 1, ' '});
 	t_assert(fix.token.symbol == META_IDENTIFIER);
 	t_assert(fix.token.index == 5);
 	t_assert(fix.token.length == 2);

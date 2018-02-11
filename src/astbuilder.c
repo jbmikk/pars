@@ -48,7 +48,7 @@ void ast_builder_dispose(AstBuilder *builder)
 	//TODO Write tests for ast disposal
 	while(builder->current && builder->current != &builder->ast->root) {
 		Token token;
-		token_init(&token, 0, 0, 0, 0);
+		token_init(&token, 0, 0, 0);
 		//TODO: What if we are not using the fsm api?
 		ast_builder_reduce(builder, &token);
 	}
@@ -84,7 +84,7 @@ void ast_builder_shift(void *builder_p, const Token *token)
 {
 	AstBuilder *builder = (AstBuilder *)builder_p;
 	AstNode *node = malloc(sizeof(AstNode));
-	ast_node_init(node, builder->current, &(Token){token->index, 0, 0, 0});
+	ast_node_init(node, builder->current, &(Token){token->index, 0, 0});
 
 	trace(node, "open", '?', token->index, 0);
 	AstNode *previous = builder->previous;
