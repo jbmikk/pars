@@ -2,7 +2,7 @@
 #define PARSERCONTEXT_H
 
 #include "parser.h"
-#include "fsmprocess.h"
+#include "fsmthread.h"
 #include "listener.h"
 #include "ast.h"
 #include "astbuilder.h"
@@ -15,8 +15,8 @@ typedef struct ParserContext {
 	Listener parse_loop;
 	Listener parse_end;
 	Listener parse_error;
-	FsmProcess process;
-	FsmProcess lexer_process;
+	FsmThread thread;
+	FsmThread lexer_thread;
 	Ast *ast;
 	AstBuilder ast_builder;
 	Input *input;

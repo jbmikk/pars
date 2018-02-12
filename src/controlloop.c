@@ -12,17 +12,17 @@ int control_loop_linear(void *object, void *params)
 
 	do {
 		input_next_token(context->input, &token, &token);
-		fsm_process_match(&context->lexer_process, &token);
+		fsm_thread_match(&context->lexer_thread, &token);
 
 		check(
-			context->lexer_process.status != FSM_THREAD_ERROR,
+			context->lexer_thread.status != FSM_THREAD_ERROR,
 			"Lexer error at token "
 			"index: %i with symbol: %i, length: %i",
 			token.index, token.symbol, token.length
 		);
 
 		check(
-			context->process.status != FSM_THREAD_ERROR,
+			context->thread.status != FSM_THREAD_ERROR,
 			"Parser error at token "
 			"index: %i with symbol: %i, length: %i",
 			token.index, token.symbol, token.length
@@ -58,24 +58,24 @@ int control_loop_ast(void *object, void *params)
 	while(node) {
 
 		if(cursor.offset == 1) {
-			fsm_process_match(&context->process, &token_down);
+			fsm_thread_match(&context->thread, &token_down);
 			check(
-				context->process.status != FSM_THREAD_ERROR,
+				context->thread.status != FSM_THREAD_ERROR,
 				"Parser error at node %p - DOWN", node
 			);
 		} else if(cursor.offset < 0) {
-			fsm_process_match(&context->process, &token_up);
+			fsm_thread_match(&context->thread, &token_up);
 			check(
-				context->process.status != FSM_THREAD_ERROR,
+				context->thread.status != FSM_THREAD_ERROR,
 				"Parser error at node %p - UP", node
 			);
 		}
 
 		token_init(&token, index, 0, node->token.symbol);
-		fsm_process_match(&context->process, &token);
+		fsm_thread_match(&context->thread, &token);
 
 		check(
-			context->process.status != FSM_THREAD_ERROR,
+			context->thread.status != FSM_THREAD_ERROR,
 			"Parser error at node %p - "
 			"index: %i with symbol: %i, length: %i", node,
 			node->token.index, node->token.symbol, node->token.length
