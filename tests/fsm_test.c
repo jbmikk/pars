@@ -4,6 +4,7 @@
 
 #include "fsm.h"
 #include "fsmthread.h"
+#include "output.h"
 #include "fsmbuilder.h"
 #include "test.h"
 
@@ -16,6 +17,7 @@
 typedef struct {
 	SymbolTable table;
 	Fsm fsm;
+	Output output;
 } Fixture;
 
 Token token;
@@ -24,11 +26,13 @@ Fixture fix;
 void t_setup(){
 	symbol_table_init(&fix.table);
 	fsm_init(&fix.fsm, &fix.table);
+	output_init(&fix.output);
 }
 
 void t_teardown(){
 	fsm_dispose(&fix.fsm);
 	symbol_table_dispose(&fix.table);
+	output_dispose(&fix.output);
 }
 
 void fsm_builder_define__single_get(){
@@ -73,7 +77,7 @@ void fsm_thread_match__shift(){
 	fsm_builder_dispose(&builder);
 
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
 	action = MATCH(thread, 'a');
 	t_assert(action->type == ACTION_SHIFT);
@@ -96,7 +100,7 @@ void fsm_thread_match__shift_range(){
 	fsm_builder_dispose(&builder);
 
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
 	action = TEST(thread, 'a');
 	t_assert(action->type == ACTION_SHIFT);
@@ -132,7 +136,7 @@ void fsm_thread_match__reduce(){
 	fsm_builder_dispose(&builder);
 
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
 	MATCH(thread, '1');
 	action = MATCH(thread, '\0');
@@ -161,7 +165,7 @@ void fsm_thread_match__reduce_shift(){
 	fsm_builder_dispose(&builder);
 
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
 	MATCH(thread, '1');
 	MATCH(thread, '+');
@@ -204,7 +208,7 @@ void fsm_thread_match__reduce_handler(){
 	fsm_builder_dispose(&builder);
 
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
 	thread.handler.reduce = reduce_handler;
 	MATCH_AT(thread, '1', 0);
@@ -257,7 +261,7 @@ void fsm_thread_match__first_set_collision(){
 	fsm_builder_dispose(&builder);
 
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
 	MATCH(thread, '1');
 	MATCH(thread, '2');
@@ -317,7 +321,7 @@ void fsm_thread_match__repetition(){
 	fsm_builder_dispose(&builder);
 
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
 	action = MATCH(thread, '1');
 	t_assert(action->type == ACTION_SHIFT);

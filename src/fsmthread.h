@@ -2,11 +2,9 @@
 #define FSM_THREAD_H
 
 #include "fsm.h"
+#include "output.h"
 #include "token.h"
 #include "stack.h"
-
-#define FSM_THREAD_OK 0
-#define FSM_THREAD_ERROR 1
 
 DEFINE_STACK(State *, State, state);
 
@@ -27,16 +25,16 @@ typedef struct _FsmHandler {
 
 typedef struct _FsmThread {
 	Fsm *fsm;
-	int status;
 	State *current;
 	StackFsmThreadNode stack;
 	StackState mode_stack;
 	FsmHandler handler;
+	Output *output;
 } FsmThread;
 
 #define NULL_HANDLER ((FsmHandler){NULL, NULL, NULL, NULL})
 
-void fsm_thread_init(FsmThread *thread, Fsm *fsm);
+void fsm_thread_init(FsmThread *thread, Fsm *fsm, Output *output);
 void fsm_thread_dispose(FsmThread *thread);
 
 int fsm_thread_start(FsmThread *thread);

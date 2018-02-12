@@ -3,6 +3,7 @@
 
 #include "ebnf_parser.h"
 #include "fsmthread.h"
+#include "output.h"
 #include "test.h"
 
 #define nzs(S) (S), (strlen(S))
@@ -16,6 +17,7 @@ typedef struct {
 	SymbolTable table;
 	Fsm fsm;
 	FsmThread thread;
+	Output output;
 
 	//Utf8 lexer tests
 	/*
@@ -49,7 +51,9 @@ void t_setup(){
 	fsm_init(&fix.fsm, &fix.table);
 	ebnf_build_lexer_fsm(&fix.fsm);
 
-	fsm_thread_init(&fix.thread, &fix.fsm);
+	output_init(&fix.output);
+
+	fsm_thread_init(&fix.thread, &fix.fsm, &fix.output);
 	fix.thread.handler.target = &fix;
 	fix.thread.handler.accept = push_token;
 	fsm_thread_start(&fix.thread);
@@ -64,6 +68,7 @@ void t_setup(){
 
 void t_teardown(){
 	fsm_thread_dispose(&fix.thread);
+	output_dispose(&fix.output);
 	fsm_dispose(&fix.fsm);
 	symbol_table_dispose(&fix.table);
 }

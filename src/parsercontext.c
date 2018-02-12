@@ -20,8 +20,9 @@ void parser_context_init(ParserContext *context, Parser *parser)
 	context->parse_error = parser->parse_error;
 	context->parse_error.object = context;
 
-	fsm_thread_init(&context->thread, &parser->fsm);
-	fsm_thread_init(&context->lexer_thread, &parser->lexer_fsm);
+	output_init(&context->output);
+	fsm_thread_init(&context->thread, &parser->fsm, &context->output);
+	fsm_thread_init(&context->lexer_thread, &parser->lexer_fsm, &context->output);
 }
 
 void parser_context_dispose(ParserContext *context)

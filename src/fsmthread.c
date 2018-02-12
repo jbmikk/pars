@@ -60,13 +60,13 @@ static unsigned int _state_pop(FsmThread *thread)
 }
 
 
-void fsm_thread_init(FsmThread *thread, Fsm *fsm)
+void fsm_thread_init(FsmThread *thread, Fsm *fsm, Output *output)
 {
 	thread->fsm = fsm;
-	thread->status = FSM_THREAD_OK;
 	stack_fsmthreadnode_init(&thread->stack);
 	stack_state_init(&thread->mode_stack);
 	thread->handler = NULL_HANDLER;
+	thread->output = output;
 }
 
 void fsm_thread_dispose(FsmThread *thread)
@@ -205,7 +205,7 @@ Action *fsm_thread_match(FsmThread *thread, const Token *token)
 		action = fsm_thread_match(thread, token);
 		break;
 	case ACTION_ERROR:
-		thread->status = FSM_THREAD_ERROR;
+		output_raise(thread->output, OUTPUT_FSM_ERROR);
 	default:
 		break;
 	}
