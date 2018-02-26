@@ -142,11 +142,7 @@ Action *fsm_thread_match(FsmThread *thread, const Token *token)
 	switch(action->type) {
 	case ACTION_SHIFT:
 		trace("match", thread->current, action, token, "shift", 0);
-		Token shifted = {
-			token->index,
-			token->length,
-			token->symbol
-		};
+		Token shifted = *token;
 		if(thread->handler.shift) {
 			thread->handler.shift(thread->handler.target, &shifted);
 		}
@@ -155,11 +151,7 @@ Action *fsm_thread_match(FsmThread *thread, const Token *token)
 		break;
 	case ACTION_ACCEPT:
 		trace("match", thread->current, action, token, "accept", 0);
-		Token accepted = {
-			token->index,
-			token->length,
-			token->symbol
-		};
+		Token accepted = *token;
 		if(thread->handler.accept) {
 			thread->handler.accept(thread->handler.target, &accepted);
 		}
@@ -173,11 +165,7 @@ Action *fsm_thread_match(FsmThread *thread, const Token *token)
 		break;
 	case ACTION_DROP:
 		trace("match", thread->current, action, token, "drop", 0);
-		Token dropped = {
-			token->index,
-			token->length,
-			token->symbol
-		};
+		Token dropped = *token;
 		if(thread->handler.drop) {
 			thread->handler.drop(thread->handler.target, &dropped);
 		}
