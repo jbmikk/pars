@@ -41,22 +41,16 @@ static void _mode_reset(FsmThread *thread)
 	thread->current = stack_state_top(&thread->mode_stack);
 }
 
-static void _state_push(FsmThread *thread, unsigned int index)
+static void _state_push(FsmThread *thread, FsmThreadNode tnode)
 {
-	FsmThreadNode frame;
-	frame.state = thread->current;
-	frame.index = index;
-	stack_fsmthreadnode_push(&thread->stack, frame);
+	stack_fsmthreadnode_push(&thread->stack, tnode);
 }
 
-static unsigned int _state_pop(FsmThread *thread)
+static FsmThreadNode _state_pop(FsmThread *thread)
 {
 	FsmThreadNode top = stack_fsmthreadnode_top(&thread->stack);
-	unsigned int index = top.index;
-	thread->current = top.state;
-
 	stack_fsmthreadnode_pop(&thread->stack);
-	return index;
+	return top;
 }
 
 
@@ -79,7 +73,7 @@ int fsm_thread_start(FsmThread *thread)
 {
 	_mode_push(thread, fsm_get_symbol_id(thread->fsm, nzs(".default")));
 	_mode_reset(thread);
-	_state_push(thread, 0);
+	_state_push(thread, (FsmThreadNode){ thread->current, 0 });
 	//TODO: Check errors?
 	return 0;
 }
@@ -146,7 +140,10 @@ Action *fsm_thread_match(FsmThread *thread, const Token *token)
 		if(thread->handler.shift) {
 			thread->handler.shift(thread->handler.target, &shifted);
 		}
-		_state_push(thread, token->index);
+		_state_push(thread, (FsmThreadNode) {
+			thread->current,
+			token->index
+		});
 		thread->current = action->state;
 		break;
 	case ACTION_ACCEPT:
@@ -175,10 +172,12 @@ Action *fsm_thread_match(FsmThread *thread, const Token *token)
 		break;
 	case ACTION_REDUCE:
 		trace("match", thread->current, action, token, "reduce", action->reduction);
-		unsigned int popped_index = _state_pop(thread);
+		FsmThreadNode popped = _state_pop(thread);
+		thread->current = popped.state;
+
 		Token reduction = {
-			popped_index,
-			token->index - popped_index,
+			popped.index,
+			token->index - popped.index,
 			action->reduction
 		};
 		if(thread->handler.reduce) {
