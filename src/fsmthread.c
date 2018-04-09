@@ -183,6 +183,14 @@ Action *fsm_thread_match(FsmThread *thread, const Token *token)
 		if(thread->handler.reduce) {
 			thread->handler.reduce(thread->handler.target, &reduction);
 		}
+		// TODO: Calling thread_match recursively is efficient, but it
+		// seems like we are breaking something. It would be desirable
+		// to have the proper status reflected in the thread structure
+		// and wait for the next match call with the proper data.
+		// Maybe we can have an improved input feature that lets us
+		// place things on top of the stack for future input.
+		// Something generic can be useful for several scenarios
+		// besides reductions, such as back-tracking.
 		fsm_thread_match(thread, &reduction);
 		action = fsm_thread_match(thread, token);
 		break;
