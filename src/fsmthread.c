@@ -191,6 +191,9 @@ Action *fsm_thread_match(FsmThread *thread, const Token *token)
 		// place things on top of the stack for future input.
 		// Something generic can be useful for several scenarios
 		// besides reductions, such as back-tracking.
+		// Maybe we can have decorated inputs, or decorated tokens.
+		// Something indicating the input is different (it comes from
+		// back-tracking, or something else.)
 		fsm_thread_match(thread, &reduction);
 		action = fsm_thread_match(thread, token);
 		break;
