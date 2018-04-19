@@ -78,43 +78,10 @@ int fsm_thread_start(FsmThread *thread)
 	return 0;
 }
 
-
-Action *fsm_thread_test(FsmThread *thread, const Token *token)
+Continuation fsm_thread_match(FsmThread *thread, const Token *token)
 {
 	Action *action;
-
-	action = state_get_transition(thread->current, token->symbol);
-	if(action == NULL) {
-		Symbol *empty = symbol_table_get(thread->fsm->table, "__empty", 7);
-
-		trace("test", thread->current, action, token, "error", 0);
-		_mode_push(thread, fsm_get_symbol_id(thread->fsm, nzs(".error")));
-		_mode_reset(thread);
-		action = state_get_transition(thread->current, empty->id);
-	}
-
-	switch(action->type) {
-	case ACTION_SHIFT:
-		trace("test", thread->current, action, token, "shift", 0);
-		break;
-	case ACTION_ACCEPT:
-		trace("test", thread->current, action, token, "accept", 0);
-		break;
-	case ACTION_DROP:
-		trace("test", thread->current, action, token, "drop", 0);
-		break;
-	case ACTION_REDUCE:
-		trace("test", thread->current, action, token, "reduce", action->reduction);
-		break;
-	default:
-		break;
-	}
-	return action;
-}
-
-Action *fsm_thread_match(FsmThread *thread, const Token *token)
-{
-	Action *action;
+	Continuation cont;
 
 	action = state_get_transition(thread->current, token->symbol);
 
@@ -133,6 +100,8 @@ Action *fsm_thread_match(FsmThread *thread, const Token *token)
 		}
 	}
 
+	cont.action = action;
+
 	switch(action->type) {
 	case ACTION_SHIFT:
 		trace("match", thread->current, action, token, "shift", 0);
@@ -145,6 +114,7 @@ Action *fsm_thread_match(FsmThread *thread, const Token *token)
 			token->index
 		});
 		thread->current = action->state;
+		cont.token = shifted;
 		break;
 	case ACTION_ACCEPT:
 		trace("match", thread->current, action, token, "accept", 0);
@@ -159,6 +129,7 @@ Action *fsm_thread_match(FsmThread *thread, const Token *token)
 			_mode_pop(thread);
 		}
 		_mode_reset(thread);
+		cont.token = accepted;
 		break;
 	case ACTION_DROP:
 		trace("match", thread->current, action, token, "drop", 0);
@@ -167,6 +138,7 @@ Action *fsm_thread_match(FsmThread *thread, const Token *token)
 			thread->handler.drop(thread->handler.target, &dropped);
 		}
 		thread->current = action->state;
+		cont.token = dropped;
 		//if(action->flags & ACTION_FLAG_THREAD_SPAWN)
 			//_thread_spawn(thread);
 		break;
@@ -194,18 +166,52 @@ Action *fsm_thread_match(FsmThread *thread, const Token *token)
 		// Maybe we can have decorated inputs, or decorated tokens.
 		// Something indicating the input is different (it comes from
 		// back-tracking, or something else.)
-		fsm_thread_match(thread, &reduction);
-		action = fsm_thread_match(thread, token);
+		cont.token = reduction;
 		break;
 	case ACTION_EMPTY:
 		trace("match", thread->current, action, token, "empty", 0);
 		thread->current = action->state;
-		action = fsm_thread_match(thread, token);
+		cont.token = *(token);
 		break;
 	case ACTION_ERROR:
 		output_raise(thread->output, OUTPUT_FSM_ERROR);
 	default:
 		break;
 	}
-	return action;
+	return cont;
 }
+
+// TODO: This code belongs elsewhere
+int pda_continuation_follow(const Continuation *cont, const Token *in, Token *out, int *count)
+{
+	switch(cont->action->type) {
+	case ACTION_SHIFT:
+	case ACTION_ACCEPT:
+	case ACTION_DROP:
+		if(*count == 0) {
+			// In token was matched, end loop
+			return 1;
+		} else {
+			// In token generated a reduction the last time
+			// Try matching it again.
+			(*count)--;
+			*out = *in;
+			return 0;
+		}
+		break;
+	case ACTION_REDUCE:
+		(*count)++;
+		*out = cont->token;
+		break;
+	case ACTION_EMPTY:
+		*out = cont->token;
+		break;
+	case ACTION_ERROR:
+		return -1;
+	default:
+		return -2;
+		break;
+	}
+	return 0;
+}
+

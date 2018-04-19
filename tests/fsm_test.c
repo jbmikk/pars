@@ -11,7 +11,9 @@
 #define nzs(S) (S), (strlen(S))
 
 #define MATCH(S, Y) fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)});
+#define MATCH_THEN(S, Y) fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)}).action;
 #define MATCH_AT(S, Y, I) fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)});
+#define MATCH_AT_THEN(S, Y, I) fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}).action;
 #define TEST(S, Y) fsm_thread_test(&(S), &(struct Token){ 0, 0, (Y)});
 
 typedef struct {
@@ -79,9 +81,9 @@ void fsm_thread_match__shift(){
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
-	action = MATCH(thread, 'a');
+	action = MATCH_THEN(thread, 'a');
 	t_assert(action->type == ACTION_SHIFT);
-	action = MATCH(thread, 'b');
+	action = MATCH_THEN(thread, 'b');
 	t_assert(action->type == ACTION_DROP);
 	fsm_thread_dispose(&thread);
 }
@@ -139,7 +141,7 @@ void fsm_thread_match__reduce(){
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
 	MATCH(thread, '1');
-	action = MATCH(thread, '\0');
+	action = MATCH_THEN(thread, '\0');
 	t_assert(action->type == ACTION_ACCEPT);
 	fsm_thread_dispose(&thread);
 }
@@ -170,7 +172,7 @@ void fsm_thread_match__reduce_shift(){
 	MATCH(thread, '1');
 	MATCH(thread, '+');
 	MATCH(thread, '2');
-	action = MATCH(thread, '\0');
+	action = MATCH_THEN(thread, '\0');
 	t_assert(action->type == ACTION_ACCEPT);
 	fsm_thread_dispose(&thread);
 }
@@ -222,7 +224,7 @@ void fsm_thread_match__reduce_handler(){
 	MATCH_AT(thread, 'o', 3);
 	MATCH_AT(thread, 'r', 4);
 	MATCH_AT(thread, 'd', 5);
-	action = MATCH_AT(thread, '\0', 6);
+	action = MATCH_AT_THEN(thread, '\0', 6);
 	t_assert(token.symbol == fsm_get_symbol_id(&fix.fsm, nzs("sum")));
 	t_assert(token.index == 0);
 	t_assert(token.length == 6);
@@ -266,7 +268,7 @@ void fsm_thread_match__first_set_collision(){
 	MATCH(thread, '1');
 	MATCH(thread, '2');
 	MATCH(thread, '3');
-	action = MATCH(thread, '\0');
+	action = MATCH_THEN(thread, '\0');
 	t_assert(action->type == ACTION_ACCEPT);
 	fsm_thread_dispose(&thread);
 }
@@ -323,13 +325,13 @@ void fsm_thread_match__repetition(){
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
-	action = MATCH(thread, '1');
+	action = MATCH_THEN(thread, '1');
 	t_assert(action->type == ACTION_SHIFT);
-	action = MATCH(thread, '2');
+	action = MATCH_THEN(thread, '2');
 	t_assert(action->type == ACTION_SHIFT);
-	action = MATCH(thread, '3');
+	action = MATCH_THEN(thread, '3');
 	t_assert(action->type == ACTION_SHIFT);
-	action = MATCH(thread, '\0');
+	action = MATCH_THEN(thread, '\0');
 	t_assert(action->type == ACTION_ACCEPT);
 	fsm_thread_dispose(&thread);
 }

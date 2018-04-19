@@ -32,13 +32,18 @@ typedef struct _FsmThread {
 	Output *output;
 } FsmThread;
 
+typedef struct Continuation {
+	Action *action;
+	Token token;
+} Continuation;
+
 #define NULL_HANDLER ((FsmHandler){NULL, NULL, NULL, NULL})
 
 void fsm_thread_init(FsmThread *thread, Fsm *fsm, Output *output);
 void fsm_thread_dispose(FsmThread *thread);
 
 int fsm_thread_start(FsmThread *thread);
-Action *fsm_thread_match(FsmThread *thread, const Token *token);
-Action *fsm_thread_test(FsmThread *thread, const Token *token);
+Continuation fsm_thread_match(FsmThread *thread, const Token *token);
+int pda_continuation_follow(const Continuation *cont, const Token *in, Token *out, int *count);
 
 #endif //FSM_THREAD_H

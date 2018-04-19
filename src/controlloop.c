@@ -3,16 +3,57 @@
 #include "parsercontext.h"
 #include "dbg.h"
 
+int lexer_continuation_follow(const Continuation *cont, Input *input, Token *token)
+{
+	int ret = 0;
+
+	switch(cont->action->type) {
+	case ACTION_START:
+		input_next_token(input, &cont->token, token);
+		break;
+	case ACTION_ACCEPT:
+		// TODO: parser match call should be here
+	case ACTION_SHIFT:
+	case ACTION_DROP:
+
+		if(token->symbol == L_EOF) {
+			ret = -3;
+			break;
+		}
+		input_next_token(input, &cont->token, token);
+		break;
+	case ACTION_REDUCE:
+		*token = cont->token;
+		break;
+	case ACTION_EMPTY:
+		*token = cont->token;
+		break;
+	case ACTION_ERROR:
+		ret = -1;
+	default:
+		ret = -2;
+		break;
+	}
+	return ret;
+}
 
 int control_loop_linear(void *object, void *params)
 {
 	ParserContext *context = (ParserContext *)object;
 	Token token;
-	token_init(&token, 0, 0, 0);
+	Continuation cont;
 
-	do {
-		input_next_token(context->input, &token, &token);
-		fsm_thread_match(&context->lexer_thread, &token);
+	// Dummy action for initial continuation
+	Action dummy;
+	action_init(&dummy, ACTION_START, 0, NULL, 0, 0);
+
+	token_init(&token, 0, 0, 0);
+	token_init(&cont.token, 0, 0, 0);
+	cont.action = &dummy;
+
+	while(!lexer_continuation_follow(&cont, context->input, &token)) {
+
+		cont = fsm_thread_match(&context->lexer_thread, &token);
 
 		// TODO: Add error details (lexer or parser?)
 		check(
@@ -21,8 +62,7 @@ int control_loop_linear(void *object, void *params)
 			"index: %i with symbol: %i, length: %i",
 			token.index, token.symbol, token.length
 		);
-
-	} while(token.symbol != L_EOF);
+	}
 
 	return 0;
 error:

@@ -477,10 +477,17 @@ static void _ebnf_pipe_token(void *thread, const Token *token)
 	FsmThread *_thread = (FsmThread *)thread;
 	Symbol *comment = symbol_table_get(_thread->fsm->table, "comment", 7);
 	Symbol *white_space = symbol_table_get(_thread->fsm->table, "white_space", 11);
+	Continuation cont;
 
 	//Filter white space and tokens
+	int count = 0;
 	if(token->symbol != comment->id && token->symbol != white_space->id) {
-		fsm_thread_match(_thread, token);
+		Token retry = *token;
+		do {
+			cont = fsm_thread_match(_thread, &retry);
+
+			// TODO: Temporary continuation, it should be in control loop
+		} while (!pda_continuation_follow(&cont, token, &retry, &count));
 	}
 }
 

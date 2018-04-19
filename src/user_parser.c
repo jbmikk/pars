@@ -20,7 +20,16 @@ static void _identity_init_lexer_fsm(Fsm *fsm)
 
 static void _user_pipe_token(void *thread, const Token *token)
 {
-	fsm_thread_match((FsmThread *)thread, token);
+	FsmThread *_thread = (FsmThread *)thread;
+	Continuation cont;
+
+	int count = 0;
+	Token retry = *token;
+	do {
+		cont = fsm_thread_match(_thread, &retry);
+
+		// TODO: Temporary continuation, it should be in control loop
+	} while (!pda_continuation_follow(&cont, token, &retry, &count));
 }
 
 int _user_setup_lexer(void *object, void *params)
