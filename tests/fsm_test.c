@@ -10,11 +10,38 @@
 
 #define nzs(S) (S), (strlen(S))
 
-#define MATCH(S, Y) fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)});
-#define MATCH_THEN(S, Y) fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)}).action;
-#define MATCH_AT(S, Y, I) fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)});
-#define MATCH_AT_THEN(S, Y, I) fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}).action;
-#define TEST(S, Y) fsm_thread_test(&(S), &(struct Token){ 0, 0, (Y)});
+
+#define MATCH_DROP_AT(S, Y, I) \
+	cont = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	t_assert(cont.action->type == ACTION_DROP);
+
+#define MATCH_SHIFT_AT(S, Y, I) \
+	cont = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	t_assert(cont.action->type == ACTION_SHIFT);
+
+#define MATCH_REDUCE_AT(S, Y, R, I) \
+	cont = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	t_assert(cont.action->type == ACTION_REDUCE); \
+	t_assert(cont.action->reduction == R);
+
+#define MATCH_ACCEPT_AT(S, Y, I) \
+	cont = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	t_assert(cont.action->type == ACTION_ACCEPT);
+
+#define MATCH_EMPTY_AT(S, Y, I) \
+	cont = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	t_assert(cont.action->type == ACTION_EMPTY);
+
+#define MATCH_DROP(S, Y) MATCH_DROP_AT(S, Y, 0)
+#define MATCH_SHIFT(S, Y) MATCH_SHIFT_AT(S, Y, 0)
+#define MATCH_REDUCE(S, Y, R) MATCH_REDUCE_AT(S, Y, R, 0)
+#define MATCH_ACCEPT(S, Y) MATCH_ACCEPT_AT(S, Y, 0)
+#define MATCH_EMPTY(S, Y) MATCH_EMPTY_AT(S, Y, 0)
+
+// TODO: implement test functions
+#define TEST_SHIFT(S, Y)
+#define TEST_ERROR(S, Y)
+
 
 typedef struct {
 	SymbolTable table;
@@ -65,7 +92,7 @@ void fsm_builder_define__two_gets(){
 
 void fsm_thread_match__shift(){
 	FsmBuilder builder;
-	Action *action;
+	Continuation cont;
 
 	fsm_builder_init(&builder, &fix.fsm);
 
@@ -81,16 +108,17 @@ void fsm_thread_match__shift(){
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
-	action = MATCH_THEN(thread, 'a');
-	t_assert(action->type == ACTION_SHIFT);
-	action = MATCH_THEN(thread, 'b');
-	t_assert(action->type == ACTION_DROP);
+
+	MATCH_SHIFT(thread, 'a');
+	MATCH_DROP(thread, 'b');
+
 	fsm_thread_dispose(&thread);
 }
 
 void fsm_thread_match__shift_range(){
 	FsmBuilder builder;
-	Action *action;
+	Continuation cont;
+
 	fsm_builder_init(&builder, &fix.fsm);
 
 	fsm_builder_define(&builder, nzs("name"));
@@ -104,18 +132,16 @@ void fsm_thread_match__shift_range(){
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
-	action = TEST(thread, 'a');
-	t_assert(action->type == ACTION_SHIFT);
-	action = TEST(thread, 'b');
-	t_assert(action->type == ACTION_SHIFT);
-	action = TEST(thread, 'o');
-	t_assert(action->type == ACTION_SHIFT);
-	action = TEST(thread, 'p');
-	t_assert(action->type == ACTION_SHIFT);
-	action = TEST(thread, 'q');
-	t_assert(action->type == ACTION_ERROR);
 
-	action = state_get_transition(
+	MATCH_SHIFT(thread, 'a');
+
+	TEST_SHIFT(thread, 'a');
+	TEST_SHIFT(thread, 'b');
+	TEST_SHIFT(thread, 'o');
+	TEST_SHIFT(thread, 'p');
+	TEST_ERROR(thread, 'q');
+
+	state_get_transition(
 		fsm_get_state(&fix.fsm, nzs(".default")),
 		'z'
 	);
@@ -125,7 +151,7 @@ void fsm_thread_match__shift_range(){
 
 void fsm_thread_match__reduce(){
 	FsmBuilder builder;
-	Action *action;
+	Continuation cont;
 
 	fsm_builder_init(&builder, &fix.fsm);
 
@@ -137,18 +163,23 @@ void fsm_thread_match__reduce(){
 
 	fsm_builder_dispose(&builder);
 
+	int number = fsm_get_symbol_id(&fix.fsm, nzs("number"));
+
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
-	MATCH(thread, '1');
-	action = MATCH_THEN(thread, '\0');
-	t_assert(action->type == ACTION_ACCEPT);
+
+	MATCH_SHIFT(thread, '1');
+	MATCH_REDUCE(thread, '\0', number);
+	MATCH_DROP(thread, number);
+	MATCH_ACCEPT(thread, '\0');
+
 	fsm_thread_dispose(&thread);
 }
 
 void fsm_thread_match__reduce_shift(){
 	FsmBuilder builder;
-	Action *action;
+	Continuation cont;
 
 	fsm_builder_init(&builder, &fix.fsm);
 
@@ -166,14 +197,22 @@ void fsm_thread_match__reduce_shift(){
 
 	fsm_builder_dispose(&builder);
 
+	int number = fsm_get_symbol_id(&fix.fsm, nzs("number"));
+	int sum = fsm_get_symbol_id(&fix.fsm, nzs("sum"));
+
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
-	MATCH(thread, '1');
-	MATCH(thread, '+');
-	MATCH(thread, '2');
-	action = MATCH_THEN(thread, '\0');
-	t_assert(action->type == ACTION_ACCEPT);
+
+	MATCH_SHIFT(thread, '1');
+	MATCH_REDUCE(thread, '+', number);
+	MATCH_SHIFT(thread, number);
+	MATCH_DROP(thread, '+');
+	MATCH_DROP(thread, '2');
+	MATCH_REDUCE(thread, '\0', sum);
+	MATCH_DROP(thread, sum);
+	MATCH_ACCEPT(thread, '\0');
+
 	fsm_thread_dispose(&thread);
 }
 
@@ -184,7 +223,7 @@ void reduce_handler(void *target, const Token *t)
 
 void fsm_thread_match__reduce_handler(){
 	FsmBuilder builder;
-	Action *action;
+	Continuation cont;
 
 	fsm_builder_init(&builder, &fix.fsm);
 
@@ -209,32 +248,36 @@ void fsm_thread_match__reduce_handler(){
 
 	fsm_builder_dispose(&builder);
 
+	int number = fsm_get_symbol_id(&fix.fsm, nzs("number"));
+	int word = fsm_get_symbol_id(&fix.fsm, nzs("word"));
+	int sum = fsm_get_symbol_id(&fix.fsm, nzs("sum"));
+
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
 	thread.handler.reduce = reduce_handler;
-	MATCH_AT(thread, '1', 0);
-	MATCH_AT(thread, '+', 1);
-	t_assert(token.symbol == fsm_get_symbol_id(&fix.fsm, nzs("number")));
-	t_assert(token.index == 0);
-	t_assert(token.length == 1);
-	//popped index no longer available, should it be exposed somehow?
-	//t_assert(thread.index == 1);
-	MATCH_AT(thread, 'w', 2);
-	MATCH_AT(thread, 'o', 3);
-	MATCH_AT(thread, 'r', 4);
-	MATCH_AT(thread, 'd', 5);
-	action = MATCH_AT_THEN(thread, '\0', 6);
-	t_assert(token.symbol == fsm_get_symbol_id(&fix.fsm, nzs("sum")));
-	t_assert(token.index == 0);
-	t_assert(token.length == 6);
-	t_assert(action->type == ACTION_ACCEPT);
+
+	MATCH_SHIFT_AT(thread, '1', 0);
+	MATCH_REDUCE_AT(thread, '+', number, 1);
+	MATCH_SHIFT_AT(thread, number, 0);
+	MATCH_DROP_AT(thread, '+', 1);
+
+	MATCH_SHIFT_AT(thread, 'w', 2);
+	MATCH_DROP_AT(thread, 'o', 3);
+	MATCH_DROP_AT(thread, 'r', 4);
+	MATCH_DROP_AT(thread, 'd', 5);
+	MATCH_REDUCE_AT(thread, '\0', word, 6);
+	MATCH_DROP_AT(thread, word, 2);
+	MATCH_REDUCE_AT(thread, '\0', sum, 6);
+	MATCH_DROP_AT(thread, sum, 0);
+	MATCH_ACCEPT_AT(thread, '\0', 6);
+
 	fsm_thread_dispose(&thread);
 }
 
 void fsm_thread_match__first_set_collision(){
 	FsmBuilder builder;
-	Action *action;
+	Continuation cont;
 
 	fsm_builder_init(&builder, &fix.fsm);
 
@@ -262,20 +305,29 @@ void fsm_thread_match__first_set_collision(){
 
 	fsm_builder_dispose(&builder);
 
+	int a = fsm_get_symbol_id(&fix.fsm, nzs("A"));
+	//int b = fsm_get_symbol_id(&fix.fsm, nzs("B"));
+	int sequence = fsm_get_symbol_id(&fix.fsm, nzs("sequence"));
+
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
-	MATCH(thread, '1');
-	MATCH(thread, '2');
-	MATCH(thread, '3');
-	action = MATCH_THEN(thread, '\0');
-	t_assert(action->type == ACTION_ACCEPT);
+
+	MATCH_SHIFT(thread, '1');
+	MATCH_DROP(thread, '2');
+	MATCH_DROP(thread, '3');
+	MATCH_REDUCE(thread, '\0', a);
+	MATCH_SHIFT(thread, a);
+	MATCH_REDUCE(thread, '\0', sequence);
+	MATCH_DROP(thread, sequence);
+	MATCH_ACCEPT(thread, '\0');
+
 	fsm_thread_dispose(&thread);
 }
 
 void fsm_thread_match__repetition(){
 	FsmBuilder builder;
-	Action *action;
+	Continuation cont;
 
 	fsm_builder_init(&builder, &fix.fsm);
 
@@ -322,17 +374,35 @@ void fsm_thread_match__repetition(){
 
 	fsm_builder_dispose(&builder);
 
+	int nonZeroDigit = fsm_get_symbol_id(&fix.fsm, nzs("nonZeroDigit"));
+	int digit = fsm_get_symbol_id(&fix.fsm, nzs("digit"));
+	int integer = fsm_get_symbol_id(&fix.fsm, nzs("integer"));
+
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
-	action = MATCH_THEN(thread, '1');
-	t_assert(action->type == ACTION_SHIFT);
-	action = MATCH_THEN(thread, '2');
-	t_assert(action->type == ACTION_SHIFT);
-	action = MATCH_THEN(thread, '3');
-	t_assert(action->type == ACTION_SHIFT);
-	action = MATCH_THEN(thread, '\0');
-	t_assert(action->type == ACTION_ACCEPT);
+
+	MATCH_SHIFT(thread, '1');
+	MATCH_REDUCE(thread, '2', nonZeroDigit);
+	MATCH_SHIFT(thread, nonZeroDigit);
+
+	MATCH_SHIFT(thread, '2');
+	MATCH_REDUCE(thread, '3', nonZeroDigit);
+	MATCH_SHIFT(thread, nonZeroDigit);
+	MATCH_REDUCE(thread, '3', digit);
+	MATCH_DROP(thread, digit);
+
+	MATCH_SHIFT(thread, '3');
+	MATCH_REDUCE(thread, '\0', nonZeroDigit);
+	MATCH_SHIFT(thread, nonZeroDigit);
+	MATCH_REDUCE(thread, '\0', digit);
+	MATCH_DROP(thread, digit);
+
+	MATCH_EMPTY(thread, '\0');
+	MATCH_REDUCE(thread, '\0', integer);
+	MATCH_DROP(thread, integer);
+	MATCH_ACCEPT(thread, '\0');
+
 	fsm_thread_dispose(&thread);
 }
 
