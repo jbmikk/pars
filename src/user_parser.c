@@ -27,6 +27,7 @@ static void _user_pipe_token(void *thread, const Token *token)
 	Token retry = *token;
 	do {
 		cont = fsm_thread_match(_thread, &retry);
+		fsm_thread_notify(_thread, &cont);
 
 		// TODO: Temporary continuation, it should be in control loop
 	} while (!pda_continuation_follow(&cont, token, &retry, &count));

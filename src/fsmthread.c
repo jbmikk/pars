@@ -106,9 +106,7 @@ Continuation fsm_thread_match(FsmThread *thread, const Token *token)
 	case ACTION_SHIFT:
 		trace("match", thread->current, action, token, "shift", 0);
 		Token shifted = *token;
-		if(thread->handler.shift) {
-			thread->handler.shift(thread->handler.target, &shifted);
-		}
+
 		_state_push(thread, (FsmThreadNode) {
 			thread->current,
 			token->index
@@ -119,9 +117,6 @@ Continuation fsm_thread_match(FsmThread *thread, const Token *token)
 	case ACTION_ACCEPT:
 		trace("match", thread->current, action, token, "accept", 0);
 		Token accepted = *token;
-		if(thread->handler.accept) {
-			thread->handler.accept(thread->handler.target, &accepted);
-		}
 
 		if(action->flags & ACTION_FLAG_MODE_PUSH) {
 			_mode_push(thread, action->mode);
@@ -134,9 +129,7 @@ Continuation fsm_thread_match(FsmThread *thread, const Token *token)
 	case ACTION_DROP:
 		trace("match", thread->current, action, token, "drop", 0);
 		Token dropped = *token;
-		if(thread->handler.drop) {
-			thread->handler.drop(thread->handler.target, &dropped);
-		}
+
 		thread->current = action->state;
 		cont.token = dropped;
 		//if(action->flags & ACTION_FLAG_THREAD_SPAWN)
@@ -152,9 +145,6 @@ Continuation fsm_thread_match(FsmThread *thread, const Token *token)
 			token->index - popped.index,
 			action->reduction
 		};
-		if(thread->handler.reduce) {
-			thread->handler.reduce(thread->handler.target, &reduction);
-		}
 		cont.token = reduction;
 		break;
 	case ACTION_EMPTY:
@@ -168,6 +158,37 @@ Continuation fsm_thread_match(FsmThread *thread, const Token *token)
 		break;
 	}
 	return cont;
+}
+
+void fsm_thread_notify(FsmThread *thread, Continuation *cont)
+{
+	//int ret = 0;
+	switch(cont->action->type) {
+	case ACTION_SHIFT:
+		if(thread->handler.shift) {
+			thread->handler.shift(thread->handler.target, &cont->token);
+		}
+		break;
+	case ACTION_ACCEPT:
+		if(thread->handler.accept) {
+			thread->handler.accept(thread->handler.target, &cont->token);
+		}
+		break;
+	case ACTION_DROP:
+		if(thread->handler.drop) {
+			thread->handler.drop(thread->handler.target, &cont->token);
+		}
+		break;
+	case ACTION_REDUCE:
+		if(thread->handler.reduce) {
+			thread->handler.reduce(thread->handler.target, &cont->token);
+		}
+		break;
+	default:
+		break;
+	}
+	// TODO: return error 
+	//return ret;
 }
 
 // TODO: This code belongs elsewhere

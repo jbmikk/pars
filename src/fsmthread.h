@@ -44,6 +44,7 @@ void fsm_thread_dispose(FsmThread *thread);
 
 int fsm_thread_start(FsmThread *thread);
 Continuation fsm_thread_match(FsmThread *thread, const Token *token);
+void fsm_thread_notify(FsmThread *thread, Continuation *cont);
 int pda_continuation_follow(const Continuation *cont, const Token *in, Token *out, int *count);
 
 #endif //FSM_THREAD_H
