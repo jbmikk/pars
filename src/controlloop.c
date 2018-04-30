@@ -3,7 +3,7 @@
 #include "parsercontext.h"
 #include "dbg.h"
 
-int lexer_continuation_follow(const Continuation *cont, Input *input, Token *token)
+int input_continuation_follow(const Continuation *cont, Input *input, Token *token)
 {
 	int ret = 0;
 
@@ -12,25 +12,18 @@ int lexer_continuation_follow(const Continuation *cont, Input *input, Token *tok
 		input_next_token(input, &cont->token, token);
 		break;
 	case ACTION_ACCEPT:
-		// TODO: parser match call should be here
 	case ACTION_SHIFT:
 	case ACTION_DROP:
-
 		if(token->symbol == L_EOF) {
 			ret = -3;
 			break;
 		}
 		input_next_token(input, &cont->token, token);
 		break;
-	case ACTION_REDUCE:
-		*token = cont->token;
-		break;
-	case ACTION_EMPTY:
-		*token = cont->token;
-		break;
 	case ACTION_ERROR:
 		ret = -1;
 	default:
+		// TODO: sentinel? should never reach this place
 		ret = -2;
 		break;
 	}
@@ -51,21 +44,26 @@ int control_loop_linear(void *object, void *params)
 	token_init(&cont.token, 0, 0, 0);
 	cont.action = &dummy;
 
-	while(!lexer_continuation_follow(&cont, context->input, &token)) {
+	while(!input_continuation_follow(&cont, context->input, &token)) {
 
-		cont = fsm_thread_match(&context->lexer_thread, &token);
+		Token retry = token;
+		int count = 0;
+		do {
+			cont = fsm_thread_match(&context->lexer_thread, &retry);
 
-		// TODO: check errors
-		fsm_thread_notify(&context->lexer_thread, &cont);
-		//check(!error, "Error notifying continuation");
+			// TODO: check errors
+			fsm_thread_notify(&context->lexer_thread, &cont);
 
-		// TODO: Add error details (lexer or parser?)
-		check(
-			context->output.status == OUTPUT_DEFAULT,
-			"Parser error at token "
-			"index: %i with symbol: %i, length: %i",
-			token.index, token.symbol, token.length
-		);
+			// TODO: Add error details (lexer or parser?)
+			check(
+				context->output.status == OUTPUT_DEFAULT,
+				"Parser error at token "
+				"index: %i with symbol: %i, length: %i",
+				token.index, token.symbol, token.length
+			);
+
+			// TODO: Temporary continuation, it should be in control loop
+		} while (!pda_continuation_follow(&cont, &token, &retry, &count));
 	}
 
 	return 0;
@@ -98,6 +96,7 @@ int control_loop_ast(void *object, void *params)
 	while(node) {
 
 		if(cursor.offset == 1) {
+			//TODO: wrap in PDA loop
 			cont = fsm_thread_match(&context->thread, &token_down);
 			check(
 				context->output.status == OUTPUT_DEFAULT,
@@ -105,6 +104,7 @@ int control_loop_ast(void *object, void *params)
 			);
 			fsm_thread_notify(&context->thread, &cont);
 		} else if(cursor.offset < 0) {
+			//TODO: wrap in PDA loop
 			cont = fsm_thread_match(&context->thread, &token_up);
 			check(
 				context->output.status == OUTPUT_DEFAULT,
@@ -114,8 +114,9 @@ int control_loop_ast(void *object, void *params)
 		}
 
 		token_init(&token, index, 0, node->token.symbol);
-		cont = fsm_thread_match(&context->thread, &token);
 
+		//TODO: wrap in PDA loop
+		cont = fsm_thread_match(&context->thread, &token);
 		check(
 			context->output.status == OUTPUT_DEFAULT,
 			"Parser error at node %p - "
