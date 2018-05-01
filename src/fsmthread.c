@@ -59,7 +59,6 @@ void fsm_thread_init(FsmThread *thread, Fsm *fsm, Output *output)
 	thread->fsm = fsm;
 	stack_fsmthreadnode_init(&thread->stack);
 	stack_state_init(&thread->mode_stack);
-	thread->handler = NULL_HANDLER;
 	thread->output = output;
 }
 
@@ -158,37 +157,6 @@ Continuation fsm_thread_match(FsmThread *thread, const Token *token)
 		break;
 	}
 	return cont;
-}
-
-void fsm_thread_notify(FsmThread *thread, Continuation *cont)
-{
-	//int ret = 0;
-	switch(cont->action->type) {
-	case ACTION_SHIFT:
-		if(thread->handler.shift) {
-			thread->handler.shift(thread->handler.target, &cont->token);
-		}
-		break;
-	case ACTION_ACCEPT:
-		if(thread->handler.accept) {
-			thread->handler.accept(thread->handler.target, &cont->token);
-		}
-		break;
-	case ACTION_DROP:
-		if(thread->handler.drop) {
-			thread->handler.drop(thread->handler.target, &cont->token);
-		}
-		break;
-	case ACTION_REDUCE:
-		if(thread->handler.reduce) {
-			thread->handler.reduce(thread->handler.target, &cont->token);
-		}
-		break;
-	default:
-		break;
-	}
-	// TODO: return error 
-	//return ret;
 }
 
 // TODO: This code belongs elsewhere

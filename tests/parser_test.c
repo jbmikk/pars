@@ -144,45 +144,20 @@ static void _build_siblings_with_children(Fsm *fsm)
 	fsm_builder_dispose(&builder);
 }
 
-static void _test_pipe_token(void *thread, const Token *token)
+int test_lexer_transition(void *_context, void *_cont)
 {
-	fsm_thread_match((FsmThread *)thread, token);
-}
+	ParserContext *context = (ParserContext *)_context;
+	Continuation *lcont = (Continuation *)_cont;
 
-static int _test_setup_lexer(void *object, void *params)
-{
-	ParserContext *context = (ParserContext *)object;
-
-	context->lexer_thread.handler.target = &context->thread;
-	context->lexer_thread.handler.drop = NULL;
-	context->lexer_thread.handler.shift = NULL;
-	context->lexer_thread.handler.reduce = NULL;
-	context->lexer_thread.handler.accept = _test_pipe_token;
+	if(lcont->action->type != ACTION_ACCEPT) {
+		return 0;
+	}
+	fsm_thread_match(&context->thread, &lcont->token);
 	return 0;
 }
 
-void _on_drop(void *ast_p, const Token *token)
+int test_parser_transition(void *_context, void *_cont)
 {
-}
-
-void _on_shift(void *ast_p, const Token *token)
-{
-}
-
-void _on_reduce(void *ast_p, const Token *token)
-{
-}
-
-static int _test_setup_fsm(void *object, void *params)
-{
-	ParserContext *context = (ParserContext *)object;
-
-	context->thread.handler.target = context->ast;
-	context->thread.handler.drop = _on_drop;
-	context->thread.handler.shift = _on_shift;
-	context->thread.handler.reduce = _on_reduce;
-	context->thread.handler.accept = NULL;
-
 	return 0;
 }
 
@@ -206,10 +181,12 @@ static int _test_parse_error(void *object, void *params)
 
 void t_setup(){
 	parser_init(&fix.parser);
-	listener_init(&fix.parser.parse_setup_lexer, _test_setup_lexer, NULL);
-	listener_init(&fix.parser.parse_setup_fsm, _test_setup_fsm, NULL);
+	listener_init(&fix.parser.parse_setup_lexer, NULL, NULL);
+	listener_init(&fix.parser.parse_setup_fsm, NULL, NULL);
 	listener_init(&fix.parser.parse_start, _test_parse_start, NULL);
 	listener_init(&fix.parser.parse_loop, control_loop_ast, NULL);
+	listener_init(&fix.parser.lexer_transition, test_lexer_transition, NULL);
+	listener_init(&fix.parser.parser_transition, test_parser_transition, NULL);
 	listener_init(&fix.parser.parse_end, _test_parse_end, NULL);
 	listener_init(&fix.parser.parse_error, _test_parse_error, NULL);
 

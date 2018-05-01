@@ -166,46 +166,45 @@ void atl_build_lexer_fsm(Fsm *fsm)
 	fsm_builder_lexer_done(&builder, L_EOF);
 }
 
-static void _atl_pipe_token(void *thread, const Token *token)
+int atl_lexer_transition(void *_context, void *_cont)
 {
-	FsmThread *_thread = (FsmThread *)thread;
-	Symbol *comment = symbol_table_get(_thread->fsm->table, "comment", 7);
-	Symbol *white_space = symbol_table_get(_thread->fsm->table, "white_space", 11);
+	ParserContext *context = (ParserContext *)_context;
+	Continuation *lcont = (Continuation *)_cont;
+
+	if(lcont->action->type != ACTION_ACCEPT) {
+		return 0;
+	}
+	Token token = lcont->token;
+
+	Symbol *comment = symbol_table_get(&context->parser->table, "comment", 7);
+	Symbol *white_space = symbol_table_get(&context->parser->table, "white_space", 11);
 
 	Continuation cont;
 
 	//Filter white space and tokens
 	int count = 0;
-	if(token->symbol != comment->id && token->symbol != white_space->id) {
-		Token retry = *token;
+
+	if(token.symbol != comment->id && token.symbol != white_space->id) {
+		Token retry = token;
 		do {
-			cont = fsm_thread_match(_thread, &retry);
-			fsm_thread_notify(_thread, &cont);
+			cont = fsm_thread_match(&context->thread, &retry);
+			listener_notify(&context->parser_transition, &cont);
 
 			// TODO: Temporary continuation, it should be in control loop
-		} while (!pda_continuation_follow(&cont, token, &retry, &count));
+		} while (!pda_continuation_follow(&cont, &token, &retry, &count));
 	}
-}
-
-int atl_setup_lexer(void *object, void *params)
-{
-	ParserContext *context = (ParserContext *)object;
-
-	context->lexer_thread.handler.target = &context->thread;
-	context->lexer_thread.handler.drop = NULL;
-	context->lexer_thread.handler.shift = NULL;
-	context->lexer_thread.handler.reduce = NULL;
-	context->lexer_thread.handler.accept = _atl_pipe_token;
-
+	// TODO: return error codes?
 	return 0;
 }
 
 int atl_build_parser(Parser *parser)
 {
-	listener_init(&parser->parse_setup_lexer, atl_setup_lexer, NULL);
-	listener_init(&parser->parse_setup_fsm, ast_setup_fsm, NULL);
+	listener_init(&parser->parse_setup_lexer, NULL, NULL);
+	listener_init(&parser->parse_setup_fsm, NULL, NULL);
 	listener_init(&parser->parse_start, ast_parse_start, NULL);
 	listener_init(&parser->parse_loop, control_loop_linear, NULL);
+	listener_init(&parser->lexer_transition, atl_lexer_transition, NULL);
+	listener_init(&parser->parser_transition, ast_parser_transition, NULL);
 	listener_init(&parser->parse_end, ast_parse_end, NULL);
 	listener_init(&parser->parse_error, ast_parse_error, NULL);
 

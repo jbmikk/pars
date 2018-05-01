@@ -216,11 +216,6 @@ void fsm_thread_match__reduce_shift(){
 	fsm_thread_dispose(&thread);
 }
 
-void reduce_handler(void *target, const Token *t)
-{
-	token = *t;
-}
-
 void fsm_thread_match__reduce_handler(){
 	FsmBuilder builder;
 	Continuation cont;
@@ -255,7 +250,6 @@ void fsm_thread_match__reduce_handler(){
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
-	thread.handler.reduce = reduce_handler;
 
 	MATCH_SHIFT_AT(thread, '1', 0);
 	MATCH_REDUCE_AT(thread, '+', number, 1);

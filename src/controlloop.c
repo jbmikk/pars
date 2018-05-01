@@ -1,6 +1,6 @@
 #include "controlloop.h"
-
 #include "parsercontext.h"
+
 #include "dbg.h"
 
 int input_continuation_follow(const Continuation *cont, Input *input, Token *token)
@@ -52,7 +52,7 @@ int control_loop_linear(void *object, void *params)
 			cont = fsm_thread_match(&context->lexer_thread, &retry);
 
 			// TODO: check errors
-			fsm_thread_notify(&context->lexer_thread, &cont);
+			listener_notify(&context->lexer_transition, &cont);
 
 			// TODO: Add error details (lexer or parser?)
 			check(
@@ -102,7 +102,7 @@ int control_loop_ast(void *object, void *params)
 				context->output.status == OUTPUT_DEFAULT,
 				"Parser error at node %p - DOWN", node
 			);
-			fsm_thread_notify(&context->thread, &cont);
+			listener_notify(&context->parser_transition, &cont);
 		} else if(cursor.offset < 0) {
 			//TODO: wrap in PDA loop
 			cont = fsm_thread_match(&context->thread, &token_up);
@@ -110,7 +110,7 @@ int control_loop_ast(void *object, void *params)
 				context->output.status == OUTPUT_DEFAULT,
 				"Parser error at node %p - UP", node
 			);
-			fsm_thread_notify(&context->thread, &cont);
+			listener_notify(&context->parser_transition, &cont);
 		}
 
 		token_init(&token, index, 0, node->token.symbol);
@@ -123,7 +123,7 @@ int control_loop_ast(void *object, void *params)
 			"index: %i with symbol: %i, length: %i", node,
 			node->token.index, node->token.symbol, node->token.length
 		);
-		fsm_thread_notify(&context->thread, &cont);
+		listener_notify(&context->parser_transition, &cont);
 
 		// TODO: Should the index be part of the ast?
 		// We need the index for input back tracking. We should be 

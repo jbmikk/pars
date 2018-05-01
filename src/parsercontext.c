@@ -15,6 +15,10 @@ void parser_context_init(ParserContext *context, Parser *parser)
 	context->parse_start.object = context;
 	context->parse_loop = parser->parse_loop;
 	context->parse_loop.object = context;
+	context->lexer_transition = parser->lexer_transition;
+	context->lexer_transition.object = context;
+	context->parser_transition = parser->parser_transition;
+	context->parser_transition.object = context;
 	context->parse_end = parser->parse_end;
 	context->parse_end.object = context;
 	context->parse_error = parser->parse_error;

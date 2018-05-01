@@ -3,16 +3,22 @@
 #include "parsercontext.h"
 #include "astbuilder.h"
 
-int ast_setup_fsm(void *object, void *params)
+int ast_parser_transition(void *_context, void *_cont)
 {
-	ParserContext *context = (ParserContext *)object;
+	ParserContext *context = (ParserContext *)_context;
+	Continuation *cont = (Continuation *)_cont;
 
-	context->thread.handler.target = &context->ast_builder;
-	context->thread.handler.drop = ast_builder_drop;
-	context->thread.handler.shift = ast_builder_shift;
-	context->thread.handler.reduce = ast_builder_reduce;
-	context->thread.handler.accept = NULL;
-
+	switch(cont->action->type) {
+	case ACTION_DROP:
+		ast_builder_drop(&context->ast_builder, &cont->token);
+		break;
+	case ACTION_SHIFT:
+		ast_builder_shift(&context->ast_builder, &cont->token);
+		break;
+	case ACTION_REDUCE:
+		ast_builder_reduce(&context->ast_builder, &cont->token);
+		break;
+	}
 	return 0;
 }
 
