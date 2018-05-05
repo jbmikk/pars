@@ -21,22 +21,15 @@ static void _identity_init_lexer_fsm(Fsm *fsm)
 int user_lexer_transition(void *_context, void *_cont)
 {
 	ParserContext *context = (ParserContext *)_context;
-	Continuation *lcont = (Continuation *)_cont;
+	Continuation *cont = (Continuation *)_cont;
 
-	if(lcont->action->type != ACTION_ACCEPT) {
+	if(cont->action->type != ACTION_ACCEPT) {
 		return 0;
 	}
-	Token token = lcont->token;
-	Token retry = token;
-	Continuation cont;
+	Token token = cont->token;
 
-	int count = 0;
-	do {
-		cont = fsm_thread_match(&context->thread, &retry);
-		listener_notify(&context->parser_transition, &cont);
+	fsm_pda_loop(&context->thread, token, context->parser_transition);
 
-		// TODO: Temporary continuation, it should be in control loop
-	} while (!pda_continuation_follow(&cont, &token, &retry, &count));
 	return 0;
 }
 

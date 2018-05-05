@@ -46,24 +46,16 @@ int control_loop_linear(void *object, void *params)
 
 	while(!input_continuation_follow(&cont, context->input, &token)) {
 
-		Token retry = token;
-		int count = 0;
-		do {
-			cont = fsm_thread_match(&context->lexer_thread, &retry);
+		cont = fsm_pda_loop(&context->lexer_thread, token, context->lexer_transition);
 
-			// TODO: check errors
-			listener_notify(&context->lexer_transition, &cont);
+		// TODO: Add error details (lexer or parser?)
+		check(
+			context->output.status == OUTPUT_DEFAULT,
+			"Parser error at token "
+			"index: %i with symbol: %i, length: %i",
+			token.index, token.symbol, token.length
+		);
 
-			// TODO: Add error details (lexer or parser?)
-			check(
-				context->output.status == OUTPUT_DEFAULT,
-				"Parser error at token "
-				"index: %i with symbol: %i, length: %i",
-				token.index, token.symbol, token.length
-			);
-
-			// TODO: Temporary continuation, it should be in control loop
-		} while (!pda_continuation_follow(&cont, &token, &retry, &count));
 	}
 
 	return 0;

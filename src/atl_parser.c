@@ -169,29 +169,19 @@ void atl_build_lexer_fsm(Fsm *fsm)
 int atl_lexer_transition(void *_context, void *_cont)
 {
 	ParserContext *context = (ParserContext *)_context;
-	Continuation *lcont = (Continuation *)_cont;
+	Continuation *cont = (Continuation *)_cont;
 
-	if(lcont->action->type != ACTION_ACCEPT) {
+	if(cont->action->type != ACTION_ACCEPT) {
 		return 0;
 	}
-	Token token = lcont->token;
+	Token token = cont->token;
 
 	Symbol *comment = symbol_table_get(&context->parser->table, "comment", 7);
 	Symbol *white_space = symbol_table_get(&context->parser->table, "white_space", 11);
 
-	Continuation cont;
-
 	//Filter white space and tokens
-	int count = 0;
-
 	if(token.symbol != comment->id && token.symbol != white_space->id) {
-		Token retry = token;
-		do {
-			cont = fsm_thread_match(&context->thread, &retry);
-			listener_notify(&context->parser_transition, &cont);
-
-			// TODO: Temporary continuation, it should be in control loop
-		} while (!pda_continuation_follow(&cont, &token, &retry, &count));
+		fsm_pda_loop(&context->thread, token, context->parser_transition);
 	}
 	// TODO: return error codes?
 	return 0;

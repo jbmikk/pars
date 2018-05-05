@@ -159,8 +159,8 @@ Continuation fsm_thread_match(FsmThread *thread, const Token *token)
 	return cont;
 }
 
-// TODO: This code belongs elsewhere
-int pda_continuation_follow(const Continuation *cont, const Token *in, Token *out, int *count)
+// TODO: Does this code belongs elsewhere?
+static int _continuation_follow(const Continuation *cont, const Token *in, Token *out, int *count)
 {
 	switch(cont->action->type) {
 	case ACTION_SHIFT:
@@ -193,3 +193,17 @@ int pda_continuation_follow(const Continuation *cont, const Token *in, Token *ou
 	return 0;
 }
 
+Continuation fsm_pda_loop(FsmThread *thread, const Token token, Listener listener)
+{
+	int count = 0;
+
+	Token retry = token;
+	Continuation cont;
+	do {
+		cont = fsm_thread_match(thread, &retry);
+		listener_notify(&listener, &cont);
+
+		// TODO: Temporary continuation, it should be in control loop
+	} while (!_continuation_follow(&cont, &token, &retry, &count));
+	return cont;
+}

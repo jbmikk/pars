@@ -5,6 +5,7 @@
 #include "output.h"
 #include "token.h"
 #include "stack.h"
+#include "listener.h"
 
 DEFINE_STACK(State *, State, state);
 
@@ -34,6 +35,6 @@ void fsm_thread_dispose(FsmThread *thread);
 
 int fsm_thread_start(FsmThread *thread);
 Continuation fsm_thread_match(FsmThread *thread, const Token *token);
-int pda_continuation_follow(const Continuation *cont, const Token *in, Token *out, int *count);
+Continuation fsm_pda_loop(FsmThread *thread, const Token token, Listener listener);
 
 #endif //FSM_THREAD_H
