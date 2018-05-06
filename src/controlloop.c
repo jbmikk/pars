@@ -83,39 +83,34 @@ int control_loop_ast(void *object, void *params)
 	ast_cursor_init(&cursor, context->input_ast);
 
 	AstNode *node = ast_cursor_depth_next(&cursor);
-	Continuation cont;
 
 	while(node) {
 
 		if(cursor.offset == 1) {
-			//TODO: wrap in PDA loop
-			cont = fsm_thread_match(&context->thread, &token_down);
+			fsm_pda_loop(&context->thread, token_down, context->parser_transition);
 			check(
 				context->output.status == OUTPUT_DEFAULT,
 				"Parser error at node %p - DOWN", node
 			);
-			listener_notify(&context->parser_transition, &cont);
 		} else if(cursor.offset < 0) {
-			//TODO: wrap in PDA loop
-			cont = fsm_thread_match(&context->thread, &token_up);
+			fsm_pda_loop(&context->thread, token_up, context->parser_transition);
 			check(
 				context->output.status == OUTPUT_DEFAULT,
 				"Parser error at node %p - UP", node
 			);
-			listener_notify(&context->parser_transition, &cont);
 		}
 
 		token_init(&token, index, 0, node->token.symbol);
 
-		//TODO: wrap in PDA loop
-		cont = fsm_thread_match(&context->thread, &token);
+		// TODO: no need for a full pda loop for now, a simple fsm
+		// should do.
+		fsm_pda_loop(&context->thread, token, context->parser_transition);
 		check(
 			context->output.status == OUTPUT_DEFAULT,
 			"Parser error at node %p - "
 			"index: %i with symbol: %i, length: %i", node,
 			node->token.index, node->token.symbol, node->token.length
 		);
-		listener_notify(&context->parser_transition, &cont);
 
 		// TODO: Should the index be part of the ast?
 		// We need the index for input back tracking. We should be 
