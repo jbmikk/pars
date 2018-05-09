@@ -166,15 +166,15 @@ void atl_build_lexer_fsm(Fsm *fsm)
 	fsm_builder_lexer_done(&builder, L_EOF);
 }
 
-int atl_lexer_transition(void *_context, void *_cont)
+int atl_lexer_transition(void *_context, void *_tran)
 {
 	ParserContext *context = (ParserContext *)_context;
-	Continuation *cont = (Continuation *)_cont;
+	Transition *tran = (Transition *)_tran;
 
-	if(cont->action->type != ACTION_ACCEPT) {
+	if(tran->action->type != ACTION_ACCEPT) {
 		return 0;
 	}
-	Token token = cont->token;
+	Token token = tran->token;
 
 	Symbol *comment = symbol_table_get(&context->parser->table, "comment", 7);
 	Symbol *white_space = symbol_table_get(&context->parser->table, "white_space", 11);

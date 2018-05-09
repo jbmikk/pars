@@ -6,17 +6,17 @@
 int ast_parser_transition(void *_context, void *_cont)
 {
 	ParserContext *context = (ParserContext *)_context;
-	Continuation *cont = (Continuation *)_cont;
+	Transition *tran = (Transition *)_cont;
 
-	switch(cont->action->type) {
+	switch(tran->action->type) {
 	case ACTION_DROP:
-		ast_builder_drop(&context->ast_builder, &cont->token);
+		ast_builder_drop(&context->ast_builder, &tran->token);
 		break;
 	case ACTION_SHIFT:
-		ast_builder_shift(&context->ast_builder, &cont->token);
+		ast_builder_shift(&context->ast_builder, &tran->token);
 		break;
 	case ACTION_REDUCE:
-		ast_builder_reduce(&context->ast_builder, &cont->token);
+		ast_builder_reduce(&context->ast_builder, &tran->token);
 		break;
 	}
 	return 0;

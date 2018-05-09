@@ -77,10 +77,10 @@ int fsm_thread_start(FsmThread *thread)
 	return 0;
 }
 
-Continuation fsm_thread_match(FsmThread *thread, const Token *token)
+Transition fsm_thread_match(FsmThread *thread, const Token *token)
 {
 	Action *action;
-	Continuation cont;
+	Transition tran;
 
 	action = state_get_transition(thread->current, token->symbol);
 
@@ -99,7 +99,7 @@ Continuation fsm_thread_match(FsmThread *thread, const Token *token)
 		}
 	}
 
-	cont.action = action;
+	tran.action = action;
 
 	switch(action->type) {
 	case ACTION_SHIFT:
@@ -111,7 +111,7 @@ Continuation fsm_thread_match(FsmThread *thread, const Token *token)
 			token->index
 		});
 		thread->current = action->state;
-		cont.token = shifted;
+		tran.token = shifted;
 		break;
 	case ACTION_ACCEPT:
 		trace("match", thread->current, action, token, "accept", 0);
@@ -123,14 +123,14 @@ Continuation fsm_thread_match(FsmThread *thread, const Token *token)
 			_mode_pop(thread);
 		}
 		_mode_reset(thread);
-		cont.token = accepted;
+		tran.token = accepted;
 		break;
 	case ACTION_DROP:
 		trace("match", thread->current, action, token, "drop", 0);
 		Token dropped = *token;
 
 		thread->current = action->state;
-		cont.token = dropped;
+		tran.token = dropped;
 		//if(action->flags & ACTION_FLAG_THREAD_SPAWN)
 			//_thread_spawn(thread);
 		break;
@@ -144,25 +144,25 @@ Continuation fsm_thread_match(FsmThread *thread, const Token *token)
 			token->index - popped.index,
 			action->reduction
 		};
-		cont.token = reduction;
+		tran.token = reduction;
 		break;
 	case ACTION_EMPTY:
 		trace("match", thread->current, action, token, "empty", 0);
 		thread->current = action->state;
-		cont.token = *(token);
+		tran.token = *(token);
 		break;
 	case ACTION_ERROR:
 		output_raise(thread->output, OUTPUT_FSM_ERROR);
 	default:
 		break;
 	}
-	return cont;
+	return tran;
 }
 
 // TODO: Does this code belongs elsewhere?
-static int _continuation_follow(const Continuation *cont, const Token *in, Token *out, int *count)
+static int _transition_follow(const Transition *tran, const Token *in, Token *out, int *count)
 {
-	switch(cont->action->type) {
+	switch(tran->action->type) {
 	case ACTION_SHIFT:
 	case ACTION_ACCEPT:
 	case ACTION_DROP:
@@ -179,10 +179,10 @@ static int _continuation_follow(const Continuation *cont, const Token *in, Token
 		break;
 	case ACTION_REDUCE:
 		(*count)++;
-		*out = cont->token;
+		*out = tran->token;
 		break;
 	case ACTION_EMPTY:
-		*out = cont->token;
+		*out = tran->token;
 		break;
 	case ACTION_ERROR:
 		return -1;
@@ -193,17 +193,17 @@ static int _continuation_follow(const Continuation *cont, const Token *in, Token
 	return 0;
 }
 
-Continuation fsm_pda_loop(FsmThread *thread, const Token token, Listener listener)
+Transition fsm_pda_loop(FsmThread *thread, const Token token, Listener listener)
 {
 	int count = 0;
 
 	Token retry = token;
-	Continuation cont;
+	Transition tran;
 	do {
-		cont = fsm_thread_match(thread, &retry);
-		listener_notify(&listener, &cont);
+		tran = fsm_thread_match(thread, &retry);
+		listener_notify(&listener, &tran);
 
-		// TODO: Temporary continuation, it should be in control loop
-	} while (!_continuation_follow(&cont, &token, &retry, &count));
-	return cont;
+		// TODO: Temporary transition, it should be in control loop
+	} while (!_transition_follow(&tran, &token, &retry, &count));
+	return tran;
 }

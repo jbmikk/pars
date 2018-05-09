@@ -144,15 +144,15 @@ static void _build_siblings_with_children(Fsm *fsm)
 	fsm_builder_dispose(&builder);
 }
 
-int test_lexer_transition(void *_context, void *_cont)
+int test_lexer_transition(void *_context, void *_tran)
 {
 	ParserContext *context = (ParserContext *)_context;
-	Continuation *lcont = (Continuation *)_cont;
+	Transition *tran = (Transition *)_tran;
 
-	if(lcont->action->type != ACTION_ACCEPT) {
+	if(tran->action->type != ACTION_ACCEPT) {
 		return 0;
 	}
-	fsm_thread_match(&context->thread, &lcont->token);
+	fsm_thread_match(&context->thread, &tran->token);
 	return 0;
 }
 

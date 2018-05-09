@@ -3,13 +3,13 @@
 
 #include "dbg.h"
 
-int input_continuation_follow(const Continuation *cont, Input *input, Token *token)
+int input_continuation_follow(const Transition *tran, Input *input, Token *token)
 {
 	int ret = 0;
 
-	switch(cont->action->type) {
+	switch(tran->action->type) {
 	case ACTION_START:
-		input_next_token(input, &cont->token, token);
+		input_next_token(input, &tran->token, token);
 		break;
 	case ACTION_ACCEPT:
 	case ACTION_SHIFT:
@@ -18,7 +18,7 @@ int input_continuation_follow(const Continuation *cont, Input *input, Token *tok
 			ret = -3;
 			break;
 		}
-		input_next_token(input, &cont->token, token);
+		input_next_token(input, &tran->token, token);
 		break;
 	case ACTION_ERROR:
 		ret = -1;
@@ -34,19 +34,19 @@ int control_loop_linear(void *object, void *params)
 {
 	ParserContext *context = (ParserContext *)object;
 	Token token;
-	Continuation cont;
+	Transition tran;
 
 	// Dummy action for initial continuation
 	Action dummy;
 	action_init(&dummy, ACTION_START, 0, NULL, 0, 0);
 
 	token_init(&token, 0, 0, 0);
-	token_init(&cont.token, 0, 0, 0);
-	cont.action = &dummy;
+	token_init(&tran.token, 0, 0, 0);
+	tran.action = &dummy;
 
-	while(!input_continuation_follow(&cont, context->input, &token)) {
+	while(!input_continuation_follow(&tran, context->input, &token)) {
 
-		cont = fsm_pda_loop(&context->lexer_thread, token, context->lexer_transition);
+		tran = fsm_pda_loop(&context->lexer_thread, token, context->lexer_transition);
 
 		// TODO: Add error details (lexer or parser?)
 		check(

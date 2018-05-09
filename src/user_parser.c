@@ -18,15 +18,15 @@ static void _identity_init_lexer_fsm(Fsm *fsm)
 	fsm_builder_dispose(&builder);
 }
 
-int user_lexer_transition(void *_context, void *_cont)
+int user_lexer_transition(void *_context, void *_tran)
 {
 	ParserContext *context = (ParserContext *)_context;
-	Continuation *cont = (Continuation *)_cont;
+	Transition *tran = (Transition *)_tran;
 
-	if(cont->action->type != ACTION_ACCEPT) {
+	if(tran->action->type != ACTION_ACCEPT) {
 		return 0;
 	}
-	Token token = cont->token;
+	Token token = tran->token;
 
 	fsm_pda_loop(&context->thread, token, context->parser_transition);
 

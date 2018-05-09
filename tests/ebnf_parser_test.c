@@ -9,21 +9,21 @@
 
 
 #define MATCH_DROP(S, Y) \
-	cont = fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)}); \
-	t_assert(cont.action->type == ACTION_DROP);
+	tran = fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)}); \
+	t_assert(tran.action->type == ACTION_DROP);
 
 #define MATCH_SHIFT(S, Y) \
-	cont = fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)}); \
-	t_assert(cont.action->type == ACTION_SHIFT);
+	tran = fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)}); \
+	t_assert(tran.action->type == ACTION_SHIFT);
 
 #define MATCH_REDUCE(S, Y, R) \
-	cont = fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)}); \
-	t_assert(cont.action->type == ACTION_REDUCE); \
-	t_assert(cont.action->reduction == R);
+	tran = fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)}); \
+	t_assert(tran.action->type == ACTION_REDUCE); \
+	t_assert(tran.action->reduction == R);
 
 #define MATCH_ACCEPT(S, Y) \
-	cont = fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)}); \
-	t_assert(cont.action->type == ACTION_ACCEPT);
+	tran = fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)}); \
+	t_assert(tran.action->type == ACTION_ACCEPT);
 
 
 #define nzs(S) (S), (strlen(S))
@@ -127,7 +127,7 @@ void t_teardown(){
 
 void ebnf_start_parsing__identifier(){
 
-	Continuation cont;
+	Transition tran;
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
@@ -143,7 +143,7 @@ void ebnf_start_parsing__identifier(){
 
 void ebnf_start_parsing__terminal(){
 
-	Continuation cont;
+	Transition tran;
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
@@ -159,7 +159,7 @@ void ebnf_start_parsing__terminal(){
 
 void ebnf_start_parsing__concatenate(){
 
-	Continuation cont;
+	Transition tran;
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
@@ -188,7 +188,7 @@ void ebnf_start_parsing__concatenate(){
 
 void ebnf_start_parsing__separator(){
 
-	Continuation cont;
+	Transition tran;
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
@@ -221,7 +221,7 @@ void ebnf_start_parsing__separator(){
 
 void ebnf_start_parsing__syntactic_term(){
 
-	Continuation cont;
+	Transition tran;
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
@@ -248,7 +248,7 @@ void ebnf_start_parsing__syntactic_term(){
 
 void ebnf_start_parsing__syntax_rule(){
 
-	Continuation cont;
+	Transition tran;
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
@@ -288,7 +288,7 @@ void ebnf_start_parsing__syntax_rule(){
 
 void ebnf_start_parsing__group(){
 
-	Continuation cont;
+	Transition tran;
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);
@@ -314,7 +314,7 @@ void ebnf_start_parsing__group(){
 
 void ebnf_start_parsing__syntax(){
 
-	Continuation cont;
+	Transition tran;
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, &fix.output);
 	fsm_thread_start(&thread);

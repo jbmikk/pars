@@ -7,21 +7,21 @@
 #include "test.h"
 
 #define MATCH_DROP(T, I, L, S) \
-	cont = fsm_thread_match(&(T), &(struct Token){(I), (L), (S)}); \
-	t_assert(cont.action->type == ACTION_DROP);
+	tran = fsm_thread_match(&(T), &(struct Token){(I), (L), (S)}); \
+	t_assert(tran.action->type == ACTION_DROP);
 
 #define MATCH_SHIFT(T, I, L, S) \
-	cont = fsm_thread_match(&(T), &(struct Token){(I), (L), (S)}); \
-	t_assert(cont.action->type == ACTION_SHIFT);
+	tran = fsm_thread_match(&(T), &(struct Token){(I), (L), (S)}); \
+	t_assert(tran.action->type == ACTION_SHIFT);
 
 #define MATCH_REDUCE(T, I, L, S, R) \
-	cont = fsm_thread_match(&(T), &(struct Token){(I), (L), (S)}); \
-	t_assert(cont.action->type == ACTION_REDUCE); \
-	t_assert(cont.action->reduction == R);
+	tran = fsm_thread_match(&(T), &(struct Token){(I), (L), (S)}); \
+	t_assert(tran.action->type == ACTION_REDUCE); \
+	t_assert(tran.action->reduction == R);
 
 #define MATCH_ACCEPT(T, I, L, S) \
-	cont = fsm_thread_match(&(T), &(struct Token){(I), (L), (S)}); \
-	t_assert(cont.action->type == ACTION_ACCEPT);
+	tran = fsm_thread_match(&(T), &(struct Token){(I), (L), (S)}); \
+	t_assert(tran.action->type == ACTION_ACCEPT);
 
 #define nzs(S) (S), (strlen(S))
 
@@ -76,7 +76,7 @@ void t_teardown(){
 }
 
 void lexer_input_next__integer_token(){
-	Continuation cont;
+	Transition tran;
 	int INTEGER = fsm_get_symbol_id(&fix.fsm, nzs("integer"));
 
 	MATCH_SHIFT(fix.thread, 0, 1, '1');
@@ -88,7 +88,7 @@ void lexer_input_next__integer_token(){
 }
 
 void lexer_input_next__identifier_token(){
-	Continuation cont;
+	Transition tran;
 	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
 
 	MATCH_SHIFT(fix.thread, 0, 1, 'a');
@@ -108,7 +108,7 @@ void lexer_input_next__identifier_token(){
 }
 
 void lexer_input_next__terminal_string_token(){
-	Continuation cont;
+	Transition tran;
 	int TERMINAL_STRING = fsm_get_symbol_id(&fix.fsm, nzs("terminal_string"));
 
 	MATCH_SHIFT(fix.thread, 0, 1, '"');
@@ -124,7 +124,7 @@ void lexer_input_next__terminal_string_token(){
 }
 
 void lexer_input_next__skip_white_space(){
-	Continuation cont;
+	Transition tran;
 	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
 	int DEFINING_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("defining_symbol"));
 	int WHITE_SPACE = fsm_get_symbol_id(&fix.fsm, nzs("white_space"));
@@ -145,7 +145,7 @@ void lexer_input_next__skip_white_space(){
 }
 
 void lexer_input_next__whole_rule(){
-	Continuation cont;
+	Transition tran;
 	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
 	int DEFINING_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("defining_symbol"));
 	int TERMINAL_STRING = fsm_get_symbol_id(&fix.fsm, nzs("terminal_string"));
@@ -202,7 +202,7 @@ void lexer_input_next__whole_rule(){
 }
 
 void lexer_input_next__white_token(){
-	Continuation cont;
+	Transition tran;
 	int WHITE_SPACE = fsm_get_symbol_id(&fix.fsm, nzs("white_space"));
 	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
 

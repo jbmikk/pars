@@ -24,17 +24,17 @@ typedef struct _FsmThread {
 	Output *output;
 } FsmThread;
 
-typedef struct Continuation {
+typedef struct Transition {
 	Action *action;
 	Token token;
-} Continuation;
+} Transition;
 
 
 void fsm_thread_init(FsmThread *thread, Fsm *fsm, Output *output);
 void fsm_thread_dispose(FsmThread *thread);
 
 int fsm_thread_start(FsmThread *thread);
-Continuation fsm_thread_match(FsmThread *thread, const Token *token);
-Continuation fsm_pda_loop(FsmThread *thread, const Token token, Listener listener);
+Transition fsm_thread_match(FsmThread *thread, const Token *token);
+Transition fsm_pda_loop(FsmThread *thread, const Token token, Listener listener);
 
 #endif //FSM_THREAD_H

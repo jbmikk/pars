@@ -12,25 +12,25 @@
 
 
 #define MATCH_DROP_AT(S, Y, I) \
-	cont = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
-	t_assert(cont.action->type == ACTION_DROP);
+	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	t_assert(tran.action->type == ACTION_DROP);
 
 #define MATCH_SHIFT_AT(S, Y, I) \
-	cont = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
-	t_assert(cont.action->type == ACTION_SHIFT);
+	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	t_assert(tran.action->type == ACTION_SHIFT);
 
 #define MATCH_REDUCE_AT(S, Y, R, I) \
-	cont = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
-	t_assert(cont.action->type == ACTION_REDUCE); \
-	t_assert(cont.action->reduction == R);
+	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	t_assert(tran.action->type == ACTION_REDUCE); \
+	t_assert(tran.action->reduction == R);
 
 #define MATCH_ACCEPT_AT(S, Y, I) \
-	cont = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
-	t_assert(cont.action->type == ACTION_ACCEPT);
+	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	t_assert(tran.action->type == ACTION_ACCEPT);
 
 #define MATCH_EMPTY_AT(S, Y, I) \
-	cont = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
-	t_assert(cont.action->type == ACTION_EMPTY);
+	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	t_assert(tran.action->type == ACTION_EMPTY);
 
 #define MATCH_DROP(S, Y) MATCH_DROP_AT(S, Y, 0)
 #define MATCH_SHIFT(S, Y) MATCH_SHIFT_AT(S, Y, 0)
@@ -92,7 +92,7 @@ void fsm_builder_define__two_gets(){
 
 void fsm_thread_match__shift(){
 	FsmBuilder builder;
-	Continuation cont;
+	Transition tran;
 
 	fsm_builder_init(&builder, &fix.fsm);
 
@@ -117,7 +117,7 @@ void fsm_thread_match__shift(){
 
 void fsm_thread_match__shift_range(){
 	FsmBuilder builder;
-	Continuation cont;
+	Transition tran;
 
 	fsm_builder_init(&builder, &fix.fsm);
 
@@ -151,7 +151,7 @@ void fsm_thread_match__shift_range(){
 
 void fsm_thread_match__reduce(){
 	FsmBuilder builder;
-	Continuation cont;
+	Transition tran;
 
 	fsm_builder_init(&builder, &fix.fsm);
 
@@ -179,7 +179,7 @@ void fsm_thread_match__reduce(){
 
 void fsm_thread_match__reduce_shift(){
 	FsmBuilder builder;
-	Continuation cont;
+	Transition tran;
 
 	fsm_builder_init(&builder, &fix.fsm);
 
@@ -218,7 +218,7 @@ void fsm_thread_match__reduce_shift(){
 
 void fsm_thread_match__reduce_handler(){
 	FsmBuilder builder;
-	Continuation cont;
+	Transition tran;
 
 	fsm_builder_init(&builder, &fix.fsm);
 
@@ -271,7 +271,7 @@ void fsm_thread_match__reduce_handler(){
 
 void fsm_thread_match__first_set_collision(){
 	FsmBuilder builder;
-	Continuation cont;
+	Transition tran;
 
 	fsm_builder_init(&builder, &fix.fsm);
 
@@ -321,7 +321,7 @@ void fsm_thread_match__first_set_collision(){
 
 void fsm_thread_match__repetition(){
 	FsmBuilder builder;
-	Continuation cont;
+	Transition tran;
 
 	fsm_builder_init(&builder, &fix.fsm);
 
