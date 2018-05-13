@@ -179,12 +179,12 @@ int atl_lexer_transition(void *_context, void *_tran)
 	Symbol *comment = symbol_table_get(&context->parser->table, "comment", 7);
 	Symbol *white_space = symbol_table_get(&context->parser->table, "white_space", 11);
 
+	Continuation cont = { .error = 0 };
 	//Filter white space and tokens
 	if(token.symbol != comment->id && token.symbol != white_space->id) {
-		fsm_pda_loop(&context->thread, token, context->parser_transition);
+		cont = fsm_pda_loop(&context->thread, token, context->parser_transition);
 	}
-	// TODO: return error codes?
-	return 0;
+	return cont.error;
 }
 
 int atl_build_parser(Parser *parser)

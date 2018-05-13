@@ -28,9 +28,10 @@ int user_lexer_transition(void *_context, void *_tran)
 	}
 	Token token = tran->token;
 
-	fsm_pda_loop(&context->thread, token, context->parser_transition);
+	Continuation cont = { .error = 0 };
+	cont = fsm_pda_loop(&context->thread, token, context->parser_transition);
 
-	return 0;
+	return cont.error;
 }
 
 int user_build_parser(Parser *parser)

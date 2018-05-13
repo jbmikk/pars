@@ -3,13 +3,14 @@
 
 #include "dbg.h"
 
-int input_continuation_follow(const Transition *tran, Input *input, Token *token)
+int input_continuation_follow(const Continuation *cont, Input *input, Token *token)
 {
-	int ret = 0;
+	int ret;
 
-	switch(tran->action->type) {
+	switch(cont->transition.action->type) {
 	case ACTION_START:
-		input_next_token(input, &tran->token, token);
+		input_next_token(input, &cont->transition.token, token);
+		ret = 0;
 		break;
 	case ACTION_ACCEPT:
 	case ACTION_SHIFT:
@@ -18,7 +19,8 @@ int input_continuation_follow(const Transition *tran, Input *input, Token *token
 			ret = -3;
 			break;
 		}
-		input_next_token(input, &tran->token, token);
+		input_next_token(input, &cont->transition.token, token);
+		ret = 0;
 		break;
 	case ACTION_ERROR:
 		ret = -1;
@@ -34,29 +36,28 @@ int control_loop_linear(void *object, void *params)
 {
 	ParserContext *context = (ParserContext *)object;
 	Token token;
-	Transition tran;
+	// TODO initialize transition
+	Continuation cont = { .error = 0 };
 
 	// Dummy action for initial continuation
 	Action dummy;
 	action_init(&dummy, ACTION_START, 0, NULL, 0, 0);
 
 	token_init(&token, 0, 0, 0);
-	token_init(&tran.token, 0, 0, 0);
-	tran.action = &dummy;
+	token_init(&cont.transition.token, 0, 0, 0);
+	cont.transition.action = &dummy;
 
-	while(!input_continuation_follow(&tran, context->input, &token)) {
-
-		tran = fsm_pda_loop(&context->lexer_thread, token, context->lexer_transition);
-
-		// TODO: Add error details (lexer or parser?)
-		check(
-			context->output.status == OUTPUT_DEFAULT,
-			"Parser error at token "
-			"index: %i with symbol: %i, length: %i",
-			token.index, token.symbol, token.length
-		);
-
+	while(!input_continuation_follow(&cont, context->input, &token)) {
+		cont = fsm_pda_loop(&context->lexer_thread, token, context->lexer_transition);
 	}
+
+	// TODO: Add error details (lexer or parser?)
+	check(
+		!cont.error,
+		"Parser error at token "
+		"index: %i with symbol: %i, length: %i",
+		token.index, token.symbol, token.length
+	);
 
 	return 0;
 error:
@@ -83,19 +84,20 @@ int control_loop_ast(void *object, void *params)
 	ast_cursor_init(&cursor, context->input_ast);
 
 	AstNode *node = ast_cursor_depth_next(&cursor);
+	Continuation cont;
 
 	while(node) {
 
 		if(cursor.offset == 1) {
-			fsm_pda_loop(&context->thread, token_down, context->parser_transition);
+			cont = fsm_pda_loop(&context->thread, token_down, context->parser_transition);
 			check(
-				context->output.status == OUTPUT_DEFAULT,
+				!cont.error,
 				"Parser error at node %p - DOWN", node
 			);
 		} else if(cursor.offset < 0) {
-			fsm_pda_loop(&context->thread, token_up, context->parser_transition);
+			cont = fsm_pda_loop(&context->thread, token_up, context->parser_transition);
 			check(
-				context->output.status == OUTPUT_DEFAULT,
+				!cont.error,
 				"Parser error at node %p - UP", node
 			);
 		}
@@ -104,9 +106,9 @@ int control_loop_ast(void *object, void *params)
 
 		// TODO: no need for a full pda loop for now, a simple fsm
 		// should do.
-		fsm_pda_loop(&context->thread, token, context->parser_transition);
+		cont = fsm_pda_loop(&context->thread, token, context->parser_transition);
 		check(
-			context->output.status == OUTPUT_DEFAULT,
+			!cont.error,
 			"Parser error at node %p - "
 			"index: %i with symbol: %i, length: %i", node,
 			node->token.index, node->token.symbol, node->token.length

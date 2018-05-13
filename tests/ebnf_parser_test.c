@@ -4,7 +4,6 @@
 #include "fsm.h"
 #include "ebnf_parser.h"
 #include "fsmthread.h"
-#include "output.h"
 #include "test.h"
 
 
@@ -30,7 +29,6 @@
 
 typedef struct {
 	SymbolTable table;
-	Output output;
 	Fsm fsm;
 	Fsm lexer_fsm;
 
@@ -81,7 +79,6 @@ void t_setup(){
 	diff = 0;
 	count = 0;
 	symbol_table_init(&fix.table);
-	output_init(&fix.output);
 
 	fsm_init(&fix.lexer_fsm, &fix.table);
 	ebnf_build_lexer_fsm(&fix.lexer_fsm);
@@ -121,7 +118,6 @@ void t_setup(){
 void t_teardown(){
 	fsm_dispose(&fix.fsm);
 	fsm_dispose(&fix.lexer_fsm);
-	output_dispose(&fix.output);
 	symbol_table_dispose(&fix.table);
 }
 
@@ -129,7 +125,7 @@ void ebnf_start_parsing__identifier(){
 
 	Transition tran;
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm, &fix.output);
+	fsm_thread_init(&thread, &fix.fsm);
 	fsm_thread_start(&thread);
 	thread.current = fsm_get_state(&fix.fsm, nzs("syntactic_primary"));
 
@@ -145,7 +141,7 @@ void ebnf_start_parsing__terminal(){
 
 	Transition tran;
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm, &fix.output);
+	fsm_thread_init(&thread, &fix.fsm);
 	fsm_thread_start(&thread);
 	thread.current = fsm_get_state(&fix.fsm, nzs("syntactic_primary"));
 
@@ -161,7 +157,7 @@ void ebnf_start_parsing__concatenate(){
 
 	Transition tran;
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm, &fix.output);
+	fsm_thread_init(&thread, &fix.fsm);
 	fsm_thread_start(&thread);
 	thread.current = fsm_get_state(&fix.fsm, nzs("single_definition"));
 
@@ -190,7 +186,7 @@ void ebnf_start_parsing__separator(){
 
 	Transition tran;
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm, &fix.output);
+	fsm_thread_init(&thread, &fix.fsm);
 	fsm_thread_start(&thread);
 	thread.current = fsm_get_state(&fix.fsm, nzs("definitions_list"));
 
@@ -223,7 +219,7 @@ void ebnf_start_parsing__syntactic_term(){
 
 	Transition tran;
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm, &fix.output);
+	fsm_thread_init(&thread, &fix.fsm);
 	fsm_thread_start(&thread);
 	thread.current = fsm_get_state(&fix.fsm, nzs("syntactic_term"));
 
@@ -250,7 +246,7 @@ void ebnf_start_parsing__syntax_rule(){
 
 	Transition tran;
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm, &fix.output);
+	fsm_thread_init(&thread, &fix.fsm);
 	fsm_thread_start(&thread);
 	thread.current = fsm_get_state(&fix.fsm, nzs("syntax_rule"));
 
@@ -290,7 +286,7 @@ void ebnf_start_parsing__group(){
 
 	Transition tran;
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm, &fix.output);
+	fsm_thread_init(&thread, &fix.fsm);
 	fsm_thread_start(&thread);
 	thread.current = fsm_get_state(&fix.fsm, nzs("syntactic_primary"));
 	MATCH_DROP(thread, fix.START_GROUP_SYMBOL);
@@ -316,7 +312,7 @@ void ebnf_start_parsing__syntax(){
 
 	Transition tran;
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm, &fix.output);
+	fsm_thread_init(&thread, &fix.fsm);
 	fsm_thread_start(&thread);
 	MATCH_SHIFT(thread, fix.META_IDENTIFIER);
 	MATCH_DROP(thread, fix.DEFINING_SYMBOL);

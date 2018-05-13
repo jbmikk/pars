@@ -54,12 +54,11 @@ static FsmThreadNode _state_pop(FsmThread *thread)
 }
 
 
-void fsm_thread_init(FsmThread *thread, Fsm *fsm, Output *output)
+void fsm_thread_init(FsmThread *thread, Fsm *fsm)
 {
 	thread->fsm = fsm;
 	stack_fsmthreadnode_init(&thread->stack);
 	stack_state_init(&thread->mode_stack);
-	thread->output = output;
 }
 
 void fsm_thread_dispose(FsmThread *thread)
@@ -151,8 +150,6 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 		thread->current = action->state;
 		tran.token = *(token);
 		break;
-	case ACTION_ERROR:
-		output_raise(thread->output, OUTPUT_FSM_ERROR);
 	default:
 		break;
 	}
@@ -160,50 +157,57 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 }
 
 // TODO: Does this code belongs elsewhere?
-static int _transition_follow(const Transition *tran, const Token *in, Token *out, int *count)
+static int _continuation_follow(const Continuation *cont, const Token *in, Token *out, int *count)
 {
-	switch(tran->action->type) {
+	// TODO: Add constants for errors / control codes
+	int ret;
+
+	switch(cont->transition.action->type) {
 	case ACTION_SHIFT:
 	case ACTION_ACCEPT:
 	case ACTION_DROP:
 		if(*count == 0) {
 			// In token was matched, end loop
-			return 1;
+			ret = 1;
 		} else {
 			// In token generated a reduction the last time
 			// Try matching it again.
 			(*count)--;
 			*out = *in;
-			return 0;
+			ret = cont->error;
 		}
 		break;
 	case ACTION_REDUCE:
 		(*count)++;
-		*out = tran->token;
+		*out = cont->transition.token;
+		ret = cont->error;
 		break;
 	case ACTION_EMPTY:
-		*out = tran->token;
+		*out = cont->transition.token;
+		ret = cont->error;
 		break;
 	case ACTION_ERROR:
-		return -1;
+		ret = -1;
+		break;
 	default:
-		return -2;
+		ret = -2;
 		break;
 	}
-	return 0;
+	return ret;
 }
 
-Transition fsm_pda_loop(FsmThread *thread, const Token token, Listener listener)
+Continuation fsm_pda_loop(FsmThread *thread, const Token token, Listener listener)
 {
 	int count = 0;
 
 	Token retry = token;
-	Transition tran;
+	Continuation cont;
 	do {
-		tran = fsm_thread_match(thread, &retry);
-		listener_notify(&listener, &tran);
+		cont.transition = fsm_thread_match(thread, &retry);
+		int error = listener_notify(&listener, &cont.transition);
+		cont.error = error || cont.transition.action->type == ACTION_ERROR;
 
 		// TODO: Temporary transition, it should be in control loop
-	} while (!_transition_follow(&tran, &token, &retry, &count));
-	return tran;
+	} while (!_continuation_follow(&cont, &token, &retry, &count));
+	return cont;
 }
