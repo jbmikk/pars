@@ -7,6 +7,10 @@ int input_continuation_follow(const Continuation *cont, Input *input, Token *tok
 {
 	int ret;
 
+	if(cont->error) {
+		ret = cont->error;
+		goto end;
+	}
 	switch(cont->transition.action->type) {
 	case ACTION_START:
 		input_next_token(input, &cont->transition.token, token);
@@ -29,6 +33,8 @@ int input_continuation_follow(const Continuation *cont, Input *input, Token *tok
 		ret = -2;
 		break;
 	}
+
+end:
 	return ret;
 }
 
