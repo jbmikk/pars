@@ -36,9 +36,9 @@ static void _mode_pop(FsmThread *thread)
 	stack_state_pop(&thread->mode_stack);
 }
 
-static void _mode_reset(FsmThread *thread)
+State *_mode_start(FsmThread *thread)
 {
-	thread->current = stack_state_top(&thread->mode_stack);
+	return stack_state_top(&thread->mode_stack);
 }
 
 static void _state_push(FsmThread *thread, FsmThreadNode tnode)
@@ -70,8 +70,8 @@ void fsm_thread_dispose(FsmThread *thread)
 int fsm_thread_start(FsmThread *thread)
 {
 	_mode_push(thread, fsm_get_symbol_id(thread->fsm, nzs(".default")));
-	_mode_reset(thread);
-	_state_push(thread, (FsmThreadNode){ thread->current, 0 });
+	thread->transition.state = _mode_start(thread);
+	_state_push(thread, (FsmThreadNode){ thread->transition.state, 0 });
 	//TODO: Check errors?
 	return 0;
 }
@@ -79,81 +79,81 @@ int fsm_thread_start(FsmThread *thread)
 Transition fsm_thread_match(FsmThread *thread, const Token *token)
 {
 	Action *action;
-	Transition tran;
+	Transition prev = thread->transition;
+	Transition next;
 
-	action = state_get_transition(thread->current, token->symbol);
+	action = state_get_transition(prev.state, token->symbol);
 
 	if(action == NULL) {
 		// Attempt empty transition
 		Symbol *empty = symbol_table_get(thread->fsm->table, "__empty", 7);
-		action = state_get_transition(thread->current, empty->id);
+		action = state_get_transition(prev.state, empty->id);
 
 		if(action == NULL) {
-			trace("match", thread->current, action, token, "error", 0);
+			trace("match", prev.state, action, token, "error", 0);
 			_mode_push(thread, fsm_get_symbol_id(thread->fsm, nzs(".error")));
-			_mode_reset(thread);
-			action = state_get_transition(thread->current, empty->id);
+			thread->transition.state = _mode_start(thread);
+			action = state_get_transition(thread->transition.state, empty->id);
 		} else {
-			trace("match", thread->current, action, token, "fback", 0);
+			trace("match", prev.state, action, token, "fback", 0);
 		}
 	}
 
-	tran.action = action;
+	next.action = action;
 
 	switch(action->type) {
 	case ACTION_SHIFT:
-		trace("match", thread->current, action, token, "shift", 0);
-		Token shifted = *token;
+		trace("match", prev.state, action, token, "shift", 0);
 
 		_state_push(thread, (FsmThreadNode) {
-			thread->current,
+			prev.state,
 			token->index
 		});
-		thread->current = action->state;
-		tran.token = shifted;
+		next.state = action->state;
+		next.token = *token;
 		break;
 	case ACTION_ACCEPT:
-		trace("match", thread->current, action, token, "accept", 0);
-		Token accepted = *token;
+		trace("match", prev.state, action, token, "accept", 0);
 
 		if(action->flags & ACTION_FLAG_MODE_PUSH) {
 			_mode_push(thread, action->mode);
 		} else if(action->flags & ACTION_FLAG_MODE_POP) {
 			_mode_pop(thread);
 		}
-		_mode_reset(thread);
-		tran.token = accepted;
+		next.state = _mode_start(thread);
+		next.token = *token;
 		break;
 	case ACTION_DROP:
-		trace("match", thread->current, action, token, "drop", 0);
-		Token dropped = *token;
+		trace("match", prev.state, action, token, "drop", 0);
 
-		thread->current = action->state;
-		tran.token = dropped;
+		next.state = action->state;
+		next.token = *token;
 		//if(action->flags & ACTION_FLAG_THREAD_SPAWN)
 			//_thread_spawn(thread);
 		break;
 	case ACTION_REDUCE:
-		trace("match", thread->current, action, token, "reduce", action->reduction);
+		trace("match", prev.state, action, token, "reduce", action->reduction);
 		FsmThreadNode popped = _state_pop(thread);
-		thread->current = popped.state;
+		next.state = popped.state;
 
 		Token reduction = {
 			popped.index,
 			token->index - popped.index,
 			action->reduction
 		};
-		tran.token = reduction;
+		next.token = reduction;
 		break;
 	case ACTION_EMPTY:
-		trace("match", thread->current, action, token, "empty", 0);
-		thread->current = action->state;
-		tran.token = *(token);
+		trace("match", prev.state, action, token, "empty", 0);
+		next.state = action->state;
+		next.token = *token;
 		break;
 	default:
+		// TODO: sentinel?
 		break;
 	}
-	return tran;
+	thread->transition = next;
+	return next;
 }
 
 // TODO: Does this code belongs elsewhere?

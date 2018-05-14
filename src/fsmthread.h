@@ -15,17 +15,18 @@ typedef struct FsmThreadNode {
 
 DEFINE_STACK(FsmThreadNode, FsmThreadNode, fsmthreadnode);
 
-typedef struct _FsmThread {
-	Fsm *fsm;
-	State *current;
-	StackFsmThreadNode stack;
-	StackState mode_stack;
-} FsmThread;
-
 typedef struct Transition {
+	State *state;
 	Action *action;
 	Token token;
 } Transition;
+
+typedef struct _FsmThread {
+	Fsm *fsm;
+	StackFsmThreadNode stack;
+	StackState mode_stack;
+	Transition transition;
+} FsmThread;
 
 typedef struct Continuation {
 	Transition transition;
