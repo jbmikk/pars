@@ -91,9 +91,8 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 
 		if(action == NULL) {
 			trace("match", prev.state, action, token, "error", 0);
-			_mode_push(thread, fsm_get_symbol_id(thread->fsm, nzs(".error")));
-			thread->transition.state = _mode_start(thread);
-			action = state_get_transition(thread->transition.state, empty);
+			State *error = fsm_get_state(thread->fsm, nzs(".error"));
+			action = state_get_transition(error, empty);
 		} else {
 			trace("match", prev.state, action, token, "fback", 0);
 		}
