@@ -33,7 +33,7 @@ void fsm_get_states(BMapState *states, State *state)
 			Action *ac;
 			bmap_cursor_action_init(&cursor, &state->actions);
 			while(bmap_cursor_action_next(&cursor)) {
-				ac = bmap_cursor_action_current(&cursor)->action;
+				ac = &bmap_cursor_action_current(&cursor)->action;
 				fsm_get_states(states, ac->state);
 			}
 			bmap_cursor_action_dispose(&cursor);

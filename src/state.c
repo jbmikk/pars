@@ -26,7 +26,7 @@
 #define trace(M, T1, T2, S, A, R)
 #endif
 
-DEFINE_BMAP_FUNCTIONS(int, Action *, Action, action, IMPLEMENTATION)
+DEFINE_BMAP_FUNCTIONS(int, Action, Action, action, IMPLEMENTATION)
 
 DEFINE_BMAP_FUNCTIONS(intptr_t, Reference*, Reference, ref, IMPLEMENTATION)
 
@@ -54,17 +54,6 @@ void state_add_reference(State *state, Symbol *symbol, State *to_state)
 
 void state_dispose(State *state)
 {
-	BMapCursorAction cursor;
-
-	//Delete all actions
-	Action *ac;
-	bmap_cursor_action_init(&cursor, &state->actions);
-	while(bmap_cursor_action_next(&cursor)) {
-		ac = bmap_cursor_action_current(&cursor)->action;
-		free(ac);
-	}
-	bmap_cursor_action_dispose(&cursor);
-
 	bmap_action_dispose(&state->actions);
 
 	//Delete all references
@@ -89,7 +78,7 @@ static Action *_state_get_transition(State *state, int symbol)
 
 	if(!entry) {
 		entry = bmap_action_get_lt(&state->actions, symbol);
-		range = entry? entry->action: NULL;
+		range = entry? &entry->action: NULL;
 		if(range && (range->flags & ACTION_FLAG_RANGE)) {
 			//TODO: Fix negative symbols in transitions.
 			//negative symbols are interpreted as unsigned chars
@@ -100,7 +89,7 @@ static Action *_state_get_transition(State *state, int symbol)
 			}
 		}
 	} else {
-		action = entry->action;
+		action = &entry->action;
 	}
 	return action;
 }
@@ -108,6 +97,7 @@ static Action *_state_get_transition(State *state, int symbol)
 static Action *_state_add_buffer(State *state, int symbol, Action *action)
 {
 	Action *collision = _state_get_transition(state, symbol);
+	Action *ret;
 	
 	if(collision) {
 		if(
@@ -133,20 +123,21 @@ static Action *_state_add_buffer(State *state, int symbol, Action *action)
 			);
 			//TODO: add sentinel ?
 		}
-		free(action);
-		action = NULL;
+		ret = NULL;
 	} else {
-		bmap_action_insert(&state->actions, symbol, action);
+		BMapEntryAction *entry;
+		entry = bmap_action_insert(&state->actions, symbol, *action);
+		ret = &entry->action;
 	}
-	return action;
+	return ret;
 }
 
 Action *state_add(State *state, int symbol, int type, int reduction)
 {
-	Action * action = malloc(sizeof(Action));
-	action_init(action, type, reduction, NULL, 0, 0);
+	Action ac;
+	action_init(&ac, type, reduction, NULL, 0, 0);
 
-	action = _state_add_buffer(state, symbol, action);
+	Action *action = _state_add_buffer(state, symbol, &ac);
 
 	//TODO: Ambiguos transitions should be handled properly.
 	// There are different types of conflicts that could arise with 
@@ -181,14 +172,14 @@ Action *state_add(State *state, int symbol, int type, int reduction)
 
 Action *state_add_range(State *state, Range range, int type, int reduction)
 {
-	Action *action = malloc(sizeof(Action));
-	Action *cont;
+	Action ac;
+	Action *action;
 
-	action_init(action, type, reduction, NULL, ACTION_FLAG_RANGE, range.end);
+	action_init(&ac, type, reduction, NULL, ACTION_FLAG_RANGE, range.end);
 
-	cont = _state_add_buffer(state, range.start, action);
+	action = _state_add_buffer(state, range.start, &ac);
 
-	if(cont) {
+	if(action) {
 		if(type == ACTION_SHIFT) {
 			trace("add", state, action, range.start, "range-shift", 0);
 		} else if(type == ACTION_DROP) {
@@ -200,23 +191,21 @@ Action *state_add_range(State *state, Range range, int type, int reduction)
 		} else {
 			trace("add", state, action, range.start, "range-action", 0);
 		}
-	} else {
-		free(action);
 	}
-	return cont;
+	return action;
 }
 
 
 void reference_solve_first_set(Reference *ref, int *unsolved)
 {
-	Action *action, *clone;
+	Action *action;
 	BMapCursorAction cursor;
 	BMapEntryAction *entry;
 	bmap_cursor_action_init(&cursor, &(ref->to_state->actions));
 
 	while(bmap_cursor_action_next(&cursor)) {
 		entry = bmap_cursor_action_current(&cursor);
-		action = entry->action;
+		action = &entry->action;
 		//TODO: Make type for clone a parameter, do not override by
 		// default.
 
@@ -303,19 +292,19 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 		} else {
 
 			//No collision detected, clone the action an add it.
-			clone = malloc(sizeof(Action));
-			action_init(clone, clone_type, action->reduction, action->state, action->flags, action->end_symbol);
+			Action clone;
+			action_init(&clone, clone_type, action->reduction, action->state, action->flags, action->end_symbol);
 
 			trace(
 				"add",
 				ref->state,
-				clone,
+				&clone,
 				entry->key,
 				"first-set",
 				0
 			);
 
-			_state_add_buffer(ref->state, entry->key, clone);
+			_state_add_buffer(ref->state, entry->key, &clone);
 		}
 		ref->status = REF_SOLVED;
 	}
@@ -334,12 +323,12 @@ void state_add_reduce_follow_set(State *from, State *to, int symbol)
 	bmap_cursor_action_init(&cursor, &to->actions);
 	while(bmap_cursor_action_next(&cursor)) {
 		entry = bmap_cursor_action_current(&cursor);
-		ac = entry->action;
-		Action *reduce = malloc(sizeof(Action));
-		action_init(reduce, ACTION_REDUCE, symbol, NULL, ac->flags, ac->end_symbol);
+		ac = &entry->action;
+		Action reduce;
+		action_init(&reduce, ACTION_REDUCE, symbol, NULL, ac->flags, ac->end_symbol);
 
-		_state_add_buffer(from, entry->key, reduce);
-		trace("add", from, reduce, entry->key, "reduce-follow", symbol);
+		_state_add_buffer(from, entry->key, &reduce);
+		trace("add", from, &reduce, entry->key, "reduce-follow", symbol);
 	}
 	bmap_cursor_action_dispose(&cursor);
 }

@@ -30,26 +30,27 @@
 #define NONTERMINAL_CLEAR 0
 #define NONTERMINAL_RETURN_REF 1
 
-typedef struct Action Action;
-typedef struct Reference Reference;
+typedef struct State State;
 
-DEFINE_BMAP(int, Action *, Action, action)
-
-DEFINE_BMAP(intptr_t, Reference *, Reference, ref)
-
-typedef struct State {
-	BMapAction actions;
-	BMapReference refs;
-	char status;
-} State;
-
-struct Action {
+typedef struct Action {
 	char type;
 	char flags;
 	int reduction;
 	int mode;
 	int end_symbol;
 	State *state;
+} Action;
+
+typedef struct Reference Reference;
+
+DEFINE_BMAP(int, Action, Action, action)
+
+DEFINE_BMAP(intptr_t, Reference *, Reference, ref)
+
+struct State {
+	BMapAction actions;
+	BMapReference refs;
+	char status;
 };
 
 typedef struct Nonterminal {
@@ -85,7 +86,7 @@ typedef struct Fsm {
 } Fsm;
 
 
-DEFINE_BMAP_FUNCTIONS(int, Action *, Action, action, PROTOTYPE)
+DEFINE_BMAP_FUNCTIONS(int, Action, Action, action, PROTOTYPE)
 
 DEFINE_BMAP_FUNCTIONS(int, Nonterminal *, Nonterminal, nonterminal, PROTOTYPE)
 
