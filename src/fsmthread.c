@@ -76,6 +76,22 @@ int fsm_thread_start(FsmThread *thread)
 	return 0;
 }
 
+static Transition _switch_mode(Transition transition, FsmThread *thread) {
+	Action *action = transition.action;
+	Transition t = transition;
+	switch(action->type) {
+	case ACTION_ACCEPT:
+		if(action->flags & ACTION_FLAG_MODE_PUSH) {
+			_mode_push(thread, action->mode);
+		} else if(action->flags & ACTION_FLAG_MODE_POP) {
+			_mode_pop(thread);
+		}
+		t.state = _mode_start(thread);
+		break;
+	}
+	return t;
+}
+
 Transition fsm_thread_match(FsmThread *thread, const Token *token)
 {
 	Action *action;
@@ -114,12 +130,7 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 	case ACTION_ACCEPT:
 		trace("match", prev.state, action, token, "accept", 0);
 
-		if(action->flags & ACTION_FLAG_MODE_PUSH) {
-			_mode_push(thread, action->mode);
-		} else if(action->flags & ACTION_FLAG_MODE_POP) {
-			_mode_pop(thread);
-		}
-		next.state = _mode_start(thread);
+		next.state = action->state;
 		next.token = *token;
 		break;
 	case ACTION_DROP:
@@ -151,8 +162,8 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 		// TODO: sentinel?
 		break;
 	}
-	thread->transition = next;
-	return next;
+	thread->transition = _switch_mode(next, thread);
+	return thread->transition;
 }
 
 // TODO: Does this code belongs elsewhere?
@@ -194,6 +205,7 @@ static int _continuation_follow(const Continuation *cont, const Token *in, Token
 	}
 	return ret;
 }
+
 
 Continuation fsm_pda_loop(FsmThread *thread, const Token token, Listener listener)
 {
