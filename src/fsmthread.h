@@ -23,6 +23,7 @@ typedef struct Transition {
 
 typedef struct _FsmThread {
 	Fsm *fsm;
+	State *start;
 	StackFsmThreadNode stack;
 	StackState mode_stack;
 	Transition transition;

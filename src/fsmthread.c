@@ -27,18 +27,14 @@ DEFINE_STACK_FUNCTIONS(FsmThreadNode, FsmThreadNode, fsmthreadnode, IMPLEMENTATI
 
 static void _mode_push(FsmThread *thread, int symbol)
 {
-	State *state = fsm_get_state_by_id(thread->fsm, symbol);
-	stack_state_push(&thread->mode_stack, state);
+	stack_state_push(&thread->mode_stack, thread->start);
+	thread->start = fsm_get_state_by_id(thread->fsm, symbol);
 }
 
 static void _mode_pop(FsmThread *thread)
 {
+	thread->start = stack_state_top(&thread->mode_stack);
 	stack_state_pop(&thread->mode_stack);
-}
-
-State *_mode_start(FsmThread *thread)
-{
-	return stack_state_top(&thread->mode_stack);
 }
 
 static void _state_push(FsmThread *thread, FsmThreadNode tnode)
@@ -57,6 +53,7 @@ static FsmThreadNode _state_pop(FsmThread *thread)
 void fsm_thread_init(FsmThread *thread, Fsm *fsm)
 {
 	thread->fsm = fsm;
+	thread->start = NULL;
 	stack_fsmthreadnode_init(&thread->stack);
 	stack_state_init(&thread->mode_stack);
 }
@@ -69,8 +66,9 @@ void fsm_thread_dispose(FsmThread *thread)
 
 int fsm_thread_start(FsmThread *thread)
 {
-	_mode_push(thread, fsm_get_symbol_id(thread->fsm, nzs(".default")));
-	thread->transition.state = _mode_start(thread);
+	int symbol = fsm_get_symbol_id(thread->fsm, nzs(".default"));
+	thread->start = fsm_get_state_by_id(thread->fsm, symbol);
+	thread->transition.state = thread->start;
 	_state_push(thread, (FsmThreadNode){ thread->transition.state, 0 });
 	//TODO: Check errors?
 	return 0;
@@ -79,15 +77,12 @@ int fsm_thread_start(FsmThread *thread)
 static Transition _switch_mode(Transition transition, FsmThread *thread) {
 	Action *action = transition.action;
 	Transition t = transition;
-	switch(action->type) {
-	case ACTION_ACCEPT:
-		if(action->flags & ACTION_FLAG_MODE_PUSH) {
-			_mode_push(thread, action->mode);
-		} else if(action->flags & ACTION_FLAG_MODE_POP) {
-			_mode_pop(thread);
-		}
-		t.state = _mode_start(thread);
-		break;
+	if(action->flags & ACTION_FLAG_MODE_PUSH) {
+		_mode_push(thread, action->mode);
+		t.state = thread->start;
+	} else if(action->flags & ACTION_FLAG_MODE_POP) {
+		_mode_pop(thread);
+		t.state = thread->start;
 	}
 	return t;
 }
@@ -130,7 +125,8 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 	case ACTION_ACCEPT:
 		trace("match", prev.state, action, token, "accept", 0);
 
-		next.state = action->state;
+		// restart
+		next.state = thread->start;
 		next.token = *token;
 		break;
 	case ACTION_DROP:
