@@ -7,7 +7,7 @@
 #ifdef FSM_TRACE
 #define trace(M, ST, T, S, A, R) \
 	printf( \
-		"%-5s: [%-9p --(%-9p)--> %-9p] %-13s %c %3i (%3i=%2c)\n", \
+		"%-5s: [%-9p --(%-9p)--> %-9p] %i %c %3i (%3i=%2c)\n", \
 		M, \
 		ST, \
 		T, \
@@ -74,6 +74,16 @@ int fsm_thread_start(FsmThread *thread)
 	return 0;
 }
 
+static void _trace_transition(Transition next, Transition prev) {
+	trace("match", 
+		prev.state, 
+		next.action,
+		&next.token, 
+		next.action->type, 
+		next.action->reduction
+	);
+}
+
 static Transition _switch_mode(Transition transition, FsmThread *thread) {
 	Action *action = transition.action;
 	Transition t = transition;
@@ -101,20 +111,16 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 		action = state_get_transition(prev.state, empty);
 
 		if(action == NULL) {
-			trace("match", prev.state, action, token, "error", 0);
 			State *error = fsm_get_state(thread->fsm, nzs(".error"));
 			action = state_get_transition(error, empty);
-		} else {
-			trace("match", prev.state, action, token, "fback", 0);
 		}
 	}
 
 	next.action = action;
 
+	FsmThreadNode popped;
 	switch(action->type) {
 	case ACTION_SHIFT:
-		trace("match", prev.state, action, token, "shift", 0);
-
 		_state_push(thread, (FsmThreadNode) {
 			prev.state,
 			token->index
@@ -123,23 +129,18 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 		next.token = *token;
 		break;
 	case ACTION_ACCEPT:
-		trace("match", prev.state, action, token, "accept", 0);
-
 		// restart
 		next.state = thread->start;
 		next.token = *token;
 		break;
 	case ACTION_DROP:
-		trace("match", prev.state, action, token, "drop", 0);
-
 		next.state = action->state;
 		next.token = *token;
 		//if(action->flags & ACTION_FLAG_THREAD_SPAWN)
 			//_thread_spawn(thread);
 		break;
 	case ACTION_REDUCE:
-		trace("match", prev.state, action, token, "reduce", action->reduction);
-		FsmThreadNode popped = _state_pop(thread);
+		popped = _state_pop(thread);
 		next.state = popped.state;
 
 		Token reduction = {
@@ -150,7 +151,6 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 		next.token = reduction;
 		break;
 	case ACTION_EMPTY:
-		trace("match", prev.state, action, token, "empty", 0);
 		next.state = action->state;
 		next.token = *token;
 		break;
@@ -158,6 +158,7 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 		// TODO: sentinel?
 		break;
 	}
+	_trace_transition(next, prev);
 	thread->transition = _switch_mode(next, thread);
 	return thread->transition;
 }
