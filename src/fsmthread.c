@@ -120,24 +120,10 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 
 	FsmThreadNode popped;
 	switch(action->type) {
-	case ACTION_SHIFT:
-		_state_push(thread, (FsmThreadNode) {
-			prev.state,
-			token->index
-		});
-		next.state = action->state;
-		next.token = *token;
-		break;
 	case ACTION_ACCEPT:
-		// restart
+		// restart, should it be separated or implicit?
 		next.state = thread->start;
 		next.token = *token;
-		break;
-	case ACTION_DROP:
-		next.state = action->state;
-		next.token = *token;
-		//if(action->flags & ACTION_FLAG_THREAD_SPAWN)
-			//_thread_spawn(thread);
 		break;
 	case ACTION_REDUCE:
 		popped = _state_pop(thread);
@@ -150,7 +136,13 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 		};
 		next.token = reduction;
 		break;
+	case ACTION_SHIFT:
+		_state_push(thread, (FsmThreadNode) {
+			prev.state,
+			token->index
+		});
 	case ACTION_EMPTY:
+	case ACTION_DROP:
 		next.state = action->state;
 		next.token = *token;
 		break;
