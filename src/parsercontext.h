@@ -13,8 +13,6 @@ typedef struct ParserContext {
 	Listener parse_setup_fsm;
 	Listener parse_start;
 	Listener parse_loop;
-	Listener lexer_pipe;
-	Listener parser_pipe;
 	Listener parse_end;
 	Listener parse_error;
 	FsmThread thread;

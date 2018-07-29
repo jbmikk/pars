@@ -488,7 +488,7 @@ int ebnf_lexer_pipe(void *_context, void *_tran)
 	Continuation cont = { .error = 0 };
 	//Filter white space and tokens
 	if(token.symbol != comment->id && token.symbol != white_space->id) {
-		cont = fsm_thread_loop(&context->thread, token, context->parser_pipe);
+		cont = fsm_thread_loop(&context->thread, token);
 	}
 	return cont.error;
 }

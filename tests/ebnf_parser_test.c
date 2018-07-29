@@ -125,7 +125,7 @@ void ebnf_start_parsing__identifier(){
 
 	Transition tran;
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
 	thread.transition.state = fsm_get_state(&fix.fsm, nzs("syntactic_primary"));
 
@@ -141,7 +141,7 @@ void ebnf_start_parsing__terminal(){
 
 	Transition tran;
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
 	thread.transition.state = fsm_get_state(&fix.fsm, nzs("syntactic_primary"));
 
@@ -157,7 +157,7 @@ void ebnf_start_parsing__concatenate(){
 
 	Transition tran;
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
 	thread.transition.state = fsm_get_state(&fix.fsm, nzs("single_definition"));
 
@@ -186,7 +186,7 @@ void ebnf_start_parsing__separator(){
 
 	Transition tran;
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
 	thread.transition.state = fsm_get_state(&fix.fsm, nzs("definitions_list"));
 
@@ -219,7 +219,7 @@ void ebnf_start_parsing__syntactic_term(){
 
 	Transition tran;
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
 	thread.transition.state = fsm_get_state(&fix.fsm, nzs("syntactic_term"));
 
@@ -246,7 +246,7 @@ void ebnf_start_parsing__syntax_rule(){
 
 	Transition tran;
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
 	thread.transition.state = fsm_get_state(&fix.fsm, nzs("syntax_rule"));
 
@@ -286,7 +286,7 @@ void ebnf_start_parsing__group(){
 
 	Transition tran;
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
 	thread.transition.state = fsm_get_state(&fix.fsm, nzs("syntactic_primary"));
 	MATCH_DROP(thread, fix.START_GROUP_SYMBOL);
@@ -312,7 +312,7 @@ void ebnf_start_parsing__syntax(){
 
 	Transition tran;
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
 	MATCH_SHIFT(thread, fix.META_IDENTIFIER);
 	MATCH_DROP(thread, fix.DEFINING_SYMBOL);

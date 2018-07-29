@@ -102,7 +102,7 @@ void fsm_thread_match__shift(){
 	fsm_builder_dispose(&builder);
 
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
 
 	MATCH_SHIFT(thread, 'a');
@@ -126,7 +126,7 @@ void fsm_thread_match__shift_range(){
 	fsm_builder_dispose(&builder);
 
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
 
 	MATCH_SHIFT(thread, 'a');
@@ -162,7 +162,7 @@ void fsm_thread_match__reduce(){
 	int number = fsm_get_symbol_id(&fix.fsm, nzs("number"));
 
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
 
 	MATCH_SHIFT(thread, '1');
@@ -197,7 +197,7 @@ void fsm_thread_match__reduce_shift(){
 	int sum = fsm_get_symbol_id(&fix.fsm, nzs("sum"));
 
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
 
 	MATCH_SHIFT(thread, '1');
@@ -244,7 +244,7 @@ void fsm_thread_match__reduce_handler(){
 	int sum = fsm_get_symbol_id(&fix.fsm, nzs("sum"));
 
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
 
 	MATCH_SHIFT_AT(thread, '1', 0);
@@ -300,7 +300,7 @@ void fsm_thread_match__first_set_collision(){
 	int sequence = fsm_get_symbol_id(&fix.fsm, nzs("sequence"));
 
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
 
 	MATCH_SHIFT(thread, '1');
@@ -369,7 +369,7 @@ void fsm_thread_match__repetition(){
 	int integer = fsm_get_symbol_id(&fix.fsm, nzs("integer"));
 
 	FsmThread thread;
-	fsm_thread_init(&thread, &fix.fsm);
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
 
 	MATCH_SHIFT(thread, '1');

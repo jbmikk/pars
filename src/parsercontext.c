@@ -15,17 +15,19 @@ void parser_context_init(ParserContext *context, Parser *parser)
 	context->parse_start.object = context;
 	context->parse_loop = parser->parse_loop;
 	context->parse_loop.object = context;
-	context->lexer_pipe = parser->lexer_pipe;
-	context->lexer_pipe.object = context;
-	context->parser_pipe = parser->parser_pipe;
-	context->parser_pipe.object = context;
 	context->parse_end = parser->parse_end;
 	context->parse_end.object = context;
 	context->parse_error = parser->parse_error;
 	context->parse_error.object = context;
 
-	fsm_thread_init(&context->thread, &parser->fsm);
-	fsm_thread_init(&context->lexer_thread, &parser->lexer_fsm);
+	Listener lexer_pipe = parser->lexer_pipe;
+	lexer_pipe.object = context;
+
+	Listener parser_pipe = parser->parser_pipe;
+	parser_pipe.object = context;
+
+	fsm_thread_init(&context->thread, &parser->fsm, parser_pipe);
+	fsm_thread_init(&context->lexer_thread, &parser->lexer_fsm, lexer_pipe);
 }
 
 void parser_context_dispose(ParserContext *context)

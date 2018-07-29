@@ -50,9 +50,10 @@ static FsmThreadNode _state_pop(FsmThread *thread)
 }
 
 
-void fsm_thread_init(FsmThread *thread, Fsm *fsm)
+void fsm_thread_init(FsmThread *thread, Fsm *fsm, Listener pipe)
 {
 	thread->fsm = fsm;
+	thread->pipe = pipe;
 	thread->start = NULL;
 	stack_fsmthreadnode_init(&thread->stack);
 	stack_state_init(&thread->mode_stack);
@@ -196,7 +197,7 @@ static int _continuation_follow(const Continuation *cont, const Token *in, Token
 }
 
 
-Continuation fsm_thread_loop(FsmThread *thread, const Token token, Listener pipe)
+Continuation fsm_thread_loop(FsmThread *thread, const Token token)
 {
 	int count = 0;
 
@@ -205,7 +206,7 @@ Continuation fsm_thread_loop(FsmThread *thread, const Token token, Listener pipe
 	Continuation cont;
 	do {
 		transition = fsm_thread_match(thread, &retry);
-		int error = listener_notify(&pipe, &transition);
+		int error = listener_notify(&thread->pipe, &transition);
 
 		// Listener's return value is combined with the transition to
 		// get the continuation.

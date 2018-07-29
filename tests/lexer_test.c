@@ -53,7 +53,7 @@ void t_setup(){
 	fsm_init(&fix.fsm, &fix.table);
 	ebnf_build_lexer_fsm(&fix.fsm);
 
-	fsm_thread_init(&fix.thread, &fix.fsm);
+	fsm_thread_init(&fix.thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&fix.thread);
 	//Utf8 tests
 	/*

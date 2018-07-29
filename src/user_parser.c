@@ -29,7 +29,7 @@ int user_lexer_pipe(void *_context, void *_tran)
 	Token token = tran->token;
 
 	Continuation cont = { .error = 0 };
-	cont = fsm_thread_loop(&context->thread, token, context->parser_pipe);
+	cont = fsm_thread_loop(&context->thread, token);
 
 	return cont.error;
 }
