@@ -15,6 +15,8 @@ typedef struct ParserContext {
 	Listener parse_loop;
 	Listener parse_end;
 	Listener parse_error;
+	Listener lexer_pipe;
+	Listener parser_pipe;
 	FsmThread thread;
 	FsmThread lexer_thread;
 	Ast *ast;

@@ -187,19 +187,26 @@ int atl_lexer_pipe(void *_context, void *_tran)
 	return cont.error;
 }
 
+void atl_build_parser_context(ParserContext *context)
+{
+	listener_init(&context->parse_setup_lexer, NULL, context);
+	listener_init(&context->parse_setup_fsm, NULL, context);
+	listener_init(&context->parse_start, ast_parse_start, context);
+	listener_init(&context->parse_loop, control_loop_linear, context);
+	listener_init(&context->parse_end, ast_parse_end, context);
+	listener_init(&context->parse_error, ast_parse_error, context);
+
+	listener_init(&context->lexer_pipe, atl_lexer_pipe, context);
+	listener_init(&context->parser_pipe, ast_parser_pipe, context);
+}
+
 int atl_build_parser(Parser *parser)
 {
-	listener_init(&parser->parse_setup_lexer, NULL, NULL);
-	listener_init(&parser->parse_setup_fsm, NULL, NULL);
-	listener_init(&parser->parse_start, ast_parse_start, NULL);
-	listener_init(&parser->parse_loop, control_loop_linear, NULL);
-	listener_init(&parser->lexer_pipe, atl_lexer_pipe, NULL);
-	listener_init(&parser->parser_pipe, ast_parser_pipe, NULL);
-	listener_init(&parser->parse_end, ast_parse_end, NULL);
-	listener_init(&parser->parse_error, ast_parse_error, NULL);
 
 	atl_build_lexer_fsm(&parser->lexer_fsm);
 	atl_build_fsm(&parser->fsm);
+
+	parser->build_context = &atl_build_parser_context;
 
 	return 0;
 //error:

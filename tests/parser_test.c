@@ -179,23 +179,30 @@ static int _test_parse_error(void *object, void *params)
 	return 0;
 }
 
+static void _test_build_parser_context(ParserContext *context)
+{
+	listener_init(&context->parse_setup_lexer, NULL, context);
+	listener_init(&context->parse_setup_fsm, NULL, context);
+	listener_init(&context->parse_start, _test_parse_start, context);
+	listener_init(&context->parse_loop, control_loop_ast, context);
+	listener_init(&context->parse_end, _test_parse_end, context);
+	listener_init(&context->parse_error, _test_parse_error, context);
+
+	listener_init(&context->lexer_pipe, test_lexer_pipe, context);
+	listener_init(&context->parser_pipe, test_parser_pipe, context);
+}
+
+
 void t_setup(){
 	parser_init(&fix.parser);
-	listener_init(&fix.parser.parse_setup_lexer, NULL, NULL);
-	listener_init(&fix.parser.parse_setup_fsm, NULL, NULL);
-	listener_init(&fix.parser.parse_start, _test_parse_start, NULL);
-	listener_init(&fix.parser.parse_loop, control_loop_ast, NULL);
-	listener_init(&fix.parser.lexer_pipe, test_lexer_pipe, NULL);
-	listener_init(&fix.parser.parser_pipe, test_parser_pipe, NULL);
-	listener_init(&fix.parser.parse_end, _test_parse_end, NULL);
-	listener_init(&fix.parser.parse_error, _test_parse_error, NULL);
-
 
 	//TODO: Move to _test_build_symbol_table?
 	symbol_table_add(&fix.parser.table, "__tdown", 7);
 	symbol_table_add(&fix.parser.table, "__tup", 5);
 
 	_test_identity_init_lexer_fsm(&fix.parser.lexer_fsm);
+
+	fix.parser.build_context = _test_build_parser_context;
 }
 
 void t_teardown(){

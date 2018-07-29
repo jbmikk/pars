@@ -2,20 +2,16 @@
 #define PARSER_H
 
 #include "fsm.h"
-#include "listener.h"
+
+typedef struct ParserContext ParserContext;
+
+typedef void (ContextBuilder)(ParserContext *context);
 
 typedef struct Parser {
 	SymbolTable table;
 	Fsm fsm;
 	Fsm lexer_fsm;
-	Listener parse_setup_fsm;
-	Listener parse_setup_lexer;
-	Listener parse_start;
-	Listener parse_loop;
-	Listener lexer_pipe;
-	Listener parser_pipe;
-	Listener parse_end;
-	Listener parse_error;
+	ContextBuilder *build_context;
 } Parser;
 
 void parser_init(Parser *parser);
