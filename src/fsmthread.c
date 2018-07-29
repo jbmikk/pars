@@ -201,11 +201,16 @@ Continuation fsm_pda_loop(FsmThread *thread, const Token token, Listener listene
 	int count = 0;
 
 	Token retry = token;
+	Transition transition;
 	Continuation cont;
 	do {
-		cont.transition = fsm_thread_match(thread, &retry);
-		int error = listener_notify(&listener, &cont.transition);
-		cont.error = error || cont.transition.action->type == ACTION_ERROR;
+		transition = fsm_thread_match(thread, &retry);
+		int error = listener_notify(&listener, &transition);
+
+		// Listener's return value is combined with the transition to
+		// get the continuation.
+		cont.transition = transition;
+		cont.error = error || transition.action->type == ACTION_ERROR;
 
 		// TODO: Temporary transition, it should be in control loop
 	} while (!_continuation_follow(&cont, &token, &retry, &count));
