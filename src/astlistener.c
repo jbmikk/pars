@@ -3,7 +3,7 @@
 #include "parsercontext.h"
 #include "astbuilder.h"
 
-int ast_parser_transition(void *_context, void *_cont)
+int ast_parser_pipe(void *_context, void *_cont)
 {
 	ParserContext *context = (ParserContext *)_context;
 	Transition *tran = (Transition *)_cont;

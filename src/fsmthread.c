@@ -196,7 +196,7 @@ static int _continuation_follow(const Continuation *cont, const Token *in, Token
 }
 
 
-Continuation fsm_pda_loop(FsmThread *thread, const Token token, Listener listener)
+Continuation fsm_pda_loop(FsmThread *thread, const Token token, Listener pipe)
 {
 	int count = 0;
 
@@ -205,7 +205,7 @@ Continuation fsm_pda_loop(FsmThread *thread, const Token token, Listener listene
 	Continuation cont;
 	do {
 		transition = fsm_thread_match(thread, &retry);
-		int error = listener_notify(&listener, &transition);
+		int error = listener_notify(&pipe, &transition);
 
 		// Listener's return value is combined with the transition to
 		// get the continuation.

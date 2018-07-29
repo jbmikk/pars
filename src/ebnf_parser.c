@@ -472,7 +472,7 @@ void ebnf_build_lexer_fsm(Fsm *fsm)
 	fsm_builder_dispose(&builder);
 }
 
-int ebnf_lexer_transition(void *_context, void *_tran)
+int ebnf_lexer_pipe(void *_context, void *_tran)
 {
 	ParserContext *context = (ParserContext *)_context;
 	Transition *tran = (Transition *)_tran;
@@ -488,7 +488,7 @@ int ebnf_lexer_transition(void *_context, void *_tran)
 	Continuation cont = { .error = 0 };
 	//Filter white space and tokens
 	if(token.symbol != comment->id && token.symbol != white_space->id) {
-		cont = fsm_pda_loop(&context->thread, token, context->parser_transition);
+		cont = fsm_pda_loop(&context->thread, token, context->parser_pipe);
 	}
 	return cont.error;
 }
@@ -499,8 +499,8 @@ int ebnf_build_parser(Parser *parser)
 	listener_init(&parser->parse_setup_fsm, NULL, NULL);
 	listener_init(&parser->parse_start, ast_parse_start, NULL);
 	listener_init(&parser->parse_loop, control_loop_linear, NULL);
-	listener_init(&parser->lexer_transition, ebnf_lexer_transition, NULL);
-	listener_init(&parser->parser_transition, ast_parser_transition, NULL);
+	listener_init(&parser->lexer_pipe, ebnf_lexer_pipe, NULL);
+	listener_init(&parser->parser_pipe, ast_parser_pipe, NULL);
 	listener_init(&parser->parse_end, ast_parse_end, NULL);
 	listener_init(&parser->parse_error, ast_parse_error, NULL);
 

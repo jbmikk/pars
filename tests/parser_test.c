@@ -144,7 +144,7 @@ static void _build_siblings_with_children(Fsm *fsm)
 	fsm_builder_dispose(&builder);
 }
 
-int test_lexer_transition(void *_context, void *_tran)
+int test_lexer_pipe(void *_context, void *_tran)
 {
 	ParserContext *context = (ParserContext *)_context;
 	Transition *tran = (Transition *)_tran;
@@ -156,7 +156,7 @@ int test_lexer_transition(void *_context, void *_tran)
 	return 0;
 }
 
-int test_parser_transition(void *_context, void *_cont)
+int test_parser_pipe(void *_context, void *_cont)
 {
 	return 0;
 }
@@ -185,8 +185,8 @@ void t_setup(){
 	listener_init(&fix.parser.parse_setup_fsm, NULL, NULL);
 	listener_init(&fix.parser.parse_start, _test_parse_start, NULL);
 	listener_init(&fix.parser.parse_loop, control_loop_ast, NULL);
-	listener_init(&fix.parser.lexer_transition, test_lexer_transition, NULL);
-	listener_init(&fix.parser.parser_transition, test_parser_transition, NULL);
+	listener_init(&fix.parser.lexer_pipe, test_lexer_pipe, NULL);
+	listener_init(&fix.parser.parser_pipe, test_parser_pipe, NULL);
 	listener_init(&fix.parser.parse_end, _test_parse_end, NULL);
 	listener_init(&fix.parser.parse_error, _test_parse_error, NULL);
 
