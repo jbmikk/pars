@@ -196,7 +196,7 @@ static int _continuation_follow(const Continuation *cont, const Token *in, Token
 }
 
 
-Continuation fsm_pda_loop(FsmThread *thread, const Token token, Listener pipe)
+Continuation fsm_thread_loop(FsmThread *thread, const Token token, Listener pipe)
 {
 	int count = 0;
 

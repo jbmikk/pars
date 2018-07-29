@@ -54,7 +54,7 @@ int control_loop_linear(void *object, void *params)
 	cont.transition.action = &dummy;
 
 	while(!input_continuation_follow(&cont, context->input, &token)) {
-		cont = fsm_pda_loop(&context->lexer_thread, token, context->lexer_pipe);
+		cont = fsm_thread_loop(&context->lexer_thread, token, context->lexer_pipe);
 	}
 
 	// TODO: Add error details (lexer or parser?)
@@ -143,13 +143,13 @@ int control_loop_ast(void *object, void *params)
 	while(!ast_continuation_follow(&cont, &cursor, &token)) {
 
 		if(cursor.offset == 1) {
-			cont = fsm_pda_loop(&context->thread, token_down, context->parser_pipe);
+			cont = fsm_thread_loop(&context->thread, token_down, context->parser_pipe);
 			check(
 				!cont.error,
 				"Parser error at DOWN node"
 			);
 		} else if(cursor.offset < 0) {
-			cont = fsm_pda_loop(&context->thread, token_up, context->parser_pipe);
+			cont = fsm_thread_loop(&context->thread, token_up, context->parser_pipe);
 			check(
 				!cont.error,
 				"Parser error at UP node"
@@ -158,7 +158,7 @@ int control_loop_ast(void *object, void *params)
 
 		// TODO: no need for a full pda loop for now, a simple fsm
 		// should do.
-		cont = fsm_pda_loop(&context->thread, token, context->parser_pipe);
+		cont = fsm_thread_loop(&context->thread, token, context->parser_pipe);
 		check(
 			!cont.error,
 			"Parser error at token "
