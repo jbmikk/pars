@@ -69,8 +69,9 @@ int fsm_thread_start(FsmThread *thread)
 {
 	int symbol = fsm_get_symbol_id(thread->fsm, nzs(".default"));
 	thread->start = fsm_get_state_by_id(thread->fsm, symbol);
-	thread->transition.state = thread->start;
-	_state_push(thread, (FsmThreadNode){ thread->transition.state, 0 });
+	thread->transition.from = NULL;
+	thread->transition.to = thread->start;
+	_state_push(thread, (FsmThreadNode){ thread->transition.to, 0 });
 	//TODO: Check errors?
 	return 0;
 }
@@ -90,10 +91,10 @@ static Transition _switch_mode(Transition transition, FsmThread *thread) {
 	Transition t = transition;
 	if(action->flags & ACTION_FLAG_MODE_PUSH) {
 		_mode_push(thread, action->mode);
-		t.state = thread->start;
+		t.to = thread->start;
 	} else if(action->flags & ACTION_FLAG_MODE_POP) {
 		_mode_pop(thread);
-		t.state = thread->start;
+		t.to = thread->start;
 	}
 	return t;
 }
@@ -104,12 +105,12 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 	Transition prev = thread->transition;
 	Transition next;
 
-	action = state_get_transition(prev.state, token->symbol);
+	action = state_get_transition(prev.to, token->symbol);
 
 	if(action == NULL) {
 		// Attempt empty transition
 		int empty = fsm_get_symbol_id(thread->fsm, nzs("__empty"));
-		action = state_get_transition(prev.state, empty);
+		action = state_get_transition(prev.to, empty);
 
 		if(action == NULL) {
 			State *error = fsm_get_state(thread->fsm, nzs(".error"));
@@ -118,17 +119,18 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 	}
 
 	next.action = action;
+	next.from = prev.to;
 
 	FsmThreadNode popped;
 	switch(action->type) {
 	case ACTION_ACCEPT:
 		// restart, should it be separated or implicit?
-		next.state = thread->start;
+		next.to = thread->start;
 		next.token = *token;
 		break;
 	case ACTION_REDUCE:
 		popped = _state_pop(thread);
-		next.state = popped.state;
+		next.to = popped.state;
 
 		Token reduction = {
 			popped.index,
@@ -139,12 +141,12 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 		break;
 	case ACTION_SHIFT:
 		_state_push(thread, (FsmThreadNode) {
-			prev.state,
+			next.from,
 			token->index
 		});
 	case ACTION_EMPTY:
 	case ACTION_DROP:
-		next.state = action->state;
+		next.to = action->state;
 		next.token = *token;
 		break;
 	default:

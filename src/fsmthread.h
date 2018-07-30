@@ -16,7 +16,8 @@ typedef struct FsmThreadNode {
 DEFINE_STACK(FsmThreadNode, FsmThreadNode, fsmthreadnode);
 
 typedef struct Transition {
-	State *state;
+	State *from;
+	State *to;
 	Action *action;
 	Token token;
 } Transition;
