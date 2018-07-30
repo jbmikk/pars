@@ -36,11 +36,17 @@
 	fsm_thread_apply(&(S), tran); \
 	t_assert(tran.action->type == ACTION_EMPTY);
 
+#define MATCH_BACKTRACK_AT(S, Y, I) \
+	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	fsm_thread_apply(&(S), tran); \
+	t_assert((S).transition.backtrack == 1);
+
 #define MATCH_DROP(S, Y) MATCH_DROP_AT(S, Y, 0)
 #define MATCH_SHIFT(S, Y) MATCH_SHIFT_AT(S, Y, 0)
 #define MATCH_REDUCE(S, Y, R) MATCH_REDUCE_AT(S, Y, R, 0)
 #define MATCH_ACCEPT(S, Y) MATCH_ACCEPT_AT(S, Y, 0)
 #define MATCH_EMPTY(S, Y) MATCH_EMPTY_AT(S, Y, 0)
+#define MATCH_BACKTRACK(S, Y) MATCH_BACKTRACK_AT(S, Y, 0)
 
 #define TEST_SHIFT(S, Y) \
 	tran = fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)}); \
@@ -546,6 +552,51 @@ void fsm_thread_match__any(){
 	fsm_thread_dispose(&thread);
 }
 
+void fsm_thread_match__simple_backtrack(){
+	FsmBuilder builder;
+	Transition tran;
+
+	fsm_builder_init(&builder, &fix.fsm);
+
+	fsm_builder_define(&builder, nzs("A"));
+	fsm_builder_terminal(&builder, 'b');
+	fsm_builder_group_start(&builder);
+	// First it should match this one.
+	fsm_builder_terminal(&builder, 'a');
+	fsm_builder_terminal(&builder, '1');
+	fsm_builder_terminal(&builder, '2');
+	fsm_builder_or(&builder);
+	// Then it should backtrack and match this one.
+	fsm_builder_any(&builder);
+	fsm_builder_terminal(&builder, '1');
+	fsm_builder_terminal(&builder, '3');
+	fsm_builder_group_end(&builder);
+	fsm_builder_end(&builder);
+
+	fsm_builder_done(&builder, '\0');
+
+	fsm_builder_dispose(&builder);
+
+	int a = fsm_get_symbol_id(&fix.fsm, nzs("A"));
+
+	FsmThread thread;
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
+	fsm_thread_start(&thread);
+
+	MATCH_SHIFT(thread, 'b');
+	MATCH_DROP(thread, 'a');
+	MATCH_DROP(thread, '1');
+	MATCH_BACKTRACK(thread, '3');
+	MATCH_DROP(thread, 'a');
+	MATCH_DROP(thread, '1');
+	MATCH_DROP(thread, '3');
+	MATCH_REDUCE(thread, '\0', a);
+	MATCH_DROP(thread, a);
+	MATCH_ACCEPT(thread, '\0');
+
+	fsm_thread_dispose(&thread);
+}
+
 int main(int argc, char** argv){
 	t_init();
 	t_test(fsm_builder_define__single_get);
@@ -560,6 +611,7 @@ int main(int argc, char** argv){
 	t_test(fsm_thread_match__first_set_collision);
 	t_test(fsm_thread_match__repetition);
 	t_test(fsm_thread_match__any);
+	t_test(fsm_thread_match__simple_backtrack);
 	return t_done();
 }
 

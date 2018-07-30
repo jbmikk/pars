@@ -25,6 +25,8 @@ FUNCTIONS(Stack, State *, State, state);
 
 FUNCTIONS(Stack, FsmThreadNode, FsmThreadNode, fsmthreadnode);
 
+FUNCTIONS(Stack, BacktrackNode, BacktrackNode, backtracknode);
+
 static void _mode_push(FsmThread *thread, int symbol)
 {
 	stack_state_push(&thread->mode_stack, thread->start);
@@ -50,19 +52,39 @@ static FsmThreadNode _state_pop(FsmThread *thread)
 }
 
 
+static void _backtrack_push(FsmThread *thread, BacktrackNode node)
+{
+       stack_backtracknode_push(&thread->btstack, node);
+}
+
+static bool _backtrack_is_empty(FsmThread *thread)
+{
+       return stack_backtracknode_is_empty(&thread->btstack);
+}
+
+static BacktrackNode _backtrack_pop(FsmThread *thread)
+{
+       BacktrackNode top = stack_backtracknode_top(&thread->btstack);
+       stack_backtracknode_pop(&thread->btstack);
+       return top;
+}
+
 void fsm_thread_init(FsmThread *thread, Fsm *fsm, Listener pipe)
 {
 	thread->fsm = fsm;
 	thread->pipe = pipe;
 	thread->start = NULL;
+	thread->path = 0;
 	stack_fsmthreadnode_init(&thread->stack);
 	stack_state_init(&thread->mode_stack);
+	stack_backtracknode_init(&thread->btstack);
 }
 
 void fsm_thread_dispose(FsmThread *thread)
 {
 	stack_fsmthreadnode_dispose(&thread->stack);
 	stack_state_dispose(&thread->mode_stack);
+	stack_backtracknode_dispose(&thread->btstack);
 }
 
 int fsm_thread_start(FsmThread *thread)
@@ -145,18 +167,50 @@ static Transition _accept(Transition transition, FsmThread *thread) {
 	return t;
 }
 
+static Transition _backtrack(Transition transition, FsmThread *thread) {
+	Transition t = transition;
+	char alt_path = transition.path + 1;
+	Action *alt_action = state_get_path_transition(transition.from, transition.token.symbol, alt_path);
+
+	if(alt_action) {
+		_backtrack_push(thread, (BacktrackNode) {
+			transition.from,
+			transition.token.index,
+			transition.path
+		});
+	} else if (transition.action->type == ACTION_ERROR) {
+		t.backtrack = 0;
+		if(!_backtrack_is_empty(thread)) {
+			BacktrackNode popped = _backtrack_pop(thread);
+			// TODO: Review the backtrack and path variables.
+			// The only problem here: it is not true that we are
+			// transitioning to this state with this symbol. This
+			// symbol transitioned to error, now we are reseting 
+			// the world. Maybe we should reify that.
+			// TODO: Communicate we have backtracked!!!!
+			t.to = popped.state;
+			t.token.index = popped.index;
+			t.backtrack = 1;
+			thread->path = popped.path + 1;
+		}
+	}
+	return t;
+}
+
 Transition fsm_thread_match(FsmThread *thread, const Token *token)
 {
 	Action *action;
 	Transition prev = thread->transition;
 	Transition next;
+	char path = thread->path;
 
-	action = state_get_transition(prev.to, token->symbol);
+	action = state_get_path_transition(prev.to, token->symbol, path);
 
 	if(action == NULL) {
 		// Attempt empty transition
 		int empty = fsm_get_symbol_id(thread->fsm, nzs("__empty"));
-		action = state_get_transition(prev.to, empty);
+		// TODO: Validate backtracking with empty transitions
+		action = state_get_path_transition(prev.to, empty, path);
 
 		if(action == NULL) {
 			State *error = fsm_get_state(thread->fsm, nzs(".error"));
@@ -168,16 +222,25 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 	next.from = prev.to;
 	next.to = action->state;
 	next.token = *token;
+	next.path = path;
 
+	// Reset path
+	thread->path = 0;
 	return next;
 }
 
 void fsm_thread_apply(FsmThread *thread, Transition transition)
 {
+	// TODO: Consider converting backtracking stack into a loop pipe.
+	// Other features, such as shift/reduce stack could also be turned 
+	// into pipes. This implies pipes can have state, maybe stored in the 
+	// context structure?
+	// We should consider which things change and which don't at each step
 	Transition t = transition;
 	t = _shift_reduce(t, thread);
 	t = _accept(t, thread);
 	t = _switch_mode(t, thread);
+	t = _backtrack(t, thread);
 
 	thread->transition = t;
 }
@@ -205,7 +268,11 @@ static Continuation _build_continuation(Transition t, int error)
 			cont.token2 = t.reduction;
 			break;
 		case ACTION_ERROR:
-			cont.type = CONTINUATION_ERROR; 
+			if(t.backtrack > 0) {
+				cont.type = CONTINUATION_RETRY;
+			} else {
+				cont.type = CONTINUATION_ERROR; 
+			}
 			break;
 		default:
 			// sentinel?

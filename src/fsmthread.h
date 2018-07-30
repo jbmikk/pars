@@ -16,12 +16,23 @@ typedef struct FsmThreadNode {
 
 DEFINE(Stack, FsmThreadNode, FsmThreadNode, fsmthreadnode);
 
+typedef struct BacktrackNode {
+	State *state;
+	int index;
+	char path;
+} BacktrackNode;
+
+DEFINE(Stack, BacktrackNode, BacktrackNode, backtracknode);
+
 typedef struct Transition {
 	State *from;
 	State *to;
 	Action *action;
+	char path;
 	Token token;
 	Token reduction;
+	// TODO: If actions weren't pointers we could build a BT action.
+	char backtrack;
 } Transition;
 
 typedef struct _FsmThread {
@@ -29,8 +40,10 @@ typedef struct _FsmThread {
 	State *start;
 	StackFsmThreadNode stack;
 	StackState mode_stack;
+	StackBacktrackNode btstack;
 	Transition transition;
 	Listener pipe;
+	char path;
 } FsmThread;
 
 
