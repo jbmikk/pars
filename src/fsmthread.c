@@ -99,6 +99,41 @@ static Transition _switch_mode(Transition transition, FsmThread *thread) {
 	return t;
 }
 
+static Transition _shift_reduce(Transition transition, FsmThread *thread) {
+	Action *action = transition.action;
+	Transition t = transition;
+	FsmThreadNode popped;
+	switch(action->type) {
+	case ACTION_REDUCE:
+		popped = _state_pop(thread);
+		t.to = popped.state;
+
+		Token reduction = {
+			popped.index,
+			t.token.index - popped.index,
+			action->reduction
+		};
+		t.token = reduction;
+		break;
+	case ACTION_SHIFT:
+		_state_push(thread, (FsmThreadNode) {
+			t.from,
+			t.token.index
+		});
+	}
+	return t;
+}
+
+static Transition _accept(Transition transition, FsmThread *thread) {
+	Action *action = transition.action;
+	Transition t = transition;
+	switch(action->type) {
+	case ACTION_ACCEPT:
+		t.to = thread->start;
+	}
+	return t;
+}
+
 Transition fsm_thread_match(FsmThread *thread, const Token *token)
 {
 	Action *action;
@@ -120,42 +155,17 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 
 	next.action = action;
 	next.from = prev.to;
+	next.to = action->state;
+	next.token = *token;
 
-	FsmThreadNode popped;
-	switch(action->type) {
-	case ACTION_ACCEPT:
-		// restart, should it be separated or implicit?
-		next.to = thread->start;
-		next.token = *token;
-		break;
-	case ACTION_REDUCE:
-		popped = _state_pop(thread);
-		next.to = popped.state;
-
-		Token reduction = {
-			popped.index,
-			token->index - popped.index,
-			action->reduction
-		};
-		next.token = reduction;
-		break;
-	case ACTION_SHIFT:
-		_state_push(thread, (FsmThreadNode) {
-			next.from,
-			token->index
-		});
-	case ACTION_EMPTY:
-	case ACTION_DROP:
-		next.to = action->state;
-		next.token = *token;
-		break;
-	default:
-		// TODO: sentinel?
-		break;
-	}
 	_trace_transition(next, prev);
-	thread->transition = _switch_mode(next, thread);
-	return thread->transition;
+
+	next = _shift_reduce(next, thread);
+	next = _accept(next, thread);
+	next = _switch_mode(next, thread);
+
+	thread->transition = next;
+	return next;
 }
 
 // TODO: Does this code belongs elsewhere?
@@ -208,6 +218,7 @@ Continuation fsm_thread_loop(FsmThread *thread, const Token token)
 	Continuation cont;
 	do {
 		transition = fsm_thread_match(thread, &retry);
+
 		int error = listener_notify(&thread->pipe, &transition);
 
 		// Listener's return value is combined with the transition to
