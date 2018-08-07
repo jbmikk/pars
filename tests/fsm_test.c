@@ -12,23 +12,28 @@
 
 #define MATCH_DROP_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	fsm_thread_apply(&(S), tran); \
 	t_assert(tran.action->type == ACTION_DROP);
 
 #define MATCH_SHIFT_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	fsm_thread_apply(&(S), tran); \
 	t_assert(tran.action->type == ACTION_SHIFT);
 
 #define MATCH_REDUCE_AT(S, Y, R, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	fsm_thread_apply(&(S), tran); \
 	t_assert(tran.action->type == ACTION_REDUCE); \
 	t_assert(tran.action->reduction == R);
 
 #define MATCH_ACCEPT_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	fsm_thread_apply(&(S), tran); \
 	t_assert(tran.action->type == ACTION_ACCEPT);
 
 #define MATCH_EMPTY_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	fsm_thread_apply(&(S), tran); \
 	t_assert(tran.action->type == ACTION_EMPTY);
 
 #define MATCH_DROP(S, Y) MATCH_DROP_AT(S, Y, 0)

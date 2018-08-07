@@ -7,19 +7,23 @@
 
 #define MATCH_DROP(T, I, L, S) \
 	tran = fsm_thread_match(&(T), &(struct Token){(I), (L), (S)}); \
+	fsm_thread_apply(&(T), tran); \
 	t_assert(tran.action->type == ACTION_DROP);
 
 #define MATCH_SHIFT(T, I, L, S) \
 	tran = fsm_thread_match(&(T), &(struct Token){(I), (L), (S)}); \
+	fsm_thread_apply(&(T), tran); \
 	t_assert(tran.action->type == ACTION_SHIFT);
 
 #define MATCH_REDUCE(T, I, L, S, R) \
 	tran = fsm_thread_match(&(T), &(struct Token){(I), (L), (S)}); \
+	fsm_thread_apply(&(T), tran); \
 	t_assert(tran.action->type == ACTION_REDUCE); \
 	t_assert(tran.action->reduction == R);
 
 #define MATCH_ACCEPT(T, I, L, S) \
 	tran = fsm_thread_match(&(T), &(struct Token){(I), (L), (S)}); \
+	fsm_thread_apply(&(T), tran); \
 	t_assert(tran.action->type == ACTION_ACCEPT);
 
 #define nzs(S) (S), (strlen(S))

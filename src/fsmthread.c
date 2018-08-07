@@ -158,14 +158,17 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 	next.to = action->state;
 	next.token = *token;
 
-	_trace_transition(next, prev);
-
-	next = _shift_reduce(next, thread);
-	next = _accept(next, thread);
-	next = _switch_mode(next, thread);
-
-	thread->transition = next;
 	return next;
+}
+
+void fsm_thread_apply(FsmThread *thread, Transition transition)
+{
+	Transition t = transition;
+	t = _shift_reduce(t, thread);
+	t = _accept(t, thread);
+	t = _switch_mode(t, thread);
+
+	thread->transition = t;
 }
 
 // TODO: Does this code belongs elsewhere?
@@ -218,6 +221,10 @@ Continuation fsm_thread_loop(FsmThread *thread, const Token token)
 	Continuation cont;
 	do {
 		transition = fsm_thread_match(thread, &retry);
+		_trace_transition(transition, thread->transition);
+
+		fsm_thread_apply(thread, transition);
+		transition = thread->transition;
 
 		int error = listener_notify(&thread->pipe, &transition);
 
