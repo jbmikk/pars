@@ -43,8 +43,13 @@
 #define MATCH_EMPTY(S, Y) MATCH_EMPTY_AT(S, Y, 0)
 
 // TODO: implement test functions
-#define TEST_SHIFT(S, Y)
-#define TEST_ERROR(S, Y)
+#define TEST_SHIFT(S, Y) \
+	tran = fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)}); \
+	t_assert(tran.action->type == ACTION_SHIFT);
+
+#define TEST_ERROR(S, Y) \
+	tran = fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)}); \
+	t_assert(tran.action->type == ACTION_ERROR);
 
 
 typedef struct {
@@ -133,8 +138,6 @@ void fsm_thread_match__shift_range(){
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
-
-	MATCH_SHIFT(thread, 'a');
 
 	TEST_SHIFT(thread, 'a');
 	TEST_SHIFT(thread, 'b');
