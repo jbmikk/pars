@@ -26,9 +26,9 @@
 #define trace(M, T1, T2, S, A, R)
 #endif
 
-DEFINE_BMAP_FUNCTIONS(int, Action, Action, action, IMPLEMENTATION)
+FUNCTIONS(BMap, int, Action, Action, action)
 
-DEFINE_BMAP_FUNCTIONS(intptr_t, Reference*, Reference, ref, IMPLEMENTATION)
+FUNCTIONS(BMap, intptr_t, Reference*, Reference, ref)
 
 void state_init(State *state)
 {

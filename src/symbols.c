@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 
-DEFINE_BMAP_FUNCTIONS(int, Symbol *, Symbol, symbol, IMPLEMENTATION)
+FUNCTIONS(BMap, int, Symbol *, Symbol, symbol)
 
 void symbol_table_init(SymbolTable *table)
 {

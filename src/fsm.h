@@ -43,9 +43,9 @@ typedef struct Action {
 
 typedef struct Reference Reference;
 
-DEFINE_BMAP(int, Action, Action, action)
+DEFINE(BMap, int, Action, Action, action)
 
-DEFINE_BMAP(intptr_t, Reference *, Reference, ref)
+DEFINE(BMap, intptr_t, Reference *, Reference, ref)
 
 struct State {
 	BMapAction actions;
@@ -76,9 +76,9 @@ typedef struct Reference {
 	char status;
 } Reference;
 
-DEFINE_BMAP(int, Nonterminal *, Nonterminal, nonterminal)
+DEFINE(BMap, int, Nonterminal *, Nonterminal, nonterminal)
 
-DEFINE_BMAP(intptr_t, State *, State, state)
+DEFINE(BMap, intptr_t, State *, State, state)
 
 typedef struct Fsm {
 	SymbolTable *table;
@@ -86,13 +86,13 @@ typedef struct Fsm {
 } Fsm;
 
 
-DEFINE_BMAP_FUNCTIONS(int, Action, Action, action, PROTOTYPE)
+PROTOTYPES(BMap, int, Action, Action, action)
 
-DEFINE_BMAP_FUNCTIONS(int, Nonterminal *, Nonterminal, nonterminal, PROTOTYPE)
+PROTOTYPES(BMap, int, Nonterminal *, Nonterminal, nonterminal)
 
-DEFINE_BMAP_FUNCTIONS(intptr_t, State *, State, state, PROTOTYPE)
+PROTOTYPES(BMap, intptr_t, State *, State, state)
 
-DEFINE_BMAP_FUNCTIONS(intptr_t, Reference*, Reference, ref, PROTOTYPE)
+PROTOTYPES(BMap, intptr_t, Reference*, Reference, ref)
 
 void fsm_init(Fsm *fsm, SymbolTable *table);
 void fsm_dispose(Fsm *fsm);

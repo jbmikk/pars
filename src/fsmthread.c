@@ -21,9 +21,9 @@
 #define trace(M, ST, T, S, A, R)
 #endif
 
-DEFINE_STACK_FUNCTIONS(State *, State, state, IMPLEMENTATION);
+FUNCTIONS(Stack, State *, State, state);
 
-DEFINE_STACK_FUNCTIONS(FsmThreadNode, FsmThreadNode, fsmthreadnode, IMPLEMENTATION);
+FUNCTIONS(Stack, FsmThreadNode, FsmThreadNode, fsmthreadnode);
 
 static void _mode_push(FsmThread *thread, int symbol)
 {

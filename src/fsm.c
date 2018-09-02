@@ -9,9 +9,9 @@
 #include <stdint.h>
 
 
-DEFINE_BMAP_FUNCTIONS(int, Nonterminal *, Nonterminal, nonterminal, IMPLEMENTATION)
+FUNCTIONS(BMap, int, Nonterminal *, Nonterminal, nonterminal)
 
-DEFINE_BMAP_FUNCTIONS(intptr_t, State *, State, state, IMPLEMENTATION)
+FUNCTIONS(BMap, intptr_t, State *, State, state)
 
 
 void fsm_init(Fsm *fsm, SymbolTable *table)

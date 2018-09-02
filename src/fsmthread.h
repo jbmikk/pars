@@ -6,14 +6,14 @@
 #include "stack.h"
 #include "listener.h"
 
-DEFINE_STACK(State *, State, state);
+DEFINE(Stack, State *, State, state);
 
 typedef struct FsmThreadNode {
 	State *state;
 	int index;
 } FsmThreadNode;
 
-DEFINE_STACK(FsmThreadNode, FsmThreadNode, fsmthreadnode);
+DEFINE(Stack, FsmThreadNode, FsmThreadNode, fsmthreadnode);
 
 typedef struct Transition {
 	State *from;

@@ -14,7 +14,7 @@ typedef struct Symbol {
 	int length;
 } Symbol;
 
-DEFINE_BMAP(int, Symbol *, Symbol, symbol)
+DEFINE(BMap, int, Symbol *, Symbol, symbol)
 
 typedef struct SymbolTable {
 	RTree symbols;

@@ -10,9 +10,9 @@
 #define trace(N, A, T, I, L)
 #endif
 
-DEFINE_STACK_FUNCTIONS(AstNode *, AstNode, astnode, IMPLEMENTATION);
+FUNCTIONS(Stack, AstNode *, AstNode, astnode);
 
-DEFINE_BMAP_FUNCTIONS(unsigned int, AstNode *, AstNode, astnode, IMPLEMENTATION)
+FUNCTIONS(BMap, unsigned int, AstNode *, AstNode, astnode)
 
 void ast_node_init(AstNode *node, AstNode *parent, const Token *token)
 {

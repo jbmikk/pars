@@ -9,7 +9,7 @@
 
 typedef struct AstNode AstNode;
 
-DEFINE_BMAP(unsigned int, AstNode *, AstNode, astnode)
+DEFINE(BMap, unsigned int, AstNode *, AstNode, astnode)
 
 struct AstNode {
 	Token token;
@@ -23,7 +23,7 @@ typedef struct Ast {
 	Input *input;
 } Ast;
 
-DEFINE_STACK(AstNode *, AstNode, astnode);
+DEFINE(Stack, AstNode *, AstNode, astnode);
 
 typedef struct AstCursor {
 	Ast *ast;
@@ -33,7 +33,7 @@ typedef struct AstCursor {
 } AstCursor;
 
 
-DEFINE_BMAP_FUNCTIONS(unsigned int, AstNode *, AstNode, astnode, PROTOTYPE)
+PROTOTYPES(BMap, unsigned int, AstNode *, AstNode, astnode)
 
 void ast_node_init(AstNode *node, AstNode *parent, const Token *token);
 void ast_node_dispose(AstNode *node);
