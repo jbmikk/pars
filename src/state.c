@@ -5,6 +5,7 @@
 #include "arrays.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 //# State functions
 
@@ -74,7 +75,7 @@ static Action *_state_get_transition(State *state, int symbol)
 	Action *action = NULL;
 	Action *range;
 	
-	BMapEntryAction *entry = bmap_action_get(&state->actions, symbol);
+	BMapEntryAction *entry = bmap_action_m_get(&state->actions, symbol);
 
 	if(!entry) {
 		entry = bmap_action_get_lt(&state->actions, symbol);
@@ -99,20 +100,25 @@ static Action *_state_add_buffer(State *state, int symbol, Action *action)
 	Action *collision = _state_get_transition(state, symbol);
 	Action *ret;
 	
-	if(collision) {
-		if(
-			collision->type == action->type &&
-			collision->reduction == action->reduction
-		) {
-			trace(
-				"dup",
-				state,
-				action,
-				symbol,
-				"skip",
-				action->reduction
-			);
-		} else {
+	// TODO: Compare all action properties?
+	bool equal = 
+		collision &&
+		collision->type == action->type &&
+		collision->reduction == action->reduction;
+
+	if(equal) {
+		trace(
+			"dup",
+			state,
+			action,
+			symbol,
+			"skip",
+			action->reduction
+		);
+		ret = NULL;
+	} else {
+		// TODO: Detect conflicts later?
+		if (collision) {
 			trace(
 				"dup",
 				state,
@@ -121,12 +127,9 @@ static Action *_state_add_buffer(State *state, int symbol, Action *action)
 				"conflict",
 				action->reduction
 			);
-			//TODO: add sentinel ?
 		}
-		ret = NULL;
-	} else {
 		BMapEntryAction *entry;
-		entry = bmap_action_insert(&state->actions, symbol, *action);
+		entry = bmap_action_m_append(&state->actions, symbol, *action);
 		ret = &entry->action;
 	}
 	return ret;
