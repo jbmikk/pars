@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "fsmtrace.h"
+
+
 //# State functions
 
 #ifdef FSM_TRACE
@@ -206,6 +209,27 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 	BMapEntryAction *entry;
 	bmap_cursor_action_init(&cursor, &(ref->to_state->actions));
 
+	if(ref->status == REF_SOLVED) {
+		//ref already solved
+		return;
+	}
+
+	if(ref->to_state->status != STATE_CLEAR) {
+		trace_state(
+			"skip first set from",
+			ref->to_state,
+			""
+		);
+		*unsolved = 1;
+		return;
+	}
+
+	//solve reference
+	trace_state(
+		"append first set from",
+		ref->to_state,
+		""
+	);
 	while(bmap_cursor_action_next(&cursor)) {
 		entry = bmap_cursor_action_current(&cursor);
 		action = &entry->action;

@@ -7,20 +7,10 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "fsmtrace.h"
+
 #define NONE 0
 
-#ifdef FSM_TRACE
-#define trace_state(M, S, A) \
-	printf( \
-		"%-5s: %-9p(refstat:%i) %-13s\n", \
-		(M), (S), (S)->status, (A) \
-	)
-#define trace_symbol(M, S) \
-	printf("trace: %-5s: %.*s [id:%i]\n", M, (S)->length, (S)->name, (S)->id);
-#else
-#define trace_state(M, S, A)
-#define trace_symbol(M, S)
-#endif
 
 void fsm_builder_init(FsmBuilder *builder, Fsm *fsm)
 {
@@ -498,28 +488,6 @@ int _solve_invoke_references(FsmBuilder *builder, State *state) {
 	bmap_cursor_ref_init(&rcursor, &state->refs);
 	while(bmap_cursor_ref_next(&rcursor)) {
 		ref = bmap_cursor_ref_current(&rcursor)->ref;
-
-		if(ref->status == REF_SOLVED) {
-			//ref already solved
-			continue;
-		}
-
-		if(ref->to_state->status != STATE_CLEAR) {
-			trace_state(
-				"skip first set from",
-				ref->to_state,
-				""
-			);
-			unsolved = 1;
-			continue;
-		}
-
-		//solve reference
-		trace_state(
-			"append first set from",
-			ref->to_state,
-			""
-		);
 		reference_solve_first_set(ref, &unsolved);
 	}
 	bmap_cursor_ref_dispose(&rcursor);
