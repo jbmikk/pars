@@ -9,26 +9,7 @@
 
 #include "fsmtrace.h"
 
-
 //# State functions
-
-#ifdef FSM_TRACE
-#define trace(M, T1, T2, S, A, R) \
-	printf( \
-		"%-5s: [%-9p --(%-9p:%i)--> %-9p] %-13s %c %3i (%3i=%2c)\n", \
-		M, \
-		T1, \
-		T2, \
-		T2? T2->flags: 0, \
-		T2? ((Action*)T2)->state: NULL, \
-		A, \
-		(R != 0)? '>': ' ', \
-		R, \
-		S, (char)S \
-	)
-#else
-#define trace(M, T1, T2, S, A, R)
-#endif
 
 FUNCTIONS(BMap, int, Action, Action, action)
 
@@ -110,7 +91,7 @@ static Action *_state_add_buffer(State *state, int symbol, Action *action)
 		collision->reduction == action->reduction;
 
 	if(equal) {
-		trace(
+		trace_op(
 			"dup",
 			state,
 			action,
@@ -122,7 +103,7 @@ static Action *_state_add_buffer(State *state, int symbol, Action *action)
 	} else {
 		// TODO: Detect conflicts later?
 		if (collision) {
-			trace(
+			trace_op(
 				"dup",
 				state,
 				action,
@@ -136,6 +117,11 @@ static Action *_state_add_buffer(State *state, int symbol, Action *action)
 		ret = &entry->action;
 	}
 	return ret;
+}
+
+Action *state_add_action(State *state, int symbol, Action *action)
+{
+	return _state_add_buffer(state, symbol, action);
 }
 
 Action *state_add(State *state, int symbol, int type, int reduction)
@@ -162,15 +148,15 @@ Action *state_add(State *state, int symbol, int type, int reduction)
 	// cannot be avoided.
 	if(action) {
 		if(type == ACTION_SHIFT) {
-			trace("add", state, action, symbol, "shift", 0);
+			trace_op("add", state, action, symbol, "shift", 0);
 		} else if(type == ACTION_DROP) {
-			trace("add", state, action, symbol, "drop", 0);
+			trace_op("add", state, action, symbol, "drop", 0);
 		} else if(type == ACTION_REDUCE) {
-			trace("add", state, action, symbol, "reduce", 0);
+			trace_op("add", state, action, symbol, "reduce", 0);
 		} else if(type == ACTION_ACCEPT) {
-			trace("add", state, action, symbol, "accept", 0);
+			trace_op("add", state, action, symbol, "accept", 0);
 		} else {
-			trace("add", state, action, symbol, "action", 0);
+			trace_op("add", state, action, symbol, "action", 0);
 		}
 	}
 	return action;
@@ -187,195 +173,18 @@ Action *state_add_range(State *state, Range range, int type, int reduction)
 
 	if(action) {
 		if(type == ACTION_SHIFT) {
-			trace("add", state, action, range.start, "range-shift", 0);
+			trace_op("add", state, action, range.start, "range-shift", 0);
 		} else if(type == ACTION_DROP) {
-			trace("add", state, action, range.start, "range-drop", 0);
+			trace_op("add", state, action, range.start, "range-drop", 0);
 		} else if(type == ACTION_REDUCE) {
-			trace("add", state, action, range.start, "range-reduce", 0);
+			trace_op("add", state, action, range.start, "range-reduce", 0);
 		} else if(type == ACTION_ACCEPT) {
-			trace("add", state, action, range.start, "range-accept", 0);
+			trace_op("add", state, action, range.start, "range-accept", 0);
 		} else {
-			trace("add", state, action, range.start, "range-action", 0);
+			trace_op("add", state, action, range.start, "range-action", 0);
 		}
 	}
 	return action;
-}
-
-
-void reference_solve_first_set(Reference *ref, int *unsolved)
-{
-	Action *action;
-	BMapCursorAction cursor;
-	BMapEntryAction *entry;
-	bmap_cursor_action_init(&cursor, &(ref->to_state->actions));
-
-	if(ref->status == REF_SOLVED) {
-		//ref already solved
-		return;
-	}
-
-	if(ref->to_state->status != STATE_CLEAR) {
-		trace_state(
-			"skip first set from",
-			ref->to_state,
-			""
-		);
-		*unsolved = 1;
-		return;
-	}
-
-	//solve reference
-	trace_state(
-		"append first set from",
-		ref->to_state,
-		""
-	);
-	while(bmap_cursor_action_next(&cursor)) {
-		entry = bmap_cursor_action_current(&cursor);
-		action = &entry->action;
-		//TODO: Make type for clone a parameter, do not override by
-		// default.
-
-		// When a symbol is present, assume nonterminal invocation
-		int clone_type;
-		if(ref->symbol) {
-			if (action->type == ACTION_REDUCE) {
-				// This could happen when the start state of a
-				// nonterminal is also an end state.
-				trace(
-					"skip",
-					ref->state,
-					action,
-					entry->key,
-					"reduction on first-set",
-					0
-				);
-				 continue;
-			}
-			clone_type = ACTION_SHIFT;
-		} else {
-			// It could happen when merging loops in final states
-			// that action->type == ACTION_REDUCE
-			clone_type = action->type;
-		}
-
-		Action *col = _state_get_transition(ref->state, entry->key);
-
-		if(col) {
-			if(
-				col->type == action->type &&
-				col->state == action->state &&
-				col->reduction == action->reduction &&
-				col->end_symbol == action->end_symbol &&
-				col->flags == action->flags
-			) {
-				trace(
-					"collision",
-					ref->state,
-					action,
-					entry->key,
-					"skip duplicate",
-					0
-				);
-				continue;
-			}
-
-			if(col->state == NULL || action->state == NULL) {
-				trace(
-					"collision",
-					ref->state,
-					action,
-					entry->key,
-					"unhandled",
-					0
-				);
-				continue;
-			}
-
-			//Collision: redefine actions in order to disambiguate.
-			trace(
-				"collision",
-				ref->state,
-				col,
-				entry->key,
-				"deambiguate state",
-				0
-			);
-
-			//TODO: should only merge if actions are identical
-			//TODO: Make this work with ranges.
-			State *merge = malloc(sizeof(State));
-			state_init(merge);
-
-			//Merge first set for the actions continuations.
-			state_add_reference(merge, NULL, col->state);
-			state_add_reference(merge, NULL, action->state);
-
-			//Create unified action pointing to merged state.
-			action_init(col, clone_type, col->reduction, merge, col->flags, col->end_symbol);
-
-			*unsolved = 1;
-		} else {
-
-			//No collision detected, clone the action an add it.
-			Action clone;
-			action_init(&clone, clone_type, action->reduction, action->state, action->flags, action->end_symbol);
-
-			trace(
-				"add",
-				ref->state,
-				&clone,
-				entry->key,
-				"first-set",
-				0
-			);
-
-			_state_add_buffer(ref->state, entry->key, &clone);
-		}
-		ref->status = REF_SOLVED;
-	}
-	bmap_cursor_action_dispose(&cursor);
-}
-
-void reference_solve_return_set(Reference *ref, Nonterminal *nt, int *unsolved)
-{
-	Symbol *sb = ref->symbol;
-
-	if(ref->status == REF_SOLVED) {
-		//Ref already solved
-		return;
-	}
-
-	BMapEntryAction *entry = bmap_action_get(&ref->state->actions, sb->id);
-	Action *cont = entry? &entry->action: NULL;
-
-	//There could be many references here:
-	// * When the calling NT's end state matches the continuation, there
-	//   could be many references to that terminal, we need the whole 
-	//   follow set.
-	// * When the continuation has its own references to other NT's.
-	//   In this case those invokes have to be solved to get the followset.
-
-	// TODO: All references must be solved! missing continuation return refs
-	if(cont && cont->state->status != STATE_CLEAR) {
-		trace_state(
-			"skip return ref to",
-			cont->state,
-			""
-		);
-		*unsolved = 1;
-		return;
-	}
-
-	//Solve reference
-	trace_state(
-		"append return ref to",
-		cont->state,
-		""
-	);
-
-	state_add_reduce_follow_set(nt->end, cont->state, sb->id);
-	ref->status = REF_SOLVED;
 }
 
 void state_add_reduce_follow_set(State *from, State *to, int symbol)
@@ -395,7 +204,7 @@ void state_add_reduce_follow_set(State *from, State *to, int symbol)
 		action_init(&reduce, ACTION_REDUCE, symbol, NULL, ac->flags, ac->end_symbol);
 
 		_state_add_buffer(from, entry->key, &reduce);
-		trace("add", from, &reduce, entry->key, "reduce-follow", symbol);
+		trace_op("add", from, &reduce, entry->key, "reduce-follow", symbol);
 	}
 	bmap_cursor_action_dispose(&cursor);
 }

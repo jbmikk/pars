@@ -116,7 +116,7 @@ Action *state_get_transition(State *state, int symbol);
 void state_dispose(State *state);
 Action *state_add(State *from, int symbol, int type, int reduction);
 Action *state_add_range(State *state, Range range, int type, int reduction);
-void reference_solve_first_set(Reference *ref, int *unsolved);
+Action *state_add_action(State *state, int symbol, Action *action);
 void state_add_reduce_follow_set(State *from, State *to, int symbol);
 
 
@@ -131,5 +131,12 @@ Action *action_add(Action *from, int symbol, int type, int reduction);
 void nonterminal_init(Nonterminal *nonterminal);
 void nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *symbol);
 void nonterminal_dispose(Nonterminal *nonterminal);
+
+
+// # Reference functions
+
+void reference_solve_first_set(Reference *ref, int *unsolved);
+void reference_solve_return_set(Reference *ref, Nonterminal *nt, int *unsolved);
+
 
 #endif //FSM_H
