@@ -420,43 +420,7 @@ int _solve_return_references(FsmBuilder *builder, Nonterminal *nt) {
 	bmap_cursor_ref_init(&rcursor, &nt->refs);
 	while(bmap_cursor_ref_next(&rcursor)) {
 		ref = bmap_cursor_ref_current(&rcursor)->ref;
-		Symbol *sb = ref->symbol;
-
-		if(ref->status == REF_SOLVED) {
-			//Ref already solved
-			continue;
-		}
-
-		BMapEntryAction *entry = bmap_action_get(&ref->state->actions, sb->id);
-		Action *cont = entry? &entry->action: NULL;
-
-		//There could be many references here:
-		// * When the calling NT's end state matches the continuation, there
-		//   could be many references to that terminal, we need the whole 
-		//   follow set.
-		// * When the continuation has its own references to other NT's.
-		//   In this case those invokes have to be solved to get the followset.
-
-		// TODO: All references must be solved! missing continuation return refs
-		if(cont && cont->state->status != STATE_CLEAR) {
-			trace_state(
-				"skip return ref to",
-				cont->state,
-				""
-			);
-			unsolved = 1;
-			continue;
-		}
-
-		//Solve reference
-		trace_state(
-			"append return ref to",
-			cont->state,
-			""
-		);
-
-		state_add_reduce_follow_set(nt->end, cont->state, sb->id);
-		ref->status = REF_SOLVED;
+		reference_solve_return_set(ref, nt, &unsolved);
 	}
 	bmap_cursor_ref_dispose(&rcursor);
 
