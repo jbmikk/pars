@@ -259,7 +259,6 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 			clone_type = action->type;
 		}
 
-		fflush(stdin);
 		Action *col = _state_get_transition(ref->state, entry->key);
 
 		if(col) {
