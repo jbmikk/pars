@@ -135,9 +135,11 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 
 			state_add_action(ref->state, entry->key, &clone);
 		}
-		ref->status = REF_SOLVED;
 	}
 	bmap_cursor_action_dispose(&cursor);
+
+	// TODO: Maybe the reference is not always solved?
+	ref->status = REF_SOLVED;
 }
 
 void reference_solve_return_set(Reference *ref, Nonterminal *nt, int *unsolved)
