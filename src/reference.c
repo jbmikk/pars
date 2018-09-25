@@ -9,7 +9,6 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 	Action *action;
 	BMapCursorAction cursor;
 	BMapEntryAction *entry;
-	bmap_cursor_action_init(&cursor, &(ref->to_state->actions));
 
 	if(ref->status == REF_SOLVED) {
 		//ref already solved
@@ -32,6 +31,8 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 		ref->to_state,
 		""
 	);
+
+	bmap_cursor_action_init(&cursor, &(ref->to_state->actions));
 	while(bmap_cursor_action_next(&cursor)) {
 		entry = bmap_cursor_action_current(&cursor);
 		action = &entry->action;
