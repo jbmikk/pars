@@ -42,7 +42,6 @@
 #define MATCH_ACCEPT(S, Y) MATCH_ACCEPT_AT(S, Y, 0)
 #define MATCH_EMPTY(S, Y) MATCH_EMPTY_AT(S, Y, 0)
 
-// TODO: implement test functions
 #define TEST_SHIFT(S, Y) \
 	tran = fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)}); \
 	t_assert(tran.action->type == ACTION_SHIFT);
@@ -50,6 +49,11 @@
 #define TEST_ERROR(S, Y) \
 	tran = fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)}); \
 	t_assert(tran.action->type == ACTION_ERROR);
+
+#define TEST_ACTION(S, Y, A) \
+	tran = fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)}); \
+	t_assert(tran.action == (A)); \
+	printf("%p = %p\n", tran.action, (A));
 
 
 typedef struct {
