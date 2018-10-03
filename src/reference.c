@@ -4,7 +4,7 @@
 
 #include "fsmtrace.h"
 
-static int _clone_action(Reference *ref, int key, Action *action)
+static int _clone_action(BMapAction *action_set, Reference *ref, int key, Action *action)
 {
 	int unsolved = 0;
 	//TODO: Make type for clone a parameter, do not override by
@@ -35,6 +35,8 @@ static int _clone_action(Reference *ref, int key, Action *action)
 
 	Action *col = state_get_transition(ref->state, key);
 
+	// TODO: Unify collision detection, skipping and merging with the ones
+	// used in the state functions.
 	if(col) {
 		if(
 			col->type == action->type &&
@@ -106,7 +108,7 @@ static int _clone_action(Reference *ref, int key, Action *action)
 			0
 		);
 
-		state_add_action(ref->state, key, &clone);
+		bmap_action_m_append(action_set, key, clone);
 	}
 end:
 	return unsolved;
@@ -139,12 +141,30 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 		""
 	);
 
+	// Add all cloned actions into a clone set, then merge the clone set
+	// into the ref state. It's important to do this in two passes in 
+	// order to avoid having collisions produced by the very actions we
+	// are cloning.
+	BMapAction action_set;
+	bmap_action_init(&action_set);
+
 	bmap_cursor_action_init(&cursor, &(ref->to_state->actions));
 	while(bmap_cursor_action_next(&cursor)) {
 		entry = bmap_cursor_action_current(&cursor);
-		*unsolved += _clone_action(ref, entry->key, &entry->action);
+		*unsolved += _clone_action(&action_set, ref, entry->key, &entry->action);
 	}
 	bmap_cursor_action_dispose(&cursor);
+
+	// TODO: should it always merge?
+	// Merge set
+	bmap_cursor_action_init(&cursor, &action_set);
+	while(bmap_cursor_action_next(&cursor)) {
+		entry = bmap_cursor_action_current(&cursor);
+		state_add_action(ref->state, entry->key, &entry->action);
+	}
+	bmap_cursor_action_dispose(&cursor);
+
+	bmap_action_dispose(&action_set);
 
 	// TODO: Maybe the reference is not always solved?
 	ref->status = REF_SOLVED;
