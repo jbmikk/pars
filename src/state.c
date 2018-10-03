@@ -97,10 +97,13 @@ static Action *_state_add_buffer(State *state, int symbol, Action *action)
 	Action *ret;
 	
 	// TODO: Compare all action properties?
+	// TODO: Unify collision detection, skipping and merging strategies
+	// with the ones used in the reference functions.
 	bool equal = 
 		collision &&
 		collision->type == action->type &&
-		collision->reduction == action->reduction;
+		collision->reduction == action->reduction &&
+		collision->end_symbol == action->end_symbol;
 
 	if(equal) {
 		trace_op(
