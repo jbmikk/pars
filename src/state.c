@@ -91,7 +91,7 @@ static Action *_state_get_transition(State *state, int symbol)
 	return action;
 }
 
-static Action *_state_add_buffer(State *state, int symbol, Action *action)
+static Action *_state_add_action(State *state, int symbol, Action *action)
 {
 	Action *collision = _state_get_transition(state, symbol);
 	Action *ret;
@@ -146,7 +146,7 @@ Action *state_add(State *state, int symbol, int type, int reduction)
 	Action ac;
 	action_init(&ac, type, reduction, NULL, 0, 0);
 
-	Action *action = _state_add_buffer(state, symbol, &ac);
+	Action *action = _state_add_action(state, symbol, &ac);
 
 	//TODO: Ambiguos transitions should be handled properly.
 	// There are different types of conflicts that could arise with 
@@ -186,7 +186,7 @@ Action *state_add_range(State *state, Range range, int type, int reduction)
 
 	action_init(&ac, type, reduction, NULL, ACTION_FLAG_RANGE, range.end);
 
-	action = _state_add_buffer(state, range.start, &ac);
+	action = _state_add_action(state, range.start, &ac);
 
 	if(action) {
 		if(type == ACTION_SHIFT) {
@@ -220,7 +220,7 @@ void state_add_reduce_follow_set(State *from, State *to, int symbol)
 		Action reduce;
 		action_init(&reduce, ACTION_REDUCE, symbol, NULL, ac->flags, ac->end_symbol);
 
-		_state_add_buffer(from, entry->key, &reduce);
+		_state_add_action(from, entry->key, &reduce);
 		trace_op("add", from, &reduce, entry->key, "reduce-follow", symbol);
 	}
 	bmap_cursor_action_dispose(&cursor);
