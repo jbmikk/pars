@@ -134,9 +134,11 @@ static Action *_state_add_buffer(State *state, int symbol, Action *action)
 	return ret;
 }
 
-Action *state_add_action(State *state, int symbol, Action *action)
+Action *state_append_action(State *state, int symbol, Action *action)
 {
-	return _state_add_buffer(state, symbol, action);
+	BMapEntryAction *entry;
+	entry = bmap_action_m_append(&state->actions, symbol, *action);
+	return &entry->action;
 }
 
 Action *state_add(State *state, int symbol, int type, int reduction)

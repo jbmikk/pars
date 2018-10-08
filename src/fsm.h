@@ -116,7 +116,7 @@ Action *state_get_transition(State *state, int symbol);
 void state_dispose(State *state);
 Action *state_add(State *from, int symbol, int type, int reduction);
 Action *state_add_range(State *state, Range range, int type, int reduction);
-Action *state_add_action(State *state, int symbol, Action *action);
+Action *state_append_action(State *state, int symbol, Action *action);
 void state_add_reduce_follow_set(State *from, State *to, int symbol);
 
 

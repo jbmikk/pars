@@ -160,7 +160,7 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 	bmap_cursor_action_init(&cursor, &action_set);
 	while(bmap_cursor_action_next(&cursor)) {
 		entry = bmap_cursor_action_current(&cursor);
-		state_add_action(ref->state, entry->key, &entry->action);
+		state_append_action(ref->state, entry->key, &entry->action);
 	}
 	bmap_cursor_action_dispose(&cursor);
 
