@@ -4,7 +4,21 @@
 
 #include "fsmtrace.h"
 
-static int _clone_action(BMapAction *action_set, Reference *ref, int key, Action *action)
+static void _merge_action_set(State *to, BMapAction *action_set)
+{
+	BMapCursorAction cursor;
+	BMapEntryAction *entry;
+
+	// Merge set
+	bmap_cursor_action_init(&cursor, action_set);
+	while(bmap_cursor_action_next(&cursor)) {
+		entry = bmap_cursor_action_current(&cursor);
+		state_append_action(to, entry->key, &entry->action);
+	}
+	bmap_cursor_action_dispose(&cursor);
+}
+
+static int _clone_fs_action(BMapAction *action_set, Reference *ref, int key, Action *action)
 {
 	int unsolved = 0;
 	//TODO: Make type for clone a parameter, do not override by
@@ -151,23 +165,81 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 	bmap_cursor_action_init(&cursor, &(ref->to_state->actions));
 	while(bmap_cursor_action_next(&cursor)) {
 		entry = bmap_cursor_action_current(&cursor);
-		*unsolved += _clone_action(&action_set, ref, entry->key, &entry->action);
+		*unsolved += _clone_fs_action(&action_set, ref, entry->key, &entry->action);
 	}
 	bmap_cursor_action_dispose(&cursor);
 
 	// TODO: should it always merge?
-	// Merge set
-	bmap_cursor_action_init(&cursor, &action_set);
-	while(bmap_cursor_action_next(&cursor)) {
-		entry = bmap_cursor_action_current(&cursor);
-		state_append_action(ref->state, entry->key, &entry->action);
-	}
-	bmap_cursor_action_dispose(&cursor);
-
+	_merge_action_set(ref->state, &action_set);
 	bmap_action_dispose(&action_set);
 
 	// TODO: Maybe the reference is not always solved?
 	ref->status = REF_SOLVED;
+}
+
+static void _clone_rs_action(Reference *ref, BMapAction *action_set, Nonterminal *nt, int key, Action *action)
+{
+	Symbol *sb = ref->symbol;
+	// Empty transitions should not be cloned.
+	// They should be followed recursively to get the whole follow set,
+	// otherwise me might loose reductions.
+
+	// Always reduce?
+	int clone_type = ACTION_REDUCE;
+
+	Action *col = state_get_transition(nt->end, key);
+
+	// TODO: Unify collision detection, skipping and merging with the ones
+	// used in the state functions.
+	if(col) {
+		if(
+			col->type == action->type &&
+			col->state == action->state &&
+			col->reduction == action->reduction &&
+			col->end_symbol == action->end_symbol &&
+			col->flags == action->flags
+		) {
+			trace_op(
+				"collision",
+				nt->end,
+				action,
+				key,
+				"skip duplicate",
+				0
+			);
+			goto end;
+		}
+
+		//Collision: redefine actions in order to disambiguate.
+		trace_op(
+			"collision",
+			nt->end,
+			col,
+			key,
+			"unhandled return set collision",
+			0
+		);
+
+		// TODO: sentinel?
+	} else {
+
+		//No collision detected, clone the action an add it.
+		Action clone;
+		action_init(&clone, clone_type, sb->id, NULL, action->flags, action->end_symbol);
+
+		trace_op(
+			"add",
+			nt->end,
+			&clone,
+			key,
+			"return-set",
+			0
+		);
+
+		bmap_action_m_append(action_set, key, clone);
+	}
+end:
+	return;
 }
 
 void reference_solve_return_set(Reference *ref, Nonterminal *nt, int *unsolved)
@@ -209,21 +281,18 @@ void reference_solve_return_set(Reference *ref, Nonterminal *nt, int *unsolved)
 
 	BMapCursorAction cursor;
 
-	// Empty transitions should not be cloned.
-	// They should be followed recursively to get the whole follow set,
-	// otherwise me might loose reductions.
+	BMapAction action_set;
+	bmap_action_init(&action_set);
+
 	bmap_cursor_action_init(&cursor, &cont->state->actions);
 	while(bmap_cursor_action_next(&cursor)) {
 		BMapEntryAction *e = bmap_cursor_action_current(&cursor);
-		Action *ac = &e->action;
-		Action reduce;
-		action_init(&reduce, ACTION_REDUCE, sb->id, NULL, ac->flags, ac->end_symbol);
-
-		// TODO: avoid duplicates just like in first sets and detect conflicts
-		state_append_action(nt->end, e->key, &reduce);
-		trace_op("add", nt->end, &reduce, e->key, "reduce-follow", sb->id);
+		_clone_rs_action(ref, &action_set, nt, e->key, &e->action);
 	}
 	bmap_cursor_action_dispose(&cursor);
+
+	_merge_action_set(nt->end, &action_set);
+	bmap_action_dispose(&action_set);
 
 	ref->status = REF_SOLVED;
 }
