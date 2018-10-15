@@ -207,7 +207,23 @@ void reference_solve_return_set(Reference *ref, Nonterminal *nt, int *unsolved)
 		""
 	);
 
-	state_add_reduce_follow_set(nt->end, cont->state, sb->id);
+	BMapCursorAction cursor;
+
+	// Empty transitions should not be cloned.
+	// They should be followed recursively to get the whole follow set,
+	// otherwise me might loose reductions.
+	bmap_cursor_action_init(&cursor, &cont->state->actions);
+	while(bmap_cursor_action_next(&cursor)) {
+		BMapEntryAction *e = bmap_cursor_action_current(&cursor);
+		Action *ac = &e->action;
+		Action reduce;
+		action_init(&reduce, ACTION_REDUCE, sb->id, NULL, ac->flags, ac->end_symbol);
+
+		// TODO: avoid duplicates just like in first sets and detect conflicts
+		state_append_action(nt->end, e->key, &reduce);
+		trace_op("add", nt->end, &reduce, e->key, "reduce-follow", sb->id);
+	}
+	bmap_cursor_action_dispose(&cursor);
+
 	ref->status = REF_SOLVED;
 }
-

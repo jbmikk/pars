@@ -204,28 +204,6 @@ Action *state_add_range(State *state, Range range, int type, int reduction)
 	return action;
 }
 
-void state_add_reduce_follow_set(State *from, State *to, int symbol)
-{
-	Action *ac;
-	BMapCursorAction cursor;
-	BMapEntryAction *entry;
-
-	// Empty transitions should not be cloned.
-	// They should be followed recursively to get the whole follow set,
-	// otherwise me might loose reductions.
-	bmap_cursor_action_init(&cursor, &to->actions);
-	while(bmap_cursor_action_next(&cursor)) {
-		entry = bmap_cursor_action_current(&cursor);
-		ac = &entry->action;
-		Action reduce;
-		action_init(&reduce, ACTION_REDUCE, symbol, NULL, ac->flags, ac->end_symbol);
-
-		_state_add_action(from, entry->key, &reduce);
-		trace_op("add", from, &reduce, entry->key, "reduce-follow", symbol);
-	}
-	bmap_cursor_action_dispose(&cursor);
-}
-
 Action *state_get_transition(State *state, int symbol)
 {
 	return _state_get_transition(state, symbol);
