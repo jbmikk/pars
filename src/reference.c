@@ -4,6 +4,16 @@
 
 #include "fsmtrace.h"
 
+static int _compare(Action a1, Action a2)
+{
+	return a1.type == a2.type &&
+		a1.state == a2.state &&
+		a1.reduction == a2.reduction &&
+		a1.end_symbol == a2.end_symbol &&
+		a1.flags == a2.flags? 0: 1;
+}
+
+
 static void _merge_action_set(State *to, BMapAction *action_set)
 {
 	BMapCursorAction cursor;
@@ -52,13 +62,7 @@ static int _clone_fs_action(BMapAction *action_set, Reference *ref, int key, Act
 	// TODO: Unify collision detection, skipping and merging with the ones
 	// used in the state functions.
 	if(col) {
-		if(
-			col->type == action->type &&
-			col->state == action->state &&
-			col->reduction == action->reduction &&
-			col->end_symbol == action->end_symbol &&
-			col->flags == action->flags
-		) {
+		if(!_compare(*action, *col)) {
 			trace_op(
 				"collision",
 				ref->state,
@@ -192,13 +196,7 @@ static void _clone_rs_action(Reference *ref, BMapAction *action_set, Nonterminal
 	// TODO: Unify collision detection, skipping and merging with the ones
 	// used in the state functions.
 	if(col) {
-		if(
-			col->type == action->type &&
-			col->state == action->state &&
-			col->reduction == action->reduction &&
-			col->end_symbol == action->end_symbol &&
-			col->flags == action->flags
-		) {
+		if(!_compare(*action, *col)) {
 			trace_op(
 				"collision",
 				nt->end,
