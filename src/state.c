@@ -98,7 +98,13 @@ static Action *_state_add_action(State *state, int symbol, Action *action)
 	
 	// TODO: Compare all action properties?
 	// TODO: Unify collision detection, skipping and merging strategies
-	// with the ones used in the reference functions.
+	// with the ones used in the reference functions. Possible remove
+	// collision detection altogether at this level. We should just let
+	// everything be merged because we support multi-keys. Ambiguity
+	// should be handled at a higher level, at the reference level for
+	// instance. And if the strategy allows having alternate paths, then
+	// at the validation or execution/interpreter level we should handle
+	// the multiple paths, such as when backtracking.
 	bool equal = 
 		collision &&
 		collision->type == action->type &&
