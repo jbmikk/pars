@@ -3,7 +3,7 @@
 
 #include "dbg.h"
 
-int input_continuation_follow(const Continuation *cont, Input *input, Token *token)
+int source_continuation_follow(const Continuation *cont, Source *source, Token *token)
 {
 	int ret;
 
@@ -13,7 +13,7 @@ int input_continuation_follow(const Continuation *cont, Input *input, Token *tok
 	}
 	switch(cont->transition.action->type) {
 	case ACTION_START:
-		input_next_token(input, &cont->transition.token, token);
+		source_next_token(source, &cont->transition.token, token);
 		ret = 0;
 		break;
 	case ACTION_ACCEPT:
@@ -23,7 +23,7 @@ int input_continuation_follow(const Continuation *cont, Input *input, Token *tok
 			ret = -3;
 			break;
 		}
-		input_next_token(input, &cont->transition.token, token);
+		source_next_token(source, &cont->transition.token, token);
 		ret = 0;
 		break;
 	case ACTION_ERROR:
@@ -53,7 +53,7 @@ int control_loop_linear(void *object, void *params)
 	token_init(&cont.transition.token, 0, 0, 0);
 	cont.transition.action = &dummy;
 
-	while(!input_continuation_follow(&cont, context->input, &token)) {
+	while(!source_continuation_follow(&cont, context->source, &token)) {
 		cont = fsm_thread_loop(&context->lexer_thread, token);
 	}
 
@@ -95,7 +95,7 @@ int ast_continuation_follow(const Continuation *cont, AstCursor *cursor, Token *
 		}
 
 		// TODO: Should the index be part of the ast?
-		// We need the index for input back tracking. We should be 
+		// We need the index for source back tracking. We should be 
 		// able to move the iterator back to the specific node.
 		int index = cont->transition.token.index + 1;
 		node = ast_cursor_depth_next(cursor);
@@ -129,7 +129,7 @@ int control_loop_ast(void *object, void *params)
 	token_init(&token_up, 0, 0, t_up->id);
 
 	AstCursor cursor;
-	ast_cursor_init(&cursor, context->input_ast);
+	ast_cursor_init(&cursor, context->source_ast);
 
 	Continuation cont = { .error = 0 };
 

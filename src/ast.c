@@ -38,10 +38,10 @@ void ast_node_dispose(AstNode *node)
 }
 
 
-void ast_init(Ast *ast, Input *input, SymbolTable *table)
+void ast_init(Ast *ast, Source *source, SymbolTable *table)
 {
 	ast_node_init(&ast->root, NULL, &(Token){0, 0, 0});
-	ast->input = input;
+	ast->source = source;
 	ast->table = table;
 }
 
@@ -208,7 +208,7 @@ AstNode *ast_cursor_next_sibling_symbol(AstCursor *cursor, int symbol)
 
 void ast_cursor_get_string(AstCursor *cursor, char **str, int *length)
 {
-	*str = (char *)cursor->ast->input->buffer + cursor->current->token.index;
+	*str = (char *)cursor->ast->source->buffer + cursor->current->token.index;
 	*length = cursor->current->token.length;
 }
 
@@ -235,8 +235,8 @@ void ast_print_node(Ast *ast, AstNode *node, int level) {
 		int index = next->token.index;
 		int length = 0;
 
-		if(ast->input) {
-			src = ast->input->buffer + next->token.index;
+		if(ast->source) {
+			src = ast->source->buffer + next->token.index;
 			length = next->token.length;
 		}
 

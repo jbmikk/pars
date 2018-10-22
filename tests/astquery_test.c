@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "input.h"
+#include "source.h"
 #include "ast.h"
 #include "astbuilder.h"
 #include "astquery.h"
@@ -12,22 +12,22 @@ char *buffer = "this is a test";
 
 typedef struct {
 	SymbolTable table;
-	Input input;
+	Source source;
 	Ast ast;
 } Fixture;
 
 Fixture fix;
 
 void t_setup(){
-	input_set_data(&fix.input, buffer, strlen(buffer));
+	source_set_data(&fix.source, buffer, strlen(buffer));
 	symbol_table_init(&fix.table);
-	ast_init(&fix.ast, &fix.input, &fix.table);
+	ast_init(&fix.ast, &fix.source, &fix.table);
 }
 
 void t_teardown(){
 	ast_dispose(&fix.ast);
 	symbol_table_dispose(&fix.table);
-	input_dispose(&fix.input);
+	source_dispose(&fix.source);
 }
 
 void ast_query_sibling_iteration(){

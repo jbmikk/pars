@@ -37,9 +37,9 @@ typedef struct {
 
 	//Utf8 lexer tests
 	/*
-	Input input_utf8_two_byte;
+	Source source_utf8_two_byte;
 	Lexer lexer_utf8_two_byte;
-	Input input_utf8_three_byte;
+	Source source_utf8_three_byte;
 	Lexer lexer_utf8_three_byte;
 	*/
 } Fixture;
@@ -61,10 +61,10 @@ void t_setup(){
 	fsm_thread_start(&fix.thread);
 	//Utf8 tests
 	/*
-	input_set_data(&fix.input_utf8_two_byte, I_UTF8_TWO_BYTE, strlen(I_UTF8_TWO_BYTE));
-	lexer_init(&fix.lexer_utf8_two_byte, &fix.input_utf8_two_byte);
-	input_set_data(&fix.input_utf8_three_byte, I_UTF8_THREE_BYTE, strlen(I_UTF8_THREE_BYTE));
-	lexer_init(&fix.lexer_utf8_three_byte, &fix.input_utf8_three_byte);
+	source_set_data(&fix.source_utf8_two_byte, I_UTF8_TWO_BYTE, strlen(I_UTF8_TWO_BYTE));
+	lexer_init(&fix.lexer_utf8_two_byte, &fix.source_utf8_two_byte);
+	source_set_data(&fix.source_utf8_three_byte, I_UTF8_THREE_BYTE, strlen(I_UTF8_THREE_BYTE));
+	lexer_init(&fix.lexer_utf8_three_byte, &fix.source_utf8_three_byte);
 	*/
 }
 
@@ -74,7 +74,7 @@ void t_teardown(){
 	symbol_table_dispose(&fix.table);
 }
 
-void lexer_input_next__integer_token(){
+void lexer_source_next__integer_token(){
 	Transition tran;
 	int INTEGER = fsm_get_symbol_id(&fix.fsm, nzs("integer"));
 
@@ -86,7 +86,7 @@ void lexer_input_next__integer_token(){
 	MATCH_ACCEPT(fix.thread, 0, 4, INTEGER);
 }
 
-void lexer_input_next__identifier_token(){
+void lexer_source_next__identifier_token(){
 	Transition tran;
 	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
 
@@ -106,7 +106,7 @@ void lexer_input_next__identifier_token(){
 	MATCH_ACCEPT(fix.thread, 0, 12, META_IDENTIFIER);
 }
 
-void lexer_input_next__terminal_string_token(){
+void lexer_source_next__terminal_string_token(){
 	Transition tran;
 	int TERMINAL_STRING = fsm_get_symbol_id(&fix.fsm, nzs("terminal_string"));
 
@@ -122,7 +122,7 @@ void lexer_input_next__terminal_string_token(){
 	MATCH_ACCEPT(fix.thread, 0, 8, TERMINAL_STRING);
 }
 
-void lexer_input_next__skip_white_space(){
+void lexer_source_next__skip_white_space(){
 	Transition tran;
 	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
 	int DEFINING_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("defining_symbol"));
@@ -143,7 +143,7 @@ void lexer_input_next__skip_white_space(){
 	MATCH_ACCEPT(fix.thread, 4, 1, DEFINING_SYMBOL);
 }
 
-void lexer_input_next__whole_rule(){
+void lexer_source_next__whole_rule(){
 	Transition tran;
 	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
 	int DEFINING_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("defining_symbol"));
@@ -200,7 +200,7 @@ void lexer_input_next__whole_rule(){
 	MATCH_ACCEPT(fix.thread, 17, 0, L_EOF);
 }
 
-void lexer_input_next__white_token(){
+void lexer_source_next__white_token(){
 	Transition tran;
 	int WHITE_SPACE = fsm_get_symbol_id(&fix.fsm, nzs("white_space"));
 	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
@@ -221,14 +221,14 @@ void lexer_input_next__white_token(){
 }
 
 /*
-void lexer_input_next__utf8_two_byte(){
+void lexer_source_next__utf8_two_byte(){
 	utf8_lexer(&fix.lexer_utf8_two_byte, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == 0xF1);
 	t_assert(fix.token.index == 0);
 	t_assert(fix.token.length == 2);
 }
 
-void lexer_input_next__utf8_three_byte(){
+void lexer_source_next__utf8_three_byte(){
 	utf8_lexer(&fix.lexer_utf8_three_byte, &fix.token, &fix.token);
 	t_assert(fix.token.symbol == 0xF71);
 	t_assert(fix.token.index == 0);
@@ -238,16 +238,16 @@ void lexer_input_next__utf8_three_byte(){
 
 int main(int argc, char** argv){
 	t_init();
-	t_test(lexer_input_next__integer_token);
-	t_test(lexer_input_next__identifier_token);
-	t_test(lexer_input_next__terminal_string_token);
-	t_test(lexer_input_next__skip_white_space);
-	t_test(lexer_input_next__whole_rule);
-	t_test(lexer_input_next__white_token);
+	t_test(lexer_source_next__integer_token);
+	t_test(lexer_source_next__identifier_token);
+	t_test(lexer_source_next__terminal_string_token);
+	t_test(lexer_source_next__skip_white_space);
+	t_test(lexer_source_next__whole_rule);
+	t_test(lexer_source_next__white_token);
 
 	/*
-	t_test(lexer_input_next__utf8_two_byte);
-	t_test(lexer_input_next__utf8_three_byte);
+	t_test(lexer_source_next__utf8_two_byte);
+	t_test(lexer_source_next__utf8_three_byte);
 	*/
 	return t_done();
 }

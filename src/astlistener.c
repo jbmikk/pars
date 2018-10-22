@@ -25,7 +25,7 @@ int ast_parser_pipe(void *_context, void *_cont)
 int ast_parse_start(void *object, void *params)
 {
 	ParserContext *context = (ParserContext *)object;
-	ast_init(context->ast, context->input, &context->parser->table);
+	ast_init(context->ast, context->source, &context->parser->table);
 	ast_builder_init(&context->ast_builder, context->ast);
 
 	return 0;

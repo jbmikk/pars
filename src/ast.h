@@ -3,7 +3,7 @@
 
 #include "rtree.h"
 #include "stack.h"
-#include "input.h"
+#include "source.h"
 #include "symbols.h"
 #include "token.h"
 
@@ -20,7 +20,7 @@ struct AstNode {
 typedef struct Ast {
 	AstNode root;
 	SymbolTable *table;
-	Input *input;
+	Source *source;
 } Ast;
 
 DEFINE(Stack, AstNode *, AstNode, astnode);
@@ -38,7 +38,7 @@ PROTOTYPES(BMap, unsigned int, AstNode *, AstNode, astnode)
 void ast_node_init(AstNode *node, AstNode *parent, const Token *token);
 void ast_node_dispose(AstNode *node);
 
-void ast_init(Ast *ast, Input *input, SymbolTable *table);
+void ast_init(Ast *ast, Source *source, SymbolTable *table);
 void ast_dispose(Ast *ast);
 void ast_print(Ast *ast);
 int ast_get_symbol(AstCursor *cur, char *name, unsigned int length);

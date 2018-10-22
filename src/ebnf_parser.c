@@ -13,7 +13,7 @@
 
 jmp_buf on_error;
 
-void parse_error(Input *input, unsigned int index)
+void parse_error(Source *source, unsigned int index)
 {
 	longjmp(on_error, 1);
 }

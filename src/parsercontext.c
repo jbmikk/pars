@@ -3,7 +3,7 @@
 
 void parser_context_init(ParserContext *context, Parser *parser)
 {
-	context->input = NULL;
+	context->source = NULL;
 	context->ast = NULL;
 
 	context->parser = parser;
@@ -19,9 +19,9 @@ void parser_context_dispose(ParserContext *context)
 	fsm_thread_dispose(&context->lexer_thread);
 }
 
-void parser_context_set_input(ParserContext *context, Input *input)
+void parser_context_set_source(ParserContext *context, Source *source)
 {
-	context->input = input;
+	context->source = source;
 }
 
 void parser_context_set_ast(ParserContext *context, Ast *ast)
@@ -29,9 +29,9 @@ void parser_context_set_ast(ParserContext *context, Ast *ast)
 	context->ast = ast;
 }
 
-void parser_context_set_input_ast(ParserContext *context, Ast *ast)
+void parser_context_set_source_ast(ParserContext *context, Ast *ast)
 {
-	context->input_ast = ast;
+	context->source_ast = ast;
 }
 
 int parser_context_execute(ParserContext *context)

@@ -9,7 +9,7 @@ echo ""
 echo "TESTPARS:"
 echo "--------"
 
-run_test $MODE $PATTERN ./input_test
+run_test $MODE $PATTERN ./source_test
 run_test $MODE $PATTERN ./lexer_test
 run_test $MODE $PATTERN ./ebnf_parser_test
 run_test $MODE $PATTERN ./fsm_test

@@ -2,7 +2,7 @@
 
 #include "dbg.h"
 #include "cmemory.h"
-#include "input.h"
+#include "source.h"
 #include "fsm.h"
 #include "parsercontext.h"
 #include "ebnf_parser.h"
@@ -12,14 +12,14 @@
 #include <stdio.h>
 
 
-static int _parse_grammar(Parser *ebnf_parser, Input *input, Parser *parser)
+static int _parse_grammar(Parser *ebnf_parser, Source *source, Parser *parser)
 {
 	Ast ast;
 	ParserContext context;
 	parser_context_init(&context, ebnf_parser);
 
 	parser_context_set_ast(&context, &ast);
-	parser_context_set_input(&context, input);
+	parser_context_set_source(&context, source);
 
 	int error = parser_context_execute(&context);
 	check(!error, "Could not build ebnf ast.");
@@ -40,42 +40,42 @@ error:
 
 int cli_load_grammar(Params *params, Parser *parser)
 {
-	Input input;
+	Source source;
 	Parser ebnf_parser;
 	int error;
 
 	parser_init(&ebnf_parser);
-	input_init(&input);
+	source_init(&source);
 
 	error = ebnf_build_parser(&ebnf_parser);
 	check(!error, "Could not build ebnf parser.");
 
-	error = input_open_file(&input, params->param);
+	error = source_open_file(&source, params->param);
 	check(!error, "Could not open grammar file.");
 
-	error = _parse_grammar(&ebnf_parser, &input, parser);
+	error = _parse_grammar(&ebnf_parser, &source, parser);
 	check(!error, "Could not parse grammar.");
 
 	parser_dispose(&ebnf_parser);
-	input_dispose(&input);
+	source_dispose(&source);
 
 	return 0;
 error:
 	parser_dispose(&ebnf_parser);
-	input_dispose(&input);
+	source_dispose(&source);
 
 	return -1;
 }
 
 #define nzs(S) (S), (strlen(S))
 
-static int _parse_source(Parser *parser, Input *input, Ast *ast)
+static int _parse_source(Parser *parser, Source *source, Ast *ast)
 {
 	ParserContext context;
 	parser_context_init(&context, parser);
 
 	parser_context_set_ast(&context, ast);
-	parser_context_set_input(&context, input);
+	parser_context_set_source(&context, source);
 
 	int error = parser_context_execute(&context);
 	check(!error, "Could not build ast for source.");
@@ -89,23 +89,23 @@ error:
 
 int cli_load_source(Params *params, Parser *parser, Ast *ast)
 {
-	Input input;
+	Source source;
 	int error;
 
-	input_init(&input);
+	source_init(&source);
 
-	error = input_open_file(&input, params->param);
-	check(!error, "Could not open input file.");
+	error = source_open_file(&source, params->param);
+	check(!error, "Could not open source file.");
 
-	error = _parse_source(parser, &input, ast);
+	error = _parse_source(parser, &source, ast);
 	check(!error, "Could not parse source: %s", params->param);
 
 	ast_print(ast);
 
-	input_dispose(&input);
+	source_dispose(&source);
 	return 0;
 error:
-	input_dispose(&input);
+	source_dispose(&source);
 	return -1;
 }
 

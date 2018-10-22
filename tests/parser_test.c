@@ -227,7 +227,7 @@ void _parser_basic_parse(){
 
 	parser_context_init(&context, &fix.parser);
 
-	parser_context_set_input_ast(&context, &ast);
+	parser_context_set_source_ast(&context, &ast);
 
 	int error = parser_context_execute(&context);
 
@@ -256,7 +256,7 @@ static void _parse_parent_and_siblings_test(){
 
 	parser_context_init(&context, &fix.parser);
 
-	parser_context_set_input_ast(&context, &ast);
+	parser_context_set_source_ast(&context, &ast);
 
 	int error = parser_context_execute(&context);
 
@@ -289,7 +289,7 @@ static void _parse_sibling_with_children_test(){
 
 	parser_context_init(&context, &fix.parser);
 
-	parser_context_set_input_ast(&context, &ast);
+	parser_context_set_source_ast(&context, &ast);
 
 	int error = parser_context_execute(&context);
 
@@ -318,7 +318,7 @@ static void _parse_parent_child_nonterminal(){
 
 	parser_context_init(&context, &fix.parser);
 
-	parser_context_set_input_ast(&context, &ast);
+	parser_context_set_source_ast(&context, &ast);
 
 	int error = parser_context_execute(&context);
 
