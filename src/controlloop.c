@@ -3,41 +3,6 @@
 
 #include "dbg.h"
 
-int source_continuation_follow(const Continuation *cont, Source *source, Token *token)
-{
-	int ret;
-
-	if(cont->error) {
-		ret = cont->error;
-		goto end;
-	}
-	switch(cont->transition.action->type) {
-	case ACTION_START:
-		source_next_token(source, &cont->transition.token, token);
-		ret = 0;
-		break;
-	case ACTION_ACCEPT:
-	case ACTION_SHIFT:
-	case ACTION_DROP:
-		if(token->symbol == L_EOF) {
-			ret = -3;
-			break;
-		}
-		source_next_token(source, &cont->transition.token, token);
-		ret = 0;
-		break;
-	case ACTION_ERROR:
-		ret = -1;
-	default:
-		// TODO: sentinel? should never reach this place
-		ret = -2;
-		break;
-	}
-
-end:
-	return ret;
-}
-
 int control_loop_linear(void *object, void *params)
 {
 	ParserContext *context = (ParserContext *)object;
@@ -53,8 +18,8 @@ int control_loop_linear(void *object, void *params)
 	token_init(&cont.transition.token, 0, 0, 0);
 	cont.transition.action = &dummy;
 
-	while(!source_continuation_follow(&cont, context->source, &token)) {
-		cont = fsm_thread_loop(&context->lexer_thread, token);
+	while(!input_linear_feed(&context->input, &cont, &token)) {
+		cont = input_loop(&context->input, &context->lexer_thread, token);
 	}
 
 	// TODO: Add error details (lexer or parser?)
@@ -68,50 +33,6 @@ int control_loop_linear(void *object, void *params)
 	return 0;
 error:
 	return -1;
-}
-
-int ast_continuation_follow(const Continuation *cont, AstCursor *cursor, Token *token)
-{
-	int ret;
-	AstNode *node;
-
-	if(cont->error) {
-		ret = cont->error;
-		goto end;
-	}
-	switch(cont->transition.action->type) {
-	case ACTION_START:
-		node = ast_cursor_depth_next(cursor);
-		token_init(token, 0, 0, node->token.symbol);
-
-		ret = 0;
-		break;
-	case ACTION_ACCEPT:
-	case ACTION_SHIFT:
-	case ACTION_DROP:
-		if(token->symbol == L_EOF) {
-			ret = -3;
-			break;
-		}
-
-		// TODO: Should the index be part of the ast?
-		// We need the index for source back tracking. We should be 
-		// able to move the iterator back to the specific node.
-		int index = cont->transition.token.index + 1;
-		node = ast_cursor_depth_next(cursor);
-		token_init(token, index, 0, node->token.symbol);
-		ret = 0;
-		break;
-	case ACTION_ERROR:
-		ret = -1;
-	default:
-		// TODO: sentinel? should never reach this place
-		ret = -2;
-		break;
-	}
-
-end:
-	return ret;
 }
 
 int control_loop_ast(void *object, void *params)
@@ -128,8 +49,9 @@ int control_loop_ast(void *object, void *params)
 	Token token_up;
 	token_init(&token_up, 0, 0, t_up->id);
 
+	// TODO: Move cursor inside input
 	AstCursor cursor;
-	ast_cursor_init(&cursor, context->source_ast);
+	ast_cursor_init(&cursor, context->input.ast);
 
 	Continuation cont = { .error = 0 };
 
@@ -140,16 +62,18 @@ int control_loop_ast(void *object, void *params)
 	token_init(&cont.transition.token, 0, 0, 0);
 	cont.transition.action = &dummy;
 
-	while(!ast_continuation_follow(&cont, &cursor, &token)) {
+	while(!input_ast_feed(&context->input, &cont, &cursor, &token)) {
 
+		// TODO: Maybe the up and down tokens should be pushed in the
+		// ast feed function;
 		if(cursor.offset == 1) {
-			cont = fsm_thread_loop(&context->thread, token_down);
+			cont = input_loop(&context->input, &context->thread, token_down);
 			check(
 				!cont.error,
 				"Parser error at DOWN node"
 			);
 		} else if(cursor.offset < 0) {
-			cont = fsm_thread_loop(&context->thread, token_up);
+			cont = input_loop(&context->input, &context->thread, token_up);
 			check(
 				!cont.error,
 				"Parser error at UP node"
@@ -158,7 +82,7 @@ int control_loop_ast(void *object, void *params)
 
 		// TODO: no need for a full pda loop for now, a simple fsm
 		// should do.
-		cont = fsm_thread_loop(&context->thread, token);
+		cont = input_loop(&context->input, &context->thread, token);
 		check(
 			!cont.error,
 			"Parser error at token "

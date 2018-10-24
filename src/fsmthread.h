@@ -43,6 +43,6 @@ void fsm_thread_dispose(FsmThread *thread);
 int fsm_thread_start(FsmThread *thread);
 Transition fsm_thread_match(FsmThread *thread, const Token *token);
 void fsm_thread_apply(FsmThread *thread, Transition transition);
-Continuation fsm_thread_loop(FsmThread *thread, const Token token);
+Continuation fsm_thread_cycle(FsmThread *thread, const Token token);
 
 #endif //FSM_THREAD_H

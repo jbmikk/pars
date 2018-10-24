@@ -171,69 +171,23 @@ void fsm_thread_apply(FsmThread *thread, Transition transition)
 	thread->transition = t;
 }
 
-// TODO: Does this code belongs elsewhere?
-static int _continuation_follow(const Continuation *cont, const Token *in, Token *out, int *count)
+Continuation fsm_thread_cycle(FsmThread *thread, const Token token)
 {
-	// TODO: Add constants for errors / control codes
-	int ret;
-
-	switch(cont->transition.action->type) {
-	case ACTION_SHIFT:
-	case ACTION_ACCEPT:
-	case ACTION_DROP:
-		if(*count == 0) {
-			// In token was matched, end loop
-			ret = 1;
-		} else {
-			// In token generated a reduction the last time
-			// Try matching it again.
-			(*count)--;
-			*out = *in;
-			ret = cont->error;
-		}
-		break;
-	case ACTION_REDUCE:
-		(*count)++;
-		*out = cont->transition.token;
-		ret = cont->error;
-		break;
-	case ACTION_EMPTY:
-		*out = cont->transition.token;
-		ret = cont->error;
-		break;
-	case ACTION_ERROR:
-		ret = -1;
-		break;
-	default:
-		ret = -2;
-		break;
-	}
-	return ret;
-}
-
-
-Continuation fsm_thread_loop(FsmThread *thread, const Token token)
-{
-	int count = 0;
-
-	Token retry = token;
 	Transition transition;
 	Continuation cont;
-	do {
-		transition = fsm_thread_match(thread, &retry);
-		_trace_transition(transition, thread->transition);
 
-		fsm_thread_apply(thread, transition);
-		transition = thread->transition;
+	transition = fsm_thread_match(thread, &token);
+	_trace_transition(transition, thread->transition);
 
-		int error = listener_notify(&thread->pipe, &transition);
+	fsm_thread_apply(thread, transition);
+	transition = thread->transition;
 
-		// Listener's return value is combined with the transition to
-		// get the continuation.
-		cont.transition = transition;
-		cont.error = error || transition.action->type == ACTION_ERROR;
+	int error = listener_notify(&thread->pipe, &transition);
 
-		// TODO: Temporary transition, it should be in control loop
-	} while (!_continuation_follow(&cont, &token, &retry, &count));
+	// Listener's return value is combined with the transition to
+	// get the continuation.
+	cont.transition = transition;
+	cont.error = error || transition.action->type == ACTION_ERROR;
+
 	return cont;
 }

@@ -182,7 +182,7 @@ int atl_lexer_pipe(void *_context, void *_tran)
 	Continuation cont = { .error = 0 };
 	//Filter white space and tokens
 	if(token.symbol != comment->id && token.symbol != white_space->id) {
-		cont = fsm_thread_loop(&context->thread, token);
+		cont = input_loop(&context->proxy_input, &context->thread, token);
 	}
 	return cont.error;
 }

@@ -3,8 +3,8 @@
 
 void parser_context_init(ParserContext *context, Parser *parser)
 {
-	context->source = NULL;
-	context->ast = NULL;
+	input_init(&context->input);
+	input_init(&context->proxy_input);
 
 	context->parser = parser;
 	parser->build_context(context);
@@ -21,7 +21,7 @@ void parser_context_dispose(ParserContext *context)
 
 void parser_context_set_source(ParserContext *context, Source *source)
 {
-	context->source = source;
+	input_set_source(&context->input, source);
 }
 
 void parser_context_set_ast(ParserContext *context, Ast *ast)
@@ -31,7 +31,7 @@ void parser_context_set_ast(ParserContext *context, Ast *ast)
 
 void parser_context_set_source_ast(ParserContext *context, Ast *ast)
 {
-	context->source_ast = ast;
+	input_set_source_ast(&context->input, ast);
 }
 
 int parser_context_execute(ParserContext *context)

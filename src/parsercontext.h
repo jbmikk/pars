@@ -3,6 +3,7 @@
 
 #include "parser.h"
 #include "fsmthread.h"
+#include "input.h"
 #include "listener.h"
 #include "ast.h"
 #include "astbuilder.h"
@@ -21,8 +22,8 @@ typedef struct ParserContext {
 	FsmThread lexer_thread;
 	Ast *ast;
 	AstBuilder ast_builder;
-	Source *source;
-	Ast *source_ast;
+	Input input;
+	Input proxy_input;
 } ParserContext;
 
 void parser_context_init(ParserContext *context, Parser *parser);
