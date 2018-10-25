@@ -44,11 +44,26 @@ static int _continuation_feed(Input *input, const Continuation *cont, const Toke
 		}
 		break;
 	case ACTION_REDUCE:
+		// Reductions are supposed to be a lookahead. 
+		// If we consume the input we can achieve the same thing by
+		// pushing it back on top of the input stack, then pushing the
+		// reduction.
+		// Unless we return a non-zero value here, that means we are
+		// pushing a symbol on top of the stack.
+		// The count means we are putting yet another token on top of 
+		// the other, that is two symbols in total.
 		(*count)++;
 		*out = cont->transition.token;
 		ret = cont->error;
 		break;
 	case ACTION_EMPTY:
+		// When we match this action, we know we didn't consume the
+		// input token, thus try matching it again. Is there any other
+		// way of signaling the input wasn't matched?
+		// If we find another way we may not need to use fake actions.
+		// Maybe push the input token back into the input stack?
+		// In this case we don't need the count, because we are 
+		// pushing a single symbol.
 		*out = cont->transition.token;
 		ret = cont->error;
 		break;

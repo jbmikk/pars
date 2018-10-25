@@ -113,6 +113,21 @@ static Transition _shift_reduce(Transition transition, FsmThread *thread) {
 			t.token.index - popped.index,
 			action->reduction
 		};
+		// TODO: bullshit, it should be the matched *token always.
+		// Or at least use a fucking union, but don't call it token;
+		// What we are really doing is pushing something on top of the
+		// input stack and re-matching.
+		// TODO: Shouldn't the "input stack" be handled by the input
+		// loop? If we do this we could completely remove the pda 
+		// loop and just return a continuation indicating something
+		// has been pushed. This way we would have just pipes and no
+		// loops, except for the main input loop.
+		// This might work for the input loop, but not for the lexer
+		// to parser pipe. We really need a loop there.
+		// Maybe what we really need to is convert the lexer output
+		// into a proper input. The pda loop right now works as some
+		// sort of base input loop upon which we can build other more
+		// specialized loops, maybe we should reify that.
 		t.token = reduction;
 		break;
 	case ACTION_SHIFT:
