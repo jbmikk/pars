@@ -53,7 +53,7 @@ static int _continuation_feed(Input *input, const Continuation *cont, const Toke
 		// The count means we are putting yet another token on top of 
 		// the other, that is two symbols in total.
 		(*count)++;
-		*out = cont->transition.token;
+		*out = cont->transition.reduction;
 		ret = cont->error;
 		break;
 	case ACTION_EMPTY:

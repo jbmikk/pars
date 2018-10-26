@@ -16,7 +16,7 @@ int ast_parser_pipe(void *_context, void *_cont)
 		ast_builder_shift(&context->ast_builder, &tran->token);
 		break;
 	case ACTION_REDUCE:
-		ast_builder_reduce(&context->ast_builder, &tran->token);
+		ast_builder_reduce(&context->ast_builder, &tran->reduction);
 		break;
 	}
 	return 0;

@@ -20,6 +20,7 @@ typedef struct Transition {
 	State *to;
 	Action *action;
 	Token token;
+	Token reduction;
 } Transition;
 
 typedef struct _FsmThread {
