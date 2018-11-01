@@ -6,10 +6,14 @@
 #include "source.h"
 #include "ast.h"
 #include "fsmthread.h"
+#include "stack.h"
+
+DEFINE(Stack, Token, Token, token);
 
 typedef struct Input {
 	Source *source;
 	Ast *ast;
+	StackToken token_stack;
 } Input;
 
 void input_init(Input *input);

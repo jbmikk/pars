@@ -1,15 +1,20 @@
 #include "input.h"
 
 #include <stdlib.h>
+#include <stdbool.h>
+
+FUNCTIONS(Stack, Token, Token, token);
 
 void input_init(Input *input)
 {
 	input->source = NULL;
 	input->ast = NULL;
+	stack_token_init(&input->token_stack);
 }
 
 void input_dispose(Input *input)
 {
+	stack_token_dispose(&input->token_stack);
 }
 
 void input_set_source(Input *input, Source *source)
@@ -23,69 +28,39 @@ void input_set_source_ast(Input *input, Ast *ast)
 }
 
 
-static int _continuation_feed(Input *input, const Continuation *cont, const Token *in, Token *out, int *count)
+static void _apply_continuation(Input *input, const Continuation *cont)
 {
-	// TODO: Add constants for errors / control codes
-	int ret;
-
 	switch(cont->transition.action->type) {
-	case ACTION_SHIFT:
-	case ACTION_ACCEPT:
-	case ACTION_DROP:
-		if(*count == 0) {
-			// In token was matched, end loop
-			ret = 1;
-		} else {
-			// In token generated a reduction the last time
-			// Try matching it again.
-			(*count)--;
-			*out = *in;
-			ret = cont->error;
-		}
-		break;
 	case ACTION_REDUCE:
-		// Reductions are supposed to be a lookahead. 
-		// If we consume the input we can achieve the same thing by
-		// pushing it back on top of the input stack, then pushing the
-		// reduction.
-		// Unless we return a non-zero value here, that means we are
-		// pushing a symbol on top of the stack.
-		// The count means we are putting yet another token on top of 
-		// the other, that is two symbols in total.
-		(*count)++;
-		*out = cont->transition.reduction;
-		ret = cont->error;
+		// TODO: Maybe do InputContTok(token)
+		stack_token_push(&input->token_stack, cont->transition.token);
+		stack_token_push(&input->token_stack, cont->transition.reduction);
 		break;
 	case ACTION_EMPTY:
-		// When we match this action, we know we didn't consume the
-		// input token, thus try matching it again. Is there any other
-		// way of signaling the input wasn't matched?
-		// If we find another way we may not need to use fake actions.
-		// Maybe push the input token back into the input stack?
-		// In this case we don't need the count, because we are 
-		// pushing a single symbol.
-		*out = cont->transition.token;
-		ret = cont->error;
-		break;
-	case ACTION_ERROR:
-		ret = -1;
-		break;
-	default:
-		ret = -2;
+		// TODO: Maybe do InputContNoop
+		stack_token_push(&input->token_stack, cont->transition.token);
 		break;
 	}
-	return ret;
+}
+
+static bool _next(Input *input, Token *token)
+{
+	if(!stack_token_is_empty(&input->token_stack)) {
+		*token = stack_token_top(&input->token_stack);
+		stack_token_pop(&input->token_stack);
+		return 1;
+	}
+	return 0;
 }
 
 Continuation input_loop(Input *input, FsmThread *thread, const Token token)
 {
-	int count = 0;
-
-	Token retry = token;
+	Token t = token;
 	Continuation cont;
 	do {
-		cont = fsm_thread_cycle(thread, retry);
-	} while (!_continuation_feed(input, &cont, &token, &retry, &count));
+		cont = fsm_thread_cycle(thread, t);
+		_apply_continuation(input, &cont);
+	} while (_next(input, &t));
 	return cont;
 }
 
