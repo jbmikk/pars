@@ -7,16 +7,12 @@ int control_loop_linear(void *object, void *params)
 {
 	ParserContext *context = (ParserContext *)object;
 	Token token;
-	// TODO initialize transition
-	Continuation cont = { .error = 0 };
 
-	// Dummy action for initial continuation
-	Action dummy;
-	action_init(&dummy, ACTION_START, 0, NULL, 0, 0);
-
+	Continuation cont;
 	token_init(&token, 0, 0, 0);
-	token_init(&cont.transition.token, 0, 0, 0);
-	cont.transition.action = &dummy;
+	token_init(&cont.token, 0, 0, 0);
+	token_init(&cont.token2, 0, 0, 0);
+	cont.type = CONTINUATION_START;
 
 	while(!input_linear_feed(&context->input, &cont, &token)) {
 		cont = input_loop(&context->input, &context->lexer_thread, token);
@@ -24,7 +20,7 @@ int control_loop_linear(void *object, void *params)
 
 	// TODO: Add error details (lexer or parser?)
 	check(
-		!cont.error,
+		cont.type != CONTINUATION_ERROR,
 		"Parser error at token "
 		"index: %i with symbol: %i, length: %i",
 		token.index, token.symbol, token.length
@@ -53,14 +49,10 @@ int control_loop_ast(void *object, void *params)
 	AstCursor cursor;
 	ast_cursor_init(&cursor, context->input.ast);
 
-	Continuation cont = { .error = 0 };
-
-	// Dummy action for initial continuation
-	Action dummy;
-	action_init(&dummy, ACTION_START, 0, NULL, 0, 0);
-
-	token_init(&cont.transition.token, 0, 0, 0);
-	cont.transition.action = &dummy;
+	Continuation cont;
+	token_init(&cont.token, 0, 0, 0);
+	token_init(&cont.token2, 0, 0, 0);
+	cont.type = CONTINUATION_START;
 
 	while(!input_ast_feed(&context->input, &cont, &cursor, &token)) {
 
@@ -69,13 +61,13 @@ int control_loop_ast(void *object, void *params)
 		if(cursor.offset == 1) {
 			cont = input_loop(&context->input, &context->thread, token_down);
 			check(
-				!cont.error,
+				cont.type != CONTINUATION_ERROR,
 				"Parser error at DOWN node"
 			);
 		} else if(cursor.offset < 0) {
 			cont = input_loop(&context->input, &context->thread, token_up);
 			check(
-				!cont.error,
+				cont.type != CONTINUATION_ERROR,
 				"Parser error at UP node"
 			);
 		}
@@ -84,7 +76,7 @@ int control_loop_ast(void *object, void *params)
 		// should do.
 		cont = input_loop(&context->input, &context->thread, token);
 		check(
-			!cont.error,
+			cont.type != CONTINUATION_ERROR,
 			"Parser error at token "
 			"index: %i with symbol: %i, length: %i",
 			token.index, token.symbol, token.length

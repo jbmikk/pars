@@ -5,6 +5,7 @@
 #include "token.h"
 #include "stack.h"
 #include "listener.h"
+#include "continuation.h"
 
 DEFINE(Stack, State *, State, state);
 
@@ -31,11 +32,6 @@ typedef struct _FsmThread {
 	Transition transition;
 	Listener pipe;
 } FsmThread;
-
-typedef struct Continuation {
-	Transition transition;
-	int error;
-} Continuation;
 
 
 void fsm_thread_init(FsmThread *thread, Fsm *fsm, Listener pipe);

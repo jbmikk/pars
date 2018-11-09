@@ -30,15 +30,13 @@ void input_set_source_ast(Input *input, Ast *ast)
 
 static void _apply_continuation(Input *input, const Continuation *cont)
 {
-	switch(cont->transition.action->type) {
-	case ACTION_REDUCE:
-		// TODO: Maybe do InputContTok(token)
-		stack_token_push(&input->token_stack, cont->transition.token);
-		stack_token_push(&input->token_stack, cont->transition.reduction);
+	switch(cont->type) {
+	case CONTINUATION_PUSH:
+		stack_token_push(&input->token_stack, cont->token);
+		stack_token_push(&input->token_stack, cont->token2);
 		break;
-	case ACTION_EMPTY:
-		// TODO: Maybe do InputContNoop
-		stack_token_push(&input->token_stack, cont->transition.token);
+	case CONTINUATION_RETRY:
+		stack_token_push(&input->token_stack, cont->token);
 		break;
 	}
 }
@@ -68,26 +66,23 @@ int input_linear_feed(Input *input, const Continuation *cont, Token *token)
 {
 	int ret;
 
-	if(cont->error) {
-		ret = cont->error;
-		goto end;
-	}
-	switch(cont->transition.action->type) {
-	case ACTION_START:
-		source_next_token(input->source, &cont->transition.token, token);
+	switch(cont->type) {
+	case CONTINUATION_START:
+		source_next_token(input->source, &cont->token, token);
 		ret = 0;
 		break;
-	case ACTION_ACCEPT:
-	case ACTION_SHIFT:
-	case ACTION_DROP:
+	case CONTINUATION_NEXT:
+		// Is this ok? Shouldn't it be cont->token?
 		if(token->symbol == L_EOF) {
 			ret = -3;
 			break;
 		}
-		source_next_token(input->source, &cont->transition.token, token);
+		source_next_token(input->source, &cont->token, token);
 		ret = 0;
 		break;
-	case ACTION_ERROR:
+	case CONTINUATION_ERROR:
+		// TODO: error bubbling???
+		// ret = cont->error;
 		ret = -1;
 	default:
 		// TODO: sentinel? should never reach this place
@@ -95,7 +90,6 @@ int input_linear_feed(Input *input, const Continuation *cont, Token *token)
 		break;
 	}
 
-end:
 	return ret;
 }
 
@@ -104,20 +98,14 @@ int input_ast_feed(Input *input, const Continuation *cont, AstCursor *cursor, To
 	int ret;
 	AstNode *node;
 
-	if(cont->error) {
-		ret = cont->error;
-		goto end;
-	}
-	switch(cont->transition.action->type) {
-	case ACTION_START:
+	switch(cont->type) {
+	case CONTINUATION_START:
 		node = ast_cursor_depth_next(cursor);
 		token_init(token, 0, 0, node->token.symbol);
 
 		ret = 0;
 		break;
-	case ACTION_ACCEPT:
-	case ACTION_SHIFT:
-	case ACTION_DROP:
+	case CONTINUATION_NEXT:
 		if(token->symbol == L_EOF) {
 			ret = -3;
 			break;
@@ -126,19 +114,19 @@ int input_ast_feed(Input *input, const Continuation *cont, AstCursor *cursor, To
 		// TODO: Should the index be part of the ast?
 		// We need the index for source back tracking. We should be 
 		// able to move the iterator back to the specific node.
-		int index = cont->transition.token.index + 1;
+		int index = cont->token.index + 1;
 		node = ast_cursor_depth_next(cursor);
 		token_init(token, index, 0, node->token.symbol);
 		ret = 0;
 		break;
-	case ACTION_ERROR:
+	case CONTINUATION_ERROR:
 		ret = -1;
+		break;
 	default:
 		// TODO: sentinel? should never reach this place
 		ret = -2;
 		break;
 	}
 
-end:
 	return ret;
 }

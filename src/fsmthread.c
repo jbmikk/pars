@@ -182,10 +182,43 @@ void fsm_thread_apply(FsmThread *thread, Transition transition)
 	thread->transition = t;
 }
 
+static Continuation _build_continuation(Transition t, int error)
+{
+	Continuation cont;
+	token_init(&cont.token2, 0, 0, 0);
+	cont.token = t.token;
+
+	if(error) {
+		cont.type = CONTINUATION_ERROR; 
+	} else {
+		switch(t.action->type) {
+		case ACTION_ACCEPT:
+		case ACTION_SHIFT:
+		case ACTION_DROP:
+			cont.type = CONTINUATION_NEXT; 
+			break;
+		case ACTION_EMPTY:
+			cont.type = CONTINUATION_RETRY; 
+			break;
+		case ACTION_REDUCE:
+			cont.type = CONTINUATION_PUSH; 
+			cont.token2 = t.reduction;
+			break;
+		case ACTION_ERROR:
+			cont.type = CONTINUATION_ERROR; 
+			break;
+		default:
+			// sentinel?
+			break;
+		}
+	}
+
+	return cont;
+}
+
 Continuation fsm_thread_cycle(FsmThread *thread, const Token token)
 {
 	Transition transition;
-	Continuation cont;
 
 	transition = fsm_thread_match(thread, &token);
 	_trace_transition(transition, thread->transition);
@@ -197,8 +230,5 @@ Continuation fsm_thread_cycle(FsmThread *thread, const Token token)
 
 	// Listener's return value is combined with the transition to
 	// get the continuation.
-	cont.transition = transition;
-	cont.error = error || transition.action->type == ACTION_ERROR;
-
-	return cont;
+	return _build_continuation(transition, error);
 }

@@ -179,12 +179,14 @@ int atl_lexer_pipe(void *_context, void *_tran)
 	Symbol *comment = symbol_table_get(&context->parser->table, "comment", 7);
 	Symbol *white_space = symbol_table_get(&context->parser->table, "white_space", 11);
 
-	Continuation cont = { .error = 0 };
+	Continuation cont;
+	cont.type = CONTINUATION_NEXT;
+
 	//Filter white space and tokens
 	if(token.symbol != comment->id && token.symbol != white_space->id) {
 		cont = input_loop(&context->proxy_input, &context->thread, token);
 	}
-	return cont.error;
+	return cont.type == CONTINUATION_ERROR;
 }
 
 void atl_build_parser_context(ParserContext *context)

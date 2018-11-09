@@ -28,10 +28,12 @@ int user_lexer_pipe(void *_context, void *_tran)
 	}
 	Token token = tran->token;
 
-	Continuation cont = { .error = 0 };
+	Continuation cont;
+	cont.type = CONTINUATION_NEXT;
+
 	cont = input_loop(&context->proxy_input, &context->thread, token);
 
-	return cont.error;
+	return cont.type == CONTINUATION_ERROR;
 }
 
 void user_build_parser_context(ParserContext *context)
