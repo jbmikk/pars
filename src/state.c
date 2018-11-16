@@ -150,6 +150,43 @@ static Action *_state_get_transition(State *state, int symbol, int path)
 	return result;
 }
 
+static Action *state_get_collision(State *state, int symbol, int end_symbol)
+{
+	Action *action = NULL;
+	Action *range;
+	
+	BMapEntryAction *entry = bmap_action_m_get(&state->actions, end_symbol);
+	BMapCursorAction cur;
+
+	if(!entry) {
+		// TODO: We should have a loop to recursively test outer 
+		// ranges. The first match wins.
+		bmap_cursor_action_init(&cur, &state->actions);
+		bmap_cursor_action_revert(&cur);
+		bmap_cursor_action_move_gt(&cur, symbol);
+
+		while(bmap_cursor_action_next(&cur)) {
+			entry = bmap_cursor_action_current(&cur);
+			range = &entry->action;
+			if(range && (range->flags & ACTION_FLAG_RANGE)) {
+				//TODO: Fix negative symbols in transitions.
+				//negative symbols are interpreted as unsigned chars
+				//when doing scans, but as signed ints when converted
+				//to ints, we ignore negative numbers for now.
+				if(symbol > 0 && symbol <= range->end_symbol) {
+					action = range;
+					break;
+				}
+			}
+		}
+		bmap_cursor_action_dispose(&cur);
+
+	} else {
+		action = &entry->action;
+	}
+	return action;
+}
+
 static Action *_state_add_action(State *state, int symbol, Action *action)
 {
 	// TODO: What if there are more paths?
