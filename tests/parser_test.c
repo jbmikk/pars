@@ -37,6 +37,7 @@ static void _test_identity_init_lexer_fsm(Fsm *fsm)
 
 	fsm_builder_init(&builder, fsm);
 
+	// TODO: Is this still necessary? lexer_done already handles it.
 	fsm_builder_set_mode(&builder, nzs(".default"));
 
 	fsm_builder_lexer_done(&builder, L_EOF);
