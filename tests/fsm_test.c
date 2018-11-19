@@ -451,6 +451,41 @@ void fsm_thread_match__repetition(){
 	fsm_thread_dispose(&thread);
 }
 
+void fsm_thread_match__any(){
+	FsmBuilder builder;
+	Transition tran;
+
+	fsm_builder_init(&builder, &fix.fsm);
+
+	fsm_builder_set_mode(&builder, nzs(".default"));
+
+	fsm_builder_define(&builder, nzs("A"));
+	fsm_builder_terminal(&builder, 'a');
+	fsm_builder_any(&builder);
+	fsm_builder_terminal(&builder, 'c');
+	fsm_builder_end(&builder);
+
+	fsm_builder_lexer_done(&builder, '\0');
+
+	fsm_builder_dispose(&builder);
+
+	int a = fsm_get_symbol_id(&fix.fsm, nzs("A"));
+
+	FsmThread thread;
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
+	fsm_thread_start(&thread);
+
+	MATCH_SHIFT(thread, 'a');
+	MATCH_DROP(thread, 'x');
+	MATCH_DROP(thread, 'y');
+	MATCH_DROP(thread, 'z');
+	MATCH_DROP(thread, 'c');
+	MATCH_REDUCE(thread, '\0', a);
+	MATCH_ACCEPT(thread, a);
+
+	fsm_thread_dispose(&thread);
+}
+
 int main(int argc, char** argv){
 	t_init();
 	t_test(fsm_builder_define__single_get);
@@ -463,6 +498,7 @@ int main(int argc, char** argv){
 	t_test(fsm_thread_match__reduce_handler);
 	t_test(fsm_thread_match__first_set_collision);
 	t_test(fsm_thread_match__repetition);
+	t_test(fsm_thread_match__any);
 	return t_done();
 }
 

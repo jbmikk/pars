@@ -291,6 +291,15 @@ void fsm_builder_terminal_range(FsmBuilder *builder, Range range)
 	_transition(builder, action);
 }
 
+void fsm_builder_any(FsmBuilder *builder)
+{
+	Range range = {1, 100000};
+
+	fsm_builder_loop_group_start(builder);
+	fsm_builder_terminal_range(builder, range);
+	fsm_builder_loop_group_end(builder);
+}
+
 /**
  * Creates a reference to a Nonterminal and accepts the associated symbol.
  * Similar to fsm_builder_nonterminal, but accepts instead of dropping and
@@ -542,6 +551,7 @@ void fsm_builder_lexer_done(FsmBuilder *builder, int eof_symbol) {
 	_solve_references(builder);
 }
 
+// TODO: Is this useful other than for testing purposes?
 void fsm_builder_lexer_default_input(FsmBuilder *builder)
 {
 	State *start = fsm_get_state(builder->fsm, nzs(".default"));
