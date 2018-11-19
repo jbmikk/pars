@@ -395,8 +395,7 @@ static void _set_lexer_start(FsmBuilder *builder, int eof_symbol)
 	}
 	bmap_cursor_nonterminal_dispose(&cursor);
 
-	start = fsm_get_state(builder->fsm, nzs(".default"));
-	_move_to(builder, start);
+	_define_mode(builder, nzs(".default"));
 	Action *action = state_add(builder->state, eof_symbol, ACTION_ACCEPT, NONE);
 
 	_transition(builder, action);
