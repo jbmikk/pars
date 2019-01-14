@@ -54,7 +54,7 @@ void state_dispose(State *state)
 	bmap_ref_dispose(&state->refs);
 }
 
-static Action *_state_get_transition(State *state, int symbol)
+static Action *_state_get_transition(State *state, int symbol, int path)
 {
 	Action *action = NULL;
 	Action *range;
@@ -62,7 +62,12 @@ static Action *_state_get_transition(State *state, int symbol)
 	BMapEntryAction *entry = bmap_action_m_get(&state->actions, symbol);
 	BMapCursorAction cur;
 
-	if(!entry) {
+	int count = 0;
+
+	if(!entry || path != 0) {
+		if(entry) {
+			count++;
+		}
 		// TODO: We should have a loop to recursively test outer 
 		// ranges. The first match wins.
 		bmap_cursor_action_init(&cur, &state->actions);
@@ -78,8 +83,12 @@ static Action *_state_get_transition(State *state, int symbol)
 				//when doing scans, but as signed ints when converted
 				//to ints, we ignore negative numbers for now.
 				if(symbol > 0 && symbol <= range->end_symbol) {
-					action = range;
-					break;
+					if(count < path) {
+						count++;
+					} else {
+						action = range;
+						break;
+					}
 				}
 			}
 		}
@@ -93,7 +102,8 @@ static Action *_state_get_transition(State *state, int symbol)
 
 static Action *_state_add_action(State *state, int symbol, Action *action)
 {
-	Action *collision = _state_get_transition(state, symbol);
+	// TODO: What if there are more paths?
+	Action *collision = _state_get_transition(state, symbol, 0);
 	Action *ret;
 	
 	// TODO: Compare all action properties?
@@ -212,7 +222,12 @@ Action *state_add_range(State *state, Range range, int type, int reduction)
 
 Action *state_get_transition(State *state, int symbol)
 {
-	return _state_get_transition(state, symbol);
+	return _state_get_transition(state, symbol, 0);
+}
+
+Action *state_get_path_transition(State *state, int symbol, int path)
+{
+	return _state_get_transition(state, symbol, path);
 }
 
 

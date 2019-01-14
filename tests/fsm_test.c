@@ -200,6 +200,66 @@ void fsm_thread_match__shift_nested_range(){
 	fsm_thread_dispose(&thread);
 }
 
+void fsm_thread_match__shift_path_nested_range(){
+	FsmBuilder builder;
+	Transition tran;
+	Action action1, action2;
+
+	fsm_builder_init(&builder, &fix.fsm);
+
+	fsm_builder_define(&builder, nzs("name"));
+	fsm_builder_group_start(&builder);
+	fsm_builder_terminal_range(&builder, (Range){'a', 'p'});
+	action1 = *builder.action;
+
+	fsm_builder_or(&builder);
+	fsm_builder_terminal_range(&builder, (Range){'f', 'l'});
+	action2 = *builder.action;
+
+	fsm_builder_group_end(&builder);
+	fsm_builder_end(&builder);
+
+	fsm_builder_done(&builder, '\0');
+
+	fsm_builder_dispose(&builder);
+
+	FsmThread thread;
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
+	fsm_thread_start(&thread);
+
+	TEST_ACTION(thread, 'a', action1);
+	TEST_ACTION(thread, 'b', action1);
+	TEST_ACTION(thread, 'f', action2);
+	TEST_ACTION(thread, 'g', action2);
+	TEST_ACTION(thread, 'l', action2);
+	TEST_ACTION(thread, 'o', action1);
+	TEST_ACTION(thread, 'p', action1);
+	TEST_ERROR(thread, 'q');
+
+	Action action_a = *state_get_transition(
+		fsm_get_state(&fix.fsm, nzs(".default")),
+		'g'
+	);
+
+	Action action_b = *state_get_path_transition(
+		fsm_get_state(&fix.fsm, nzs(".default")),
+		'g',
+		1
+	);
+
+	Action *action_c = state_get_path_transition(
+		fsm_get_state(&fix.fsm, nzs(".default")),
+		'g',
+		2
+	);
+
+	t_assert(action_a.end_symbol == action2.end_symbol);
+	t_assert(action_b.end_symbol == action1.end_symbol);
+	t_assert(action_c == NULL);
+
+	fsm_thread_dispose(&thread);
+}
+
 void fsm_thread_match__reduce(){
 	FsmBuilder builder;
 	Transition tran;
@@ -493,6 +553,7 @@ int main(int argc, char** argv){
 	t_test(fsm_thread_match__shift);
 	t_test(fsm_thread_match__shift_range);
 	t_test(fsm_thread_match__shift_nested_range);
+	t_test(fsm_thread_match__shift_path_nested_range);
 	t_test(fsm_thread_match__reduce);
 	t_test(fsm_thread_match__reduce_shift);
 	t_test(fsm_thread_match__reduce_handler);

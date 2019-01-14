@@ -113,6 +113,7 @@ int fsm_get_symbol_id(Fsm *fsm, char *name, int length);
 void state_init(State *state);
 void state_add_reference(State *state, Symbol *symbol, State *to_state);
 Action *state_get_transition(State *state, int symbol);
+Action *state_get_path_transition(State *state, int symbol, int path);
 void state_dispose(State *state);
 Action *state_add(State *from, int symbol, int type, int reduction);
 Action *state_add_range(State *state, Range range, int type, int reduction);
