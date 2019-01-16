@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "dbg.h"
+
 #ifdef FSM_TRACE
 #define trace(M, ST, T, S, A, R) \
 	printf( \
@@ -21,52 +23,47 @@
 #define trace(M, ST, T, S, A, R)
 #endif
 
-FUNCTIONS(Stack, State *, State, state);
 
 FUNCTIONS(Stack, FsmThreadNode, FsmThreadNode, fsmthreadnode);
-
-FUNCTIONS(Stack, BacktrackNode, BacktrackNode, backtracknode);
-
-static void _mode_push(FsmThread *thread, int symbol)
-{
-	stack_state_push(&thread->mode_stack, thread->start);
-	thread->start = fsm_get_state_by_id(thread->fsm, symbol);
-}
-
-static void _mode_pop(FsmThread *thread)
-{
-	thread->start = stack_state_top(&thread->mode_stack);
-	stack_state_pop(&thread->mode_stack);
-}
 
 static void _state_push(FsmThread *thread, FsmThreadNode tnode)
 {
 	stack_fsmthreadnode_push(&thread->stack, tnode);
 }
 
-static FsmThreadNode _state_pop(FsmThread *thread)
+static FsmThreadNode _state_pop(FsmThread *thread, char type, bool *is_empty)
 {
-	FsmThreadNode top = stack_fsmthreadnode_top(&thread->stack);
-	stack_fsmthreadnode_pop(&thread->stack);
+	FsmThreadNode top;
+
+	// TODO: replace is_empty with Maybe(FsmThreadNode) generic.
+	while (!(*is_empty = stack_fsmthreadnode_is_empty(&thread->stack))) {
+		top = stack_fsmthreadnode_top(&thread->stack);
+		stack_fsmthreadnode_pop(&thread->stack);
+		if(top.type == type) {
+			break;
+		}
+	}
 	return top;
 }
 
-
-static void _backtrack_push(FsmThread *thread, BacktrackNode node)
+static void _mode_push(FsmThread *thread, int symbol)
 {
-       stack_backtracknode_push(&thread->btstack, node);
+	_state_push(thread, (FsmThreadNode){ 
+		FSM_THREAD_NODE_MODE,
+		thread->start,
+		0
+	});
+	thread->start = fsm_get_state_by_id(thread->fsm, symbol);
 }
 
-static bool _backtrack_is_empty(FsmThread *thread)
+static void _mode_pop(FsmThread *thread)
 {
-       return stack_backtracknode_is_empty(&thread->btstack);
-}
-
-static BacktrackNode _backtrack_pop(FsmThread *thread)
-{
-       BacktrackNode top = stack_backtracknode_top(&thread->btstack);
-       stack_backtracknode_pop(&thread->btstack);
-       return top;
+	bool is_empty;
+	FsmThreadNode popped = _state_pop(thread, FSM_THREAD_NODE_MODE, &is_empty);
+	if(is_empty) {
+		//sentinel("Mode pop fail");
+	}
+	thread->start = popped.state;
 }
 
 void fsm_thread_init(FsmThread *thread, Fsm *fsm, Listener pipe)
@@ -76,15 +73,21 @@ void fsm_thread_init(FsmThread *thread, Fsm *fsm, Listener pipe)
 	thread->start = NULL;
 	thread->path = 0;
 	stack_fsmthreadnode_init(&thread->stack);
-	stack_state_init(&thread->mode_stack);
-	stack_backtracknode_init(&thread->btstack);
 }
 
 void fsm_thread_dispose(FsmThread *thread)
 {
 	stack_fsmthreadnode_dispose(&thread->stack);
-	stack_state_dispose(&thread->mode_stack);
-	stack_backtracknode_dispose(&thread->btstack);
+}
+
+bool fsm_thread_stack_is_empty(FsmThread *thread)
+{
+	bool is_empty = stack_fsmthreadnode_is_empty(&thread->stack);
+	bool is_initial = false;
+	if(!is_empty) {
+		is_initial = thread->stack.stack.top->next == NULL;
+	}
+	return is_empty || is_initial;
 }
 
 int fsm_thread_start(FsmThread *thread)
@@ -93,7 +96,13 @@ int fsm_thread_start(FsmThread *thread)
 	thread->start = fsm_get_state_by_id(thread->fsm, symbol);
 	thread->transition.from = NULL;
 	thread->transition.to = thread->start;
-	_state_push(thread, (FsmThreadNode){ thread->transition.to, 0 });
+	// TODO: Is this initial node really needed for EBNF?
+	// If removed, rewrite fsm_thread_stack_is_empty
+	_state_push(thread, (FsmThreadNode){ 
+		FSM_THREAD_NODE_SR,
+		thread->transition.to,
+		0
+	});
 	//TODO: Check errors?
 	return 0;
 }
@@ -125,9 +134,13 @@ static Transition _shift_reduce(Transition transition, FsmThread *thread) {
 	Action *action = transition.action;
 	Transition t = transition;
 	FsmThreadNode popped;
+	bool is_empty;
 	switch(action->type) {
 	case ACTION_REDUCE:
-		popped = _state_pop(thread);
+		popped = _state_pop(thread, FSM_THREAD_NODE_SR, &is_empty);
+		if(is_empty) {
+			//sentinel("Reduce pop fail");
+		}
 		t.to = popped.state;
 
 		Token reduction = {
@@ -150,6 +163,7 @@ static Transition _shift_reduce(Transition transition, FsmThread *thread) {
 		break;
 	case ACTION_SHIFT:
 		_state_push(thread, (FsmThreadNode) {
+			FSM_THREAD_NODE_SR,
 			t.from,
 			t.token.index
 		});
@@ -173,15 +187,17 @@ static Transition _backtrack(Transition transition, FsmThread *thread) {
 	Action *alt_action = state_get_path_transition(transition.from, transition.token.symbol, alt_path);
 
 	if(alt_action) {
-		_backtrack_push(thread, (BacktrackNode) {
+		_state_push(thread, (FsmThreadNode) {
+			FSM_THREAD_NODE_BACKTRACK,
 			transition.from,
 			transition.token.index,
 			transition.path
 		});
 	} else if (transition.action->type == ACTION_ERROR) {
 		t.backtrack = 0;
-		if(!_backtrack_is_empty(thread)) {
-			BacktrackNode popped = _backtrack_pop(thread);
+		bool is_empty;
+		FsmThreadNode popped = _state_pop(thread, FSM_THREAD_NODE_BACKTRACK, &is_empty);
+		if(!is_empty) {
 			// TODO: Review the backtrack and path variables.
 			// The only problem here: it is not true that we are
 			// transitioning to this state with this symbol. This
@@ -237,10 +253,10 @@ void fsm_thread_apply(FsmThread *thread, Transition transition)
 	// context structure?
 	// We should consider which things change and which don't at each step
 	Transition t = transition;
+	t = _backtrack(t, thread);
 	t = _shift_reduce(t, thread);
 	t = _accept(t, thread);
 	t = _switch_mode(t, thread);
-	t = _backtrack(t, thread);
 
 	thread->transition = t;
 }

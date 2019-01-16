@@ -597,6 +597,66 @@ void fsm_thread_match__simple_backtrack(){
 	fsm_thread_dispose(&thread);
 }
 
+void fsm_thread_match__backtrack_with_shift(){
+	FsmBuilder builder;
+	Transition tran;
+
+	fsm_builder_init(&builder, &fix.fsm);
+
+	// First it should match this one.
+	fsm_builder_define(&builder, nzs("A"));
+	fsm_builder_terminal(&builder, 'a');
+	fsm_builder_terminal(&builder, '1');
+	fsm_builder_terminal(&builder, '2');
+	fsm_builder_end(&builder);
+
+	// Then it should backtrack and match this one.
+	fsm_builder_define(&builder, nzs("B"));
+	fsm_builder_any(&builder);
+	fsm_builder_terminal(&builder, '1');
+	fsm_builder_terminal(&builder, '3');
+	fsm_builder_end(&builder);
+
+	fsm_builder_define(&builder, nzs("sequence"));
+	fsm_builder_group_start(&builder);
+	fsm_builder_nonterminal(&builder,  nzs("A"));
+	fsm_builder_or(&builder);
+	fsm_builder_nonterminal(&builder,  nzs("B"));
+	fsm_builder_group_end(&builder);
+	fsm_builder_end(&builder);
+
+	fsm_builder_done(&builder, '\0');
+
+	fsm_builder_dispose(&builder);
+
+	//int a = fsm_get_symbol_id(&fix.fsm, nzs("A"));
+	int b = fsm_get_symbol_id(&fix.fsm, nzs("B"));
+	int sequence = fsm_get_symbol_id(&fix.fsm, nzs("sequence"));
+
+	FsmThread thread;
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
+	fsm_thread_start(&thread);
+
+	// Shift and backtracking happen both at the beginning. They both get 
+	// pushed to the stack at the same time. The shift must be backtracked
+	// so that it happens only once.
+	MATCH_SHIFT(thread, 'a');
+	MATCH_DROP(thread, '1');
+	MATCH_BACKTRACK(thread, '3');
+	MATCH_SHIFT(thread, 'a');
+	MATCH_DROP(thread, '1');
+	MATCH_DROP(thread, '3');
+	MATCH_REDUCE(thread, '\0', b);
+	MATCH_SHIFT(thread, b);
+	MATCH_REDUCE(thread, '\0', sequence);
+	MATCH_DROP(thread, sequence);
+	MATCH_ACCEPT(thread, '\0');
+
+	t_assert(fsm_thread_stack_is_empty(&thread));
+
+	fsm_thread_dispose(&thread);
+}
+
 int main(int argc, char** argv){
 	t_init();
 	t_test(fsm_builder_define__single_get);
@@ -612,6 +672,7 @@ int main(int argc, char** argv){
 	t_test(fsm_thread_match__repetition);
 	t_test(fsm_thread_match__any);
 	t_test(fsm_thread_match__simple_backtrack);
+	t_test(fsm_thread_match__backtrack_with_shift);
 	return t_done();
 }
 

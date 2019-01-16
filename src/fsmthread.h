@@ -7,22 +7,20 @@
 #include "listener.h"
 #include "continuation.h"
 
-DEFINE(Stack, State *, State, state);
+
+#define FSM_THREAD_NODE_MODE 0
+#define FSM_THREAD_NODE_BACKTRACK 1
+#define FSM_THREAD_NODE_SR 2
 
 typedef struct FsmThreadNode {
+	char type;
 	State *state;
 	int index;
+	char path;
 } FsmThreadNode;
 
 DEFINE(Stack, FsmThreadNode, FsmThreadNode, fsmthreadnode);
 
-typedef struct BacktrackNode {
-	State *state;
-	int index;
-	char path;
-} BacktrackNode;
-
-DEFINE(Stack, BacktrackNode, BacktrackNode, backtracknode);
 
 typedef struct Transition {
 	State *from;
@@ -39,8 +37,6 @@ typedef struct _FsmThread {
 	Fsm *fsm;
 	State *start;
 	StackFsmThreadNode stack;
-	StackState mode_stack;
-	StackBacktrackNode btstack;
 	Transition transition;
 	Listener pipe;
 	char path;
@@ -54,5 +50,6 @@ int fsm_thread_start(FsmThread *thread);
 Transition fsm_thread_match(FsmThread *thread, const Token *token);
 void fsm_thread_apply(FsmThread *thread, Transition transition);
 Continuation fsm_thread_cycle(FsmThread *thread, const Token token);
+bool fsm_thread_stack_is_empty(FsmThread *thread);
 
 #endif //FSM_THREAD_H
