@@ -118,6 +118,7 @@ void state_dispose(State *state);
 Action *state_add(State *from, int symbol, int type, int reduction);
 Action *state_add_range(State *state, Range range, int type, int reduction);
 Action *state_append_action(State *state, int symbol, Action *action);
+int state_solve_references(State *state);
 
 
 //# Action functions
@@ -130,6 +131,7 @@ Action *action_add(Action *from, int symbol, int type, int reduction);
 
 void nonterminal_init(Nonterminal *nonterminal);
 void nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *symbol);
+int nonterminal_solve_references(Nonterminal *nt);
 void nonterminal_dispose(Nonterminal *nonterminal);
 
 

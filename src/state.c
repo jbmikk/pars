@@ -225,3 +225,34 @@ Action *state_get_path_transition(State *state, int symbol, int path)
 {
 	return _state_get_transition(state, symbol, path);
 }
+
+int state_solve_references(State *state) {
+	int unsolved = 0;
+	Reference *ref;
+
+	if(state->status == STATE_CLEAR) {
+		goto end;
+	}
+
+	trace_state("solve refs for state", state, "");
+
+	BMapCursorReference rcursor;
+	bmap_cursor_ref_init(&rcursor, &state->refs);
+	while(bmap_cursor_ref_next(&rcursor)) {
+		ref = bmap_cursor_ref_current(&rcursor)->ref;
+		reference_solve_first_set(ref, &unsolved);
+	}
+	bmap_cursor_ref_dispose(&rcursor);
+
+	if(!unsolved) {
+		state->status &= ~STATE_INVOKE_REF;
+		trace_state(
+			"state refs clear",
+			state,
+			""
+		);
+	}
+
+end:
+	return unsolved;
+}

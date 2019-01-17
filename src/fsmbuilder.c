@@ -416,67 +416,6 @@ static void _set_lexer_start(FsmBuilder *builder, int eof_symbol)
 	fsm_builder_end(builder);
 }
 
-int _solve_nonterminal_references(Nonterminal *nt) {
-	int unsolved = 0;
-	BMapCursorReference rcursor;
-	Reference *ref;
-
-	if(nt->status == NONTERMINAL_CLEAR) {
-		goto end;
-	}
-
-	bmap_cursor_ref_init(&rcursor, &nt->refs);
-	while(bmap_cursor_ref_next(&rcursor)) {
-		ref = bmap_cursor_ref_current(&rcursor)->ref;
-		reference_solve_return_set(ref, nt, &unsolved);
-	}
-	bmap_cursor_ref_dispose(&rcursor);
-
-	if(!unsolved) {
-		nt->status = NONTERMINAL_CLEAR;
-		nt->end->status &= ~STATE_RETURN_REF;
-		trace_state(
-			"state return refs clear",
-			nt->end,
-			""
-		);
-	}
-
-end:
-	return unsolved;
-}
-
-int _solve_state_references(State *state) {
-	int unsolved = 0;
-	Reference *ref;
-
-	if(state->status == STATE_CLEAR) {
-		goto end;
-	}
-
-	trace_state("solve refs for state", state, "");
-
-	BMapCursorReference rcursor;
-	bmap_cursor_ref_init(&rcursor, &state->refs);
-	while(bmap_cursor_ref_next(&rcursor)) {
-		ref = bmap_cursor_ref_current(&rcursor)->ref;
-		reference_solve_first_set(ref, &unsolved);
-	}
-	bmap_cursor_ref_dispose(&rcursor);
-
-	if(!unsolved) {
-		state->status &= ~STATE_INVOKE_REF;
-		trace_state(
-			"state refs clear",
-			state,
-			""
-		);
-	}
-
-end:
-	return unsolved;
-}
-
 void _solve_references(FsmBuilder *builder) {
 	BMapCursorNonterminal cursor;
 	Nonterminal *nt;
@@ -500,7 +439,7 @@ retry:
 			fsm_get_symbol(builder->fsm, (char *)it.key, it.size)
 		);*/
 
-		some_unsolved |= _solve_nonterminal_references(nt);
+		some_unsolved |= nonterminal_solve_references(nt);
 
 		//TODO: Should avoid collecting states multiple times
 		fsm_get_states(&all_states, nt->start);
@@ -513,7 +452,7 @@ retry:
 	bmap_cursor_state_init(&scursor, &all_states);
 	while(bmap_cursor_state_next(&scursor)) {
 		state = bmap_cursor_state_current(&scursor)->state;
-		some_unsolved |= _solve_state_references(state);
+		some_unsolved |= state_solve_references(state);
 	}
 	bmap_cursor_state_dispose(&scursor);
 

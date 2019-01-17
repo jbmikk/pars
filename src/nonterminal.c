@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 
+#include "fsmtrace.h"
+
 void nonterminal_init(Nonterminal *nonterminal)
 {
 	bmap_ref_init(&nonterminal->refs);
@@ -45,4 +47,34 @@ void nonterminal_dispose(Nonterminal *nonterminal)
 	bmap_cursor_ref_dispose(&rcursor);
 
 	bmap_ref_dispose(&nonterminal->refs);
+}
+
+int nonterminal_solve_references(Nonterminal *nt) {
+	int unsolved = 0;
+	BMapCursorReference rcursor;
+	Reference *ref;
+
+	if(nt->status == NONTERMINAL_CLEAR) {
+		goto end;
+	}
+
+	bmap_cursor_ref_init(&rcursor, &nt->refs);
+	while(bmap_cursor_ref_next(&rcursor)) {
+		ref = bmap_cursor_ref_current(&rcursor)->ref;
+		reference_solve_return_set(ref, nt, &unsolved);
+	}
+	bmap_cursor_ref_dispose(&rcursor);
+
+	if(!unsolved) {
+		nt->status = NONTERMINAL_CLEAR;
+		nt->end->status &= ~STATE_RETURN_REF;
+		trace_state(
+			"state return refs clear",
+			nt->end,
+			""
+		);
+	}
+
+end:
+	return unsolved;
 }
