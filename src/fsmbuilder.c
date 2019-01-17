@@ -416,7 +416,7 @@ static void _set_lexer_start(FsmBuilder *builder, int eof_symbol)
 	fsm_builder_end(builder);
 }
 
-int _solve_return_references(Nonterminal *nt) {
+int _solve_nonterminal_references(Nonterminal *nt) {
 	int unsolved = 0;
 	BMapCursorReference rcursor;
 	Reference *ref;
@@ -446,7 +446,7 @@ end:
 	return unsolved;
 }
 
-int _solve_invoke_references(State *state) {
+int _solve_state_references(State *state) {
 	int unsolved = 0;
 	Reference *ref;
 
@@ -500,7 +500,7 @@ retry:
 			fsm_get_symbol(builder->fsm, (char *)it.key, it.size)
 		);*/
 
-		some_unsolved |= _solve_return_references(nt);
+		some_unsolved |= _solve_nonterminal_references(nt);
 
 		//TODO: Should avoid collecting states multiple times
 		fsm_get_states(&all_states, nt->start);
@@ -513,7 +513,7 @@ retry:
 	bmap_cursor_state_init(&scursor, &all_states);
 	while(bmap_cursor_state_next(&scursor)) {
 		state = bmap_cursor_state_current(&scursor)->state;
-		some_unsolved |= _solve_invoke_references(state);
+		some_unsolved |= _solve_state_references(state);
 	}
 	bmap_cursor_state_dispose(&scursor);
 

@@ -257,7 +257,7 @@ void reference_solve_return_set(Reference *ref, Nonterminal *nt, int *unsolved)
 	//   could be many references to that terminal, we need the whole 
 	//   follow set.
 	// * When the continuation has its own references to other NT's.
-	//   In this case those invokes have to be solved to get the followset.
+	//   In this case those refs have to be solved to get the followset.
 
 	// TODO: All references must be solved! missing continuation return refs
 	if(cont && cont->state->status != STATE_CLEAR) {
