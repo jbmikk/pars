@@ -2,6 +2,8 @@
 #ifndef FSMTRACE_H
 #define FSMTRACE_H
 
+#include <stdio.h>
+
 #ifdef FSM_TRACE
 
 #define trace_state(M, S, A) \
