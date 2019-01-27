@@ -18,7 +18,7 @@ void state_init(State *state)
 	state->status = STATE_CLEAR;
 }
 
-void state_add_reference(State *state, Symbol *symbol, State *to_state)
+void state_add_reference(State *state, char type, Symbol *symbol, State *to_state)
 {
 	Reference *ref = malloc(sizeof(Reference));
 	ref->state = state;
@@ -26,6 +26,7 @@ void state_add_reference(State *state, Symbol *symbol, State *to_state)
 	//TODO: Is it really necessary? Not used right now.
 	ref->symbol = symbol;
 	ref->status = REF_PENDING;
+	ref->type = type;
 
 	//Is ref key ok?
 	//TODO: Can refs be overwritten? Possible leak!

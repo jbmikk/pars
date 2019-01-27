@@ -36,7 +36,12 @@ static int _clone_fs_action(BMapAction *action_set, Reference *ref, int key, Act
 
 	// When a symbol is present, assume nonterminal invocation
 	int clone_type;
-	if(ref->symbol) {
+
+	if(ref->type == REF_TYPE_DEFAULT) {
+		// It could happen when merging loops in final states
+		// that action->type == ACTION_REDUCE
+		clone_type = action->type;
+	} else if(ref->type == REF_TYPE_SHIFT) {
 		if (action->type == ACTION_REDUCE) {
 			// This could happen when the start state of a
 			// nonterminal is also an end state.
@@ -51,10 +56,6 @@ static int _clone_fs_action(BMapAction *action_set, Reference *ref, int key, Act
 			goto end;
 		}
 		clone_type = ACTION_SHIFT;
-	} else {
-		// It could happen when merging loops in final states
-		// that action->type == ACTION_REDUCE
-		clone_type = action->type;
 	}
 
 	Action *col = state_get_transition(ref->state, key);
@@ -102,8 +103,8 @@ static int _clone_fs_action(BMapAction *action_set, Reference *ref, int key, Act
 		state_init(merge);
 
 		//Merge first set for the actions continuations.
-		state_add_reference(merge, NULL, col->state);
-		state_add_reference(merge, NULL, action->state);
+		state_add_reference(merge, REF_TYPE_DEFAULT, NULL, col->state);
+		state_add_reference(merge, REF_TYPE_DEFAULT, NULL, action->state);
 
 		//Create unified action pointing to merged state.
 		action_init(col, clone_type, col->reduction, merge, col->flags, col->end_symbol);

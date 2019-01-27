@@ -155,7 +155,7 @@ void fsm_builder_loop_group_start(FsmBuilder *builder)
 
 	State *cont = start;
 
-	state_add_reference(builder->state, NULL, start);
+	state_add_reference(builder->state, REF_TYPE_DEFAULT, NULL, start);
 
 	trace_state("push", cont, "continuation");
 	_push_frame(builder, start, cont);
@@ -178,7 +178,7 @@ void fsm_builder_option_group_start(FsmBuilder *builder)
 	State *cont = malloc(sizeof(State));
 	state_init(cont);
 
-	state_add_reference(start, NULL, cont);
+	state_add_reference(start, REF_TYPE_DEFAULT, NULL, cont);
 
 	trace_state("add", cont, "continuation");
 	_push_frame(builder, start, cont);
@@ -329,7 +329,7 @@ void _lexer_nonterminal(FsmBuilder *builder, int symbol_id)
 
 	_transition(builder, action);
 
-	state_add_reference(prev, sb, nt->start);
+	state_add_reference(prev, REF_TYPE_SHIFT, sb, nt->start);
 
 	//Reduce on empty transition
 	//TODO: For now assume end exists, is this ok?
@@ -354,7 +354,7 @@ void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length)
 
 	//Create reference from last non terminal to the named non terminal
 	//State exists because we already added the terminal
-	state_add_reference(prev, sb, nt->start);
+	state_add_reference(prev, REF_TYPE_SHIFT, sb, nt->start);
 
 	//Create reference to return from the non terminal to the caller
 	//TODO: Should be builder->current->state?
