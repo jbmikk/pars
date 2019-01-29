@@ -51,7 +51,7 @@ void state_get_states(State *state, BMapState *states)
 	}
 }
 
-void state_add_reference(State *state, char type, Symbol *symbol, State *to_state)
+void state_add_reference_with_cont(State *state, char type, Symbol *symbol, State *to_state, Nonterminal *nt, State *cont)
 {
 	Reference *ref = malloc(sizeof(Reference));
 	ref->state = state;
@@ -60,11 +60,18 @@ void state_add_reference(State *state, char type, Symbol *symbol, State *to_stat
 	ref->symbol = symbol;
 	ref->status = REF_PENDING;
 	ref->type = type;
+	ref->nonterminal = nt;
+	ref->cont = cont;
 
 	//Is ref key ok?
 	//TODO: Can refs be overwritten? Possible leak!
 	bmap_ref_insert(&state->refs, (intptr_t)ref, ref);
 	state->status |= STATE_INVOKE_REF;
+}
+
+void state_add_reference(State *state, char type, Symbol *symbol, State *to_state)
+{
+	state_add_reference_with_cont(state, type, symbol, to_state, NULL, NULL);
 }
 
 void state_dispose(State *state)
@@ -289,4 +296,65 @@ int state_solve_references(State *state) {
 
 end:
 	return unsolved;
+}
+
+/**
+ * 
+ */
+State *state_deep_clone(State *state, BMapState *cloned, State *end, State *cont)
+{
+	BMapEntryState *in_states = bmap_state_get(cloned, (intptr_t)state);
+	State *clone;
+
+	if(!in_states) {
+		// TODO: Maybe State should not be aware of its own storage.
+		clone = malloc(sizeof(State));
+		state_init(clone);
+
+		bmap_state_insert(cloned, (intptr_t)state, state);
+
+		BMapCursorAction cursor;
+		bmap_cursor_action_init(&cursor, &state->actions);
+		while(bmap_cursor_action_next(&cursor)) {
+			BMapEntryAction *entry;
+			entry = bmap_cursor_action_current(&cursor);
+			Action ac = entry->action;
+			if(ac.state && ac.state != end) {
+				ac.state = state_deep_clone(ac.state, cloned, end, cont);
+			} else if(ac.state && ac.state == end) {
+				ac.state = cont;
+			}
+			bmap_action_m_append(&clone->actions, entry->key, ac);
+
+		}
+		bmap_cursor_action_dispose(&cursor);
+	} else {
+		clone = in_states->state;
+	}
+	return clone;
+}
+
+bool state_all_ready(State *state, BMapState *walked)
+{
+	BMapEntryState *in_states = bmap_state_get(walked, (intptr_t)state);
+	bool all_ready = state->status == STATE_CLEAR;
+
+	if(!in_states) {
+		bmap_state_insert(walked, (intptr_t)state, state);
+
+		BMapCursorAction cursor;
+		bmap_cursor_action_init(&cursor, &state->actions);
+		while(all_ready && bmap_cursor_action_next(&cursor)) {
+			BMapEntryAction *entry;
+			entry = bmap_cursor_action_current(&cursor);
+			Action ac = entry->action;
+			if(ac.state) {
+				all_ready &= state_all_ready(ac.state, walked);
+			}
+
+		}
+		bmap_cursor_action_dispose(&cursor);
+	}
+
+	return all_ready;
 }

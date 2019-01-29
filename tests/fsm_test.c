@@ -10,6 +10,11 @@
 #define nzs(S) (S), (strlen(S))
 
 
+#define MATCH_START_AT(S, Y, I) \
+	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	fsm_thread_apply(&(S), tran); \
+	t_assert(tran.action->type == ACTION_START);
+
 #define MATCH_DROP_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
@@ -31,6 +36,12 @@
 	fsm_thread_apply(&(S), tran); \
 	t_assert(tran.action->type == ACTION_ACCEPT);
 
+#define MATCH_ACCEPT_AT_WITH(S, Y, R, I) \
+	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	fsm_thread_apply(&(S), tran); \
+	t_assert(tran.action->type == ACTION_ACCEPT); \
+	t_assert(tran.action->reduction == R);
+
 #define MATCH_EMPTY_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
@@ -41,10 +52,12 @@
 	fsm_thread_apply(&(S), tran); \
 	t_assert((S).transition.backtrack == 1);
 
+#define MATCH_START(S, Y) MATCH_START_AT(S, Y, 0)
 #define MATCH_DROP(S, Y) MATCH_DROP_AT(S, Y, 0)
 #define MATCH_SHIFT(S, Y) MATCH_SHIFT_AT(S, Y, 0)
 #define MATCH_REDUCE(S, Y, R) MATCH_REDUCE_AT(S, Y, R, 0)
 #define MATCH_ACCEPT(S, Y) MATCH_ACCEPT_AT(S, Y, 0)
+#define MATCH_ACCEPT_WITH(S, Y, R) MATCH_ACCEPT_AT_WITH(S, Y, R, 0)
 #define MATCH_EMPTY(S, Y) MATCH_EMPTY_AT(S, Y, 0)
 #define MATCH_BACKTRACK(S, Y) MATCH_BACKTRACK_AT(S, Y, 0)
 
@@ -541,13 +554,12 @@ void fsm_thread_match__any(){
 	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
 
-	MATCH_SHIFT(thread, 'a');
+	MATCH_START(thread, 'a');
 	MATCH_DROP(thread, 'x');
 	MATCH_DROP(thread, 'y');
 	MATCH_DROP(thread, 'z');
 	MATCH_DROP(thread, 'c');
-	MATCH_REDUCE(thread, '\0', a);
-	MATCH_ACCEPT(thread, a);
+	MATCH_ACCEPT_WITH(thread, '\0', a);
 
 	fsm_thread_dispose(&thread);
 }

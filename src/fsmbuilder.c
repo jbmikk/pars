@@ -305,7 +305,7 @@ void fsm_builder_any(FsmBuilder *builder)
 /**
  * Creates a reference to a Nonterminal and accepts the associated symbol.
  * Similar to fsm_builder_nonterminal, but accepts instead of dropping and
- * doesn't have a nonterminal references (reduces on empty transition).
+ * doesn't have a nonterminal references (accepts on empty transition).
  */
 void _lexer_nonterminal(FsmBuilder *builder, int symbol_id)
 {
@@ -337,6 +337,25 @@ void _lexer_nonterminal(FsmBuilder *builder, int symbol_id)
 }
 
 /**
+ * Creates a copy reference to a Nonterminal.
+ * It creates an inline copy of all states from the nonterminal. 
+ */
+void fsm_builder_copy(FsmBuilder *builder, char *name, int length)
+{
+	Nonterminal *nt = fsm_create_nonterminal(builder->fsm, name, length);
+
+	_ensure_state(builder);
+
+	State *from = builder->state;
+	State *cont = malloc(sizeof(State));
+	state_init(cont);
+
+	state_add_reference_with_cont(from, REF_TYPE_COPY, NULL, nt->start, nt, cont);
+
+	_move_to(builder, cont);
+}
+
+/**
  * Creates a reference to a Nonterminal and shifts the associated symbol.
  */
 void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length)
@@ -359,6 +378,7 @@ void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length)
 	//TODO: Should be builder->current->state?
 	nonterminal_add_reference(nt, prev, sb);
 }
+
 
 static void _set_start(FsmBuilder *builder, int eof_symbol)
 {

@@ -21,10 +21,16 @@
 	t_assert(tran.action->type == ACTION_REDUCE); \
 	t_assert(tran.action->reduction == R);
 
-#define MATCH_ACCEPT(T, I, L, S) \
+#define MATCH_START(T, I, L, S) \
 	tran = fsm_thread_match(&(T), &(struct Token){(I), (L), (S)}); \
 	fsm_thread_apply(&(T), tran); \
-	t_assert(tran.action->type == ACTION_ACCEPT);
+	t_assert(tran.action->type == ACTION_START);
+
+#define MATCH_ACCEPT(T, I, L, S, R) \
+	tran = fsm_thread_match(&(T), &(struct Token){(I), (L), (S)}); \
+	fsm_thread_apply(&(T), tran); \
+	t_assert(tran.action->type == ACTION_ACCEPT); \
+	t_assert(tran.action->reduction == R);
 
 #define nzs(S) (S), (strlen(S))
 
@@ -78,19 +84,18 @@ void lexer_source_next__integer_token(){
 	Transition tran;
 	int INTEGER = fsm_get_symbol_id(&fix.fsm, nzs("integer"));
 
-	MATCH_SHIFT(fix.thread, 0, 1, '1');
+	MATCH_START(fix.thread, 0, 1, '1');
 	MATCH_DROP(fix.thread, 1, 1, '2');
 	MATCH_DROP(fix.thread, 2, 1, '3');
 	MATCH_DROP(fix.thread, 3, 1, '4');
-	MATCH_REDUCE(fix.thread, 4, 0, '\0', INTEGER);
-	MATCH_ACCEPT(fix.thread, 0, 4, INTEGER);
+	MATCH_ACCEPT(fix.thread, 4, 0, '\0', INTEGER);
 }
 
 void lexer_source_next__identifier_token(){
 	Transition tran;
 	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
 
-	MATCH_SHIFT(fix.thread, 0, 1, 'a');
+	MATCH_START(fix.thread, 0, 1, 'a');
 	MATCH_DROP(fix.thread, 1, 1, 'n');
 	MATCH_DROP(fix.thread, 2, 1, 'I');
 	MATCH_DROP(fix.thread, 3, 1, 'd');
@@ -102,15 +107,14 @@ void lexer_source_next__identifier_token(){
 	MATCH_DROP(fix.thread, 9, 1, 'i');
 	MATCH_DROP(fix.thread, 10, 1, 'e');
 	MATCH_DROP(fix.thread, 11, 1, 'r');
-	MATCH_REDUCE(fix.thread, 12, 1, '\0', META_IDENTIFIER);
-	MATCH_ACCEPT(fix.thread, 0, 12, META_IDENTIFIER);
+	MATCH_ACCEPT(fix.thread, 12, 1, '\0', META_IDENTIFIER);
 }
 
 void lexer_source_next__terminal_string_token(){
 	Transition tran;
 	int TERMINAL_STRING = fsm_get_symbol_id(&fix.fsm, nzs("terminal_string"));
 
-	MATCH_SHIFT(fix.thread, 0, 1, '"');
+	MATCH_START(fix.thread, 0, 1, '"');
 	MATCH_DROP(fix.thread, 1, 1, 's');
 	MATCH_DROP(fix.thread, 2, 1, 't');
 	MATCH_DROP(fix.thread, 3, 1, 'r');
@@ -118,8 +122,7 @@ void lexer_source_next__terminal_string_token(){
 	MATCH_DROP(fix.thread, 5, 1, 'n');
 	MATCH_DROP(fix.thread, 6, 1, 'g');
 	MATCH_DROP(fix.thread, 7, 1, '"');
-	MATCH_REDUCE(fix.thread, 8, 1, '\0', TERMINAL_STRING);
-	MATCH_ACCEPT(fix.thread, 0, 8, TERMINAL_STRING);
+	MATCH_ACCEPT(fix.thread, 8, 1, '\0', TERMINAL_STRING);
 }
 
 void lexer_source_next__skip_white_space(){
@@ -128,19 +131,16 @@ void lexer_source_next__skip_white_space(){
 	int DEFINING_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("defining_symbol"));
 	int WHITE_SPACE = fsm_get_symbol_id(&fix.fsm, nzs("white_space"));
 
-	MATCH_SHIFT(fix.thread, 0, 1, 'o');
+	MATCH_START(fix.thread, 0, 1, 'o');
 	MATCH_DROP(fix.thread, 1, 1, 'n');
 	MATCH_DROP(fix.thread, 2, 1, 'e');
-	MATCH_REDUCE(fix.thread, 3, 1, ' ', META_IDENTIFIER);
-	MATCH_ACCEPT(fix.thread, 0, 3, META_IDENTIFIER);
+	MATCH_ACCEPT(fix.thread, 3, 1, ' ', META_IDENTIFIER);
 
-	MATCH_SHIFT(fix.thread, 3, 1, ' ');
-	MATCH_REDUCE(fix.thread, 4, 1, '=', WHITE_SPACE);
-	MATCH_ACCEPT(fix.thread, 3, 1, WHITE_SPACE);
+	MATCH_START(fix.thread, 3, 1, ' ');
+	MATCH_ACCEPT(fix.thread, 4, 1, '=', WHITE_SPACE);
 
-	MATCH_SHIFT(fix.thread, 4, 1, '=');
-	MATCH_REDUCE(fix.thread, 5, 1, '\0', DEFINING_SYMBOL);
-	MATCH_ACCEPT(fix.thread, 4, 1, DEFINING_SYMBOL);
+	MATCH_START(fix.thread, 4, 1, '=');
+	MATCH_ACCEPT(fix.thread, 5, 1, '\0', DEFINING_SYMBOL);
 }
 
 void lexer_source_next__whole_rule(){
@@ -153,51 +153,42 @@ void lexer_source_next__whole_rule(){
 	int DEFINITION_SEPARATOR_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("definition_separator_symbol"));
 	int END_GROUP_SYMBOL = fsm_get_symbol_id(&fix.fsm, nzs("end_group_symbol"));
 
-	MATCH_SHIFT(fix.thread, 0, 1, 'o');
+	MATCH_START(fix.thread, 0, 1, 'o');
 	MATCH_DROP(fix.thread, 1, 1, 'n');
 	MATCH_DROP(fix.thread, 2, 1, 'e');
-	MATCH_REDUCE(fix.thread, 3, 1, '=', META_IDENTIFIER);
-	MATCH_ACCEPT(fix.thread, 0, 3, META_IDENTIFIER);
+	MATCH_ACCEPT(fix.thread, 3, 1, '=', META_IDENTIFIER);
 
-	MATCH_SHIFT(fix.thread, 3, 1, '=');
-	MATCH_REDUCE(fix.thread, 4, 1, '"', DEFINING_SYMBOL);
-	MATCH_ACCEPT(fix.thread, 3, 1, DEFINING_SYMBOL);
+	MATCH_START(fix.thread, 3, 1, '=');
+	MATCH_ACCEPT(fix.thread, 4, 1, '"', DEFINING_SYMBOL);
 
-	MATCH_SHIFT(fix.thread, 4, 1, '"');
+	MATCH_START(fix.thread, 4, 1, '"');
 	MATCH_DROP(fix.thread, 5, 1, '1');
 	MATCH_DROP(fix.thread, 6, 1, '"');
-	MATCH_REDUCE(fix.thread, 7, 1, ',', TERMINAL_STRING);
-	MATCH_ACCEPT(fix.thread, 4, 3, TERMINAL_STRING);
+	MATCH_ACCEPT(fix.thread, 7, 1, ',', TERMINAL_STRING);
 
-	MATCH_SHIFT(fix.thread, 7, 1, ',');
-	MATCH_REDUCE(fix.thread, 8, 1, '(', CONCATENATE_SYMBOL);
-	MATCH_ACCEPT(fix.thread, 7, 1, CONCATENATE_SYMBOL);
+	MATCH_START(fix.thread, 7, 1, ',');
+	MATCH_ACCEPT(fix.thread, 8, 1, '(', CONCATENATE_SYMBOL);
 
-	MATCH_SHIFT(fix.thread, 8, 1, '(');
-	MATCH_REDUCE(fix.thread, 9, 1, '"', START_GROUP_SYMBOL);
-	MATCH_ACCEPT(fix.thread, 8, 1, START_GROUP_SYMBOL);
+	MATCH_START(fix.thread, 8, 1, '(');
+	MATCH_ACCEPT(fix.thread, 9, 1, '"', START_GROUP_SYMBOL);
 
-	MATCH_SHIFT(fix.thread, 9, 1, '"');
+	MATCH_START(fix.thread, 9, 1, '"');
 	MATCH_DROP(fix.thread, 10, 1, 'a');
 	MATCH_DROP(fix.thread, 11, 1, '"');
-	MATCH_REDUCE(fix.thread, 12, 1, '|', TERMINAL_STRING);
-	MATCH_ACCEPT(fix.thread, 9, 3, TERMINAL_STRING);
+	MATCH_ACCEPT(fix.thread, 12, 1, '|', TERMINAL_STRING);
 
-	MATCH_SHIFT(fix.thread, 12, 1, '|');
-	MATCH_REDUCE(fix.thread, 13, 1, '"', DEFINITION_SEPARATOR_SYMBOL);
-	MATCH_ACCEPT(fix.thread, 12, 1, DEFINITION_SEPARATOR_SYMBOL);
+	MATCH_START(fix.thread, 12, 1, '|');
+	MATCH_ACCEPT(fix.thread, 13, 1, '"', DEFINITION_SEPARATOR_SYMBOL);
 
-	MATCH_SHIFT(fix.thread, 13, 1, '"');
+	MATCH_START(fix.thread, 13, 1, '"');
 	MATCH_DROP(fix.thread, 14, 1, 'b');
 	MATCH_DROP(fix.thread, 15, 1, '"');
-	MATCH_REDUCE(fix.thread, 16, 1, ')', TERMINAL_STRING);
-	MATCH_ACCEPT(fix.thread, 13, 3, TERMINAL_STRING);
+	MATCH_ACCEPT(fix.thread, 16, 1, ')', TERMINAL_STRING);
 
-	MATCH_SHIFT(fix.thread, 16, 1, ')');
-	MATCH_REDUCE(fix.thread, 17, 1, L_EOF, END_GROUP_SYMBOL);
-	MATCH_ACCEPT(fix.thread, 16, 1, END_GROUP_SYMBOL);
+	MATCH_START(fix.thread, 16, 1, ')');
+	MATCH_ACCEPT(fix.thread, 17, 1, L_EOF, END_GROUP_SYMBOL);
 
-	MATCH_ACCEPT(fix.thread, 17, 0, L_EOF);
+	//MATCH_ACCEPT(fix.thread, 17, 0, L_EOF);
 }
 
 void lexer_source_next__white_token(){
@@ -205,19 +196,17 @@ void lexer_source_next__white_token(){
 	int WHITE_SPACE = fsm_get_symbol_id(&fix.fsm, nzs("white_space"));
 	int META_IDENTIFIER = fsm_get_symbol_id(&fix.fsm, nzs("meta_identifier"));
 
-	MATCH_SHIFT(fix.thread, 0, 1, '\n');
+	MATCH_START(fix.thread, 0, 1, '\n');
 	MATCH_DROP(fix.thread, 1, 1, '\r');
 	MATCH_DROP(fix.thread, 2, 1, '\t');
 	MATCH_DROP(fix.thread, 3, 1, '\f');
 	MATCH_DROP(fix.thread, 4, 1, ' ');
-	MATCH_REDUCE(fix.thread, 5, 1, 'i', WHITE_SPACE);
-	MATCH_ACCEPT(fix.thread, 0, 5, WHITE_SPACE);
+	MATCH_ACCEPT(fix.thread, 5, 1, 'i', WHITE_SPACE);
 
 
-	MATCH_SHIFT(fix.thread, 5, 1, 'i');
+	MATCH_START(fix.thread, 5, 1, 'i');
 	MATCH_DROP(fix.thread, 6, 1, 'd');
-	MATCH_REDUCE(fix.thread, 7, 1, ' ', META_IDENTIFIER);
-	MATCH_ACCEPT(fix.thread, 5, 2, META_IDENTIFIER);
+	MATCH_ACCEPT(fix.thread, 7, 1, ' ', META_IDENTIFIER);
 }
 
 /*

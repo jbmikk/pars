@@ -30,6 +30,7 @@
 #define REF_TYPE_DEFAULT 0
 #define REF_TYPE_SHIFT 1
 #define REF_TYPE_START 2
+#define REF_TYPE_COPY 3
 
 #define STATE_CLEAR 0
 #define STATE_INVOKE_REF 1
@@ -79,6 +80,11 @@ typedef struct Nonterminal {
 typedef struct Reference {
 	State *state;
 	State *to_state;
+	// Used for: copy
+	State *cont;
+	// Used for: copy
+	Nonterminal *nonterminal;
+	// Used for: nothing
 	Symbol *symbol;
 	char type;
 	char status;
@@ -119,6 +125,7 @@ int fsm_get_symbol_id(Fsm *fsm, char *name, int length);
 void state_init(State *state);
 void state_get_states(State *state, BMapState *states);
 void state_add_reference(State *state, char type, Symbol *symbol, State *to_state);
+void state_add_reference_with_cont(State *state, char type, Symbol *symbol, State *to_state, Nonterminal *nt, State *cont);
 Action *state_get_transition(State *state, int symbol);
 Action *state_get_path_transition(State *state, int symbol, int path);
 void state_dispose(State *state);
@@ -126,6 +133,8 @@ Action *state_add(State *from, int symbol, int type, int reduction);
 Action *state_add_range(State *state, Range range, int type, int reduction);
 Action *state_append_action(State *state, int symbol, Action *action);
 int state_solve_references(State *state);
+State *state_deep_clone(State *state, BMapState *cloned, State *end, State *cont);
+bool state_all_ready(State *state, BMapState *walked);
 
 
 //# Action functions

@@ -23,6 +23,9 @@ void nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *s
 	//TODO: Is it used?
 	ref->symbol = symbol;
 	ref->status = REF_PENDING;
+	ref->nonterminal = NULL;
+	ref->cont = NULL;
+
 	//TODO: is ref key ok?
 	bmap_ref_insert(&nonterminal->refs, (intptr_t)ref, ref);
 	nonterminal->status |= NONTERMINAL_RETURN_REF;

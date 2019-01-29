@@ -43,6 +43,7 @@ void fsm_builder_terminal(FsmBuilder *builder, int symbol);
 void fsm_builder_terminal_range(FsmBuilder *builder, Range range);
 void fsm_builder_any(FsmBuilder *builder);
 void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length);
+void fsm_builder_copy(FsmBuilder *builder, char *name, int length);
 void fsm_builder_done(FsmBuilder *builder, int eof_symbol);
 void fsm_builder_lexer_done(FsmBuilder *builder, int eof_symbol);
 void fsm_builder_lexer_default_input(FsmBuilder *builder);

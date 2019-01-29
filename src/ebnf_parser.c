@@ -246,7 +246,7 @@ void ebnf_build_lexer_fsm(Fsm *fsm)
 	fsm_builder_define(&builder, nzs("terminal_string"));
 	fsm_builder_terminal(&builder, '"');
 	fsm_builder_loop_group_start(&builder);
-	fsm_builder_nonterminal(&builder,  nzs("white_space"));
+	fsm_builder_copy(&builder,  nzs("white_space"));
 	fsm_builder_or(&builder);
 	fsm_builder_terminal(&builder, ',');
 	fsm_builder_or(&builder);
@@ -277,7 +277,7 @@ void ebnf_build_lexer_fsm(Fsm *fsm)
 	fsm_builder_define(&builder, nzs("terminal_string"));
 	fsm_builder_terminal(&builder, '\'');
 	fsm_builder_loop_group_start(&builder);
-	fsm_builder_nonterminal(&builder,  nzs("white_space"));
+	fsm_builder_copy(&builder,  nzs("white_space"));
 	fsm_builder_or(&builder);
 	fsm_builder_terminal(&builder, ',');
 	fsm_builder_or(&builder);
@@ -308,7 +308,7 @@ void ebnf_build_lexer_fsm(Fsm *fsm)
 	fsm_builder_define(&builder, nzs("special_sequence"));
 	fsm_builder_terminal(&builder, '?');
 	fsm_builder_loop_group_start(&builder);
-	fsm_builder_nonterminal(&builder,  nzs("white_space"));
+	fsm_builder_copy(&builder,  nzs("white_space"));
 	fsm_builder_or(&builder);
 	fsm_builder_terminal(&builder, ',');
 	fsm_builder_or(&builder);
@@ -375,7 +375,7 @@ void ebnf_build_lexer_fsm(Fsm *fsm)
 	fsm_builder_terminal(&builder, '(');
 	fsm_builder_terminal(&builder, '*');
 	fsm_builder_loop_group_start(&builder);
-	fsm_builder_nonterminal(&builder,  nzs("white_space"));
+	fsm_builder_copy(&builder,  nzs("white_space"));
 	fsm_builder_or(&builder);
 	fsm_builder_terminal(&builder, ',');
 	fsm_builder_or(&builder);

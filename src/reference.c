@@ -144,6 +144,55 @@ end:
 	return result;
 }
 
+static int _clone_deep(BMapAction *action_set, Reference *ref, int key, Action *action)
+{
+	int result = REF_RESULT_SOLVED;
+
+	int clone_type = action->type;
+
+	Action *col = state_get_transition(ref->state, key);
+
+	// TODO: Unify collision detection, skipping and merging with the ones
+	// used in the state functions.
+	if(col) {
+		// TODO: manage collisions
+	} else {
+		// TODO: if all states ready proceed, otherwise defer
+		BMapState walked_states;
+		bmap_state_init(&walked_states);
+		bool all_ready = state_all_ready(action->state, &walked_states);
+		bmap_state_dispose(&walked_states);
+		if(!all_ready) {
+			result = REF_RESULT_PENDING;
+			goto end;
+		}
+
+		//No collision detected, clone the action an add it.
+		BMapState cloned_states;
+		bmap_state_init(&cloned_states);
+
+		State *state = state_deep_clone(action->state, &cloned_states, ref->nonterminal->end, ref->cont);
+
+		bmap_state_dispose(&cloned_states);
+
+		Action clone;
+		action_init(&clone, clone_type, action->reduction, state, action->flags, action->end_symbol);
+
+		trace_op(
+			"add",
+			ref->state,
+			&clone,
+			key,
+			"first-set",
+			0
+		);
+
+		bmap_action_m_append(action_set, key, clone);
+	}
+end:
+	return result;
+}
+
 void reference_solve_first_set(Reference *ref, int *result)
 {
 	BMapCursorAction cursor;
@@ -181,7 +230,11 @@ void reference_solve_first_set(Reference *ref, int *result)
 	bmap_cursor_action_init(&cursor, &(ref->to_state->actions));
 	while(bmap_cursor_action_next(&cursor)) {
 		entry = bmap_cursor_action_current(&cursor);
-		*result |= _clone_fs_action(&action_set, ref, entry->key, &entry->action);
+		if(ref->type == REF_TYPE_COPY) {
+			*result |= _clone_deep(&action_set, ref, entry->key, &entry->action);
+		} else {
+			*result |= _clone_fs_action(&action_set, ref, entry->key, &entry->action);
+		}
 	}
 	bmap_cursor_action_dispose(&cursor);
 
