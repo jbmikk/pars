@@ -427,7 +427,7 @@ void _solve_references(FsmBuilder *builder) {
 
 retry:
 	bmap_state_init(&all_states);
-	fsm_get_states(&all_states, fsm_get_state(builder->fsm, nzs(".default")));
+	state_get_states(fsm_get_state(builder->fsm, nzs(".default")), &all_states);
 
 	some_unsolved = 0;
 	bmap_cursor_nonterminal_init(&cursor, &builder->fsm->nonterminals);
@@ -442,7 +442,7 @@ retry:
 		some_unsolved |= nonterminal_solve_references(nt);
 
 		//TODO: Should avoid collecting states multiple times
-		fsm_get_states(&all_states, nt->start);
+		state_get_states(nt->start, &all_states);
 	}
 	bmap_cursor_nonterminal_dispose(&cursor);
 

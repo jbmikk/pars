@@ -18,6 +18,39 @@ void state_init(State *state)
 	state->status = STATE_CLEAR;
 }
 
+void state_get_states(State *state, BMapState *states)
+{
+	BMapEntryState *in_states = bmap_state_get(states, (intptr_t)state);
+
+	if(!in_states) {
+		bmap_state_insert(states, (intptr_t)state, state);
+
+		//Jump to other states
+		BMapCursorAction cursor;
+		Action *ac;
+		bmap_cursor_action_init(&cursor, &state->actions);
+		while(bmap_cursor_action_next(&cursor)) {
+			ac = &bmap_cursor_action_current(&cursor)->action;
+			if(ac->state) {
+				state_get_states(ac->state, states);
+			}
+		}
+		bmap_cursor_action_dispose(&cursor);
+
+		//Jump to references
+		BMapCursorReference rcursor;
+		Reference *ref;
+		bmap_cursor_ref_init(&rcursor, &state->refs);
+		while(bmap_cursor_ref_next(&rcursor)) {
+			ref = bmap_cursor_ref_current(&rcursor)->ref;
+			if(ref->to_state) {
+				state_get_states(ref->to_state, states);
+			}
+		}
+		bmap_cursor_ref_dispose(&rcursor);
+	}
+}
+
 void state_add_reference(State *state, char type, Symbol *symbol, State *to_state)
 {
 	Reference *ref = malloc(sizeof(Reference));

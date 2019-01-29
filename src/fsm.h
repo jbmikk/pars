@@ -105,8 +105,6 @@ Nonterminal *fsm_create_nonterminal(Fsm *fsm, char *name, int length);
 
 State *fsm_get_state(Fsm *fsm, char *name, int length);
 State *fsm_get_state_by_id(Fsm *fsm, int symbol);
-//TODO: Is this signature ok?
-void fsm_get_states(BMapState *states, State *state);
 Symbol *fsm_get_symbol(Fsm *fsm, char *name, int length);
 Symbol *fsm_get_symbol_by_id(Fsm *fsm, int id);
 int fsm_get_symbol_id(Fsm *fsm, char *name, int length);
@@ -114,6 +112,7 @@ int fsm_get_symbol_id(Fsm *fsm, char *name, int length);
 //# State functions
 
 void state_init(State *state);
+void state_get_states(State *state, BMapState *states);
 void state_add_reference(State *state, char type, Symbol *symbol, State *to_state);
 Action *state_get_transition(State *state, int symbol);
 Action *state_get_path_transition(State *state, int symbol, int path);

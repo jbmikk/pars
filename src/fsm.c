@@ -20,38 +20,6 @@ void fsm_init(Fsm *fsm, SymbolTable *table)
 	bmap_nonterminal_init(&fsm->nonterminals);
 }
 
-void fsm_get_states(BMapState *states, State *state)
-{
-	if(state) {
-		BMapEntryState *in_states = bmap_state_get(states, (intptr_t)state);
-
-		if(!in_states) {
-			bmap_state_insert(states, (intptr_t)state, state);
-
-			//Jump to other states
-			BMapCursorAction cursor;
-			Action *ac;
-			bmap_cursor_action_init(&cursor, &state->actions);
-			while(bmap_cursor_action_next(&cursor)) {
-				ac = &bmap_cursor_action_current(&cursor)->action;
-				fsm_get_states(states, ac->state);
-			}
-			bmap_cursor_action_dispose(&cursor);
-
-			//Jump to references
-			BMapCursorReference rcursor;
-			Reference *ref;
-			bmap_cursor_ref_init(&rcursor, &state->refs);
-			while(bmap_cursor_ref_next(&rcursor)) {
-				ref = bmap_cursor_ref_current(&rcursor)->ref;
-				fsm_get_states(states, ref->to_state);
-			}
-			bmap_cursor_ref_dispose(&rcursor);
-		}
-
-	}
-}
-
 void fsm_dispose(Fsm *fsm)
 {
 	BMapState all_states;
@@ -65,7 +33,7 @@ void fsm_dispose(Fsm *fsm)
 	while(bmap_cursor_nonterminal_next(&cursor)) {
 		nt = bmap_cursor_nonterminal_current(&cursor)->nonterminal;
 		//Just in case some nonterminal is not reachable through start
-		fsm_get_states(&all_states, nt->start);
+		state_get_states(nt->start, &all_states);
 		nonterminal_dispose(nt);
 		free(nt);
 	}
