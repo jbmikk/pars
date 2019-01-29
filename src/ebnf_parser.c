@@ -480,7 +480,7 @@ int ebnf_lexer_pipe(void *_context, void *_tran)
 	if(tran->action->type != ACTION_ACCEPT) {
 		return 0;
 	}
-	Token token = tran->token;
+	Token token = tran->reduction;
 
 	Symbol *comment = symbol_table_get(&context->parser->table, "comment", 7);
 	Symbol *white_space = symbol_table_get(&context->parser->table, "white_space", 11);

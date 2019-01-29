@@ -56,6 +56,19 @@ static int _clone_fs_action(BMapAction *action_set, Reference *ref, int key, Act
 			goto end;
 		}
 		clone_type = ACTION_SHIFT;
+	} else if(ref->type == REF_TYPE_START) {
+		if (action->type == ACTION_REDUCE || action->type == ACTION_ACCEPT) {
+			trace_op(
+				"skip",
+				ref->state,
+				action,
+				key,
+				"reduction on first-set",
+				0
+			);
+			goto end;
+		}
+		clone_type = ACTION_START;
 	}
 
 	Action *col = state_get_transition(ref->state, key);

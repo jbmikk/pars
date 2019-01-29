@@ -11,6 +11,7 @@
 #define FSM_THREAD_NODE_MODE 0
 #define FSM_THREAD_NODE_BACKTRACK 1
 #define FSM_THREAD_NODE_SR 2
+#define FSM_THREAD_NODE_SA 3
 
 typedef struct FsmThreadNode {
 	char type;

@@ -29,6 +29,7 @@
 
 #define REF_TYPE_DEFAULT 0
 #define REF_TYPE_SHIFT 1
+#define REF_TYPE_START 2
 
 #define STATE_CLEAR 0
 #define STATE_INVOKE_REF 1

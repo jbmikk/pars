@@ -85,7 +85,7 @@ static void _ensure_state(FsmBuilder *builder)
 	}
 }
 
-static void _add_empty(FsmBuilder *builder, int type, int reduction)
+static Action *_add_empty(FsmBuilder *builder, int type, int reduction)
 {
 	Fsm *fsm = builder->fsm;
 	Symbol *symbol = symbol_table_add(fsm->table, "__empty", 7);
@@ -93,6 +93,8 @@ static void _add_empty(FsmBuilder *builder, int type, int reduction)
 	_ensure_state(builder);
 	Action *action = state_add(builder->state, symbol->id, type, reduction);
 	_transition(builder, action);
+
+	return action;
 }
 
 static void _reset(FsmBuilder *builder) 
@@ -314,8 +316,15 @@ void _lexer_nonterminal(FsmBuilder *builder, int symbol_id)
 
 	_ensure_state(builder);
 
-	State *prev = builder->state;
+	state_add_reference(builder->state, REF_TYPE_START, NULL, nt->start);
 
+	//TODO: For now assume end exists, it should use nonterminal refs.
+	_move_to(builder, nt->end);
+
+	// TODO: Maybe ACTION_ACCEPT should always have a symbol.
+	Action *action = _add_empty(builder, ACTION_ACCEPT, sb->id);
+
+	// Add mode and flags
 	int flags = 0;
 	if(nt->pushes_mode) {
 		flags |= ACTION_FLAG_MODE_PUSH;
@@ -323,18 +332,8 @@ void _lexer_nonterminal(FsmBuilder *builder, int symbol_id)
 		flags |= ACTION_FLAG_MODE_POP;
 	}
 
-	Action *action = state_add(builder->state, sb->id, ACTION_ACCEPT, NONE);
 	action->flags |= flags;
 	action->mode = nt->pushes_mode;
-
-	_transition(builder, action);
-
-	state_add_reference(prev, REF_TYPE_SHIFT, sb, nt->start);
-
-	//Reduce on empty transition
-	//TODO: For now assume end exists, is this ok?
-	_move_to(builder, nt->end);
-	_add_empty(builder, ACTION_REDUCE, sb->id);
 }
 
 /**

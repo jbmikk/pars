@@ -171,12 +171,32 @@ static Transition _shift_reduce(Transition transition, FsmThread *thread) {
 	return t;
 }
 
-static Transition _accept(Transition transition, FsmThread *thread) {
+static Transition _start_accept(Transition transition, FsmThread *thread) {
 	Action *action = transition.action;
 	Transition t = transition;
+	FsmThreadNode popped;
+	bool is_empty;
 	switch(action->type) {
+	case ACTION_START:
+		_state_push(thread, (FsmThreadNode) {
+			FSM_THREAD_NODE_SA,
+			t.from,
+			t.token.index
+		});
+		break;
 	case ACTION_ACCEPT:
 		t.to = thread->start;
+		popped = _state_pop(thread, FSM_THREAD_NODE_SA, &is_empty);
+		if(is_empty) {
+			//sentinel("Accept pop fail");
+		}
+
+		Token reduction = {
+			popped.index,
+			t.token.index - popped.index,
+			action->reduction
+		};
+		t.reduction = reduction;
 	}
 	return t;
 }
@@ -255,7 +275,7 @@ void fsm_thread_apply(FsmThread *thread, Transition transition)
 	Transition t = transition;
 	t = _backtrack(t, thread);
 	t = _shift_reduce(t, thread);
-	t = _accept(t, thread);
+	t = _start_accept(t, thread);
 	t = _switch_mode(t, thread);
 
 	thread->transition = t;
@@ -271,6 +291,7 @@ static Continuation _build_continuation(Transition t, int error)
 		cont.type = CONTINUATION_ERROR; 
 	} else {
 		switch(t.action->type) {
+		case ACTION_START:
 		case ACTION_ACCEPT:
 		case ACTION_SHIFT:
 		case ACTION_DROP:
