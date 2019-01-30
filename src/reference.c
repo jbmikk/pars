@@ -174,12 +174,13 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 	}
 	bmap_cursor_action_dispose(&cursor);
 
-	// TODO: should it always merge?
+	// For now refs are always solved because we only merge cleared states
+	// When we add the copy features we will need to check all states in 
+	// the graph.
 	_merge_action_set(ref->state, &action_set);
-	bmap_action_dispose(&action_set);
-
-	// TODO: Maybe the reference is not always solved?
 	ref->status = REF_SOLVED;
+
+	bmap_action_dispose(&action_set);
 }
 
 static void _clone_rs_action(Reference *ref, BMapAction *action_set, Nonterminal *nt, int key, Action *action)
