@@ -30,7 +30,7 @@ static void _merge_action_set(State *to, BMapAction *action_set)
 
 static int _clone_fs_action(BMapAction *action_set, Reference *ref, int key, Action *action)
 {
-	int unsolved = 0;
+	int result = REF_RESULT_SOLVED;
 	//TODO: Make type for clone a parameter, do not override by
 	// default.
 
@@ -109,9 +109,7 @@ static int _clone_fs_action(BMapAction *action_set, Reference *ref, int key, Act
 		//Create unified action pointing to merged state.
 		action_init(col, clone_type, col->reduction, merge, col->flags, col->end_symbol);
 
-		//TODO: Is it necessary to return the unsolved count?
-		// Shouldn't it be enough to have further references pushed?
-		unsolved = 1;
+		result = REF_RESULT_CHANGED;
 	} else {
 
 		//No collision detected, clone the action an add it.
@@ -130,10 +128,10 @@ static int _clone_fs_action(BMapAction *action_set, Reference *ref, int key, Act
 		bmap_action_m_append(action_set, key, clone);
 	}
 end:
-	return unsolved;
+	return result;
 }
 
-void reference_solve_first_set(Reference *ref, int *unsolved)
+void reference_solve_first_set(Reference *ref, int *result)
 {
 	BMapCursorAction cursor;
 	BMapEntryAction *entry;
@@ -149,7 +147,7 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 			ref->to_state,
 			""
 		);
-		*unsolved = 1;
+		*result = REF_RESULT_PENDING;
 		return;
 	}
 
@@ -170,15 +168,14 @@ void reference_solve_first_set(Reference *ref, int *unsolved)
 	bmap_cursor_action_init(&cursor, &(ref->to_state->actions));
 	while(bmap_cursor_action_next(&cursor)) {
 		entry = bmap_cursor_action_current(&cursor);
-		*unsolved += _clone_fs_action(&action_set, ref, entry->key, &entry->action);
+		*result |= _clone_fs_action(&action_set, ref, entry->key, &entry->action);
 	}
 	bmap_cursor_action_dispose(&cursor);
 
-	// For now refs are always solved because we only merge cleared states
-	// When we add the copy features we will need to check all states in 
-	// the graph.
-	_merge_action_set(ref->state, &action_set);
-	ref->status = REF_SOLVED;
+	if(!(*result & REF_RESULT_PENDING)) {
+		_merge_action_set(ref->state, &action_set);
+		ref->status = REF_SOLVED;
+	}
 
 	bmap_action_dispose(&action_set);
 }
@@ -242,7 +239,7 @@ end:
 	return;
 }
 
-void reference_solve_return_set(Reference *ref, Nonterminal *nt, int *unsolved)
+void reference_solve_return_set(Reference *ref, Nonterminal *nt, int *result)
 {
 	Symbol *sb = ref->symbol;
 
@@ -268,7 +265,7 @@ void reference_solve_return_set(Reference *ref, Nonterminal *nt, int *unsolved)
 			cont->state,
 			""
 		);
-		*unsolved = 1;
+		*result = REF_RESULT_PENDING;
 		return;
 	}
 

@@ -50,7 +50,7 @@ void nonterminal_dispose(Nonterminal *nonterminal)
 }
 
 int nonterminal_solve_references(Nonterminal *nt) {
-	int unsolved = 0;
+	int result = REF_RESULT_SOLVED;
 	BMapCursorReference rcursor;
 	Reference *ref;
 
@@ -61,11 +61,11 @@ int nonterminal_solve_references(Nonterminal *nt) {
 	bmap_cursor_ref_init(&rcursor, &nt->refs);
 	while(bmap_cursor_ref_next(&rcursor)) {
 		ref = bmap_cursor_ref_current(&rcursor)->ref;
-		reference_solve_return_set(ref, nt, &unsolved);
+		reference_solve_return_set(ref, nt, &result);
 	}
 	bmap_cursor_ref_dispose(&rcursor);
 
-	if(!unsolved) {
+	if(result == REF_RESULT_SOLVED) {
 		nt->status = NONTERMINAL_CLEAR;
 		nt->end->status &= ~STATE_RETURN_REF;
 		trace_state(
@@ -76,5 +76,5 @@ int nonterminal_solve_references(Nonterminal *nt) {
 	}
 
 end:
-	return unsolved;
+	return result;
 }

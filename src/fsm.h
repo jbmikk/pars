@@ -23,6 +23,10 @@
 #define REF_PENDING 0
 #define REF_SOLVED 1
 
+#define REF_RESULT_SOLVED 0
+#define REF_RESULT_PENDING 1
+#define REF_RESULT_CHANGED 2
+
 #define REF_TYPE_DEFAULT 0
 #define REF_TYPE_SHIFT 1
 
@@ -139,8 +143,8 @@ void nonterminal_dispose(Nonterminal *nonterminal);
 
 // # Reference functions
 
-void reference_solve_first_set(Reference *ref, int *unsolved);
-void reference_solve_return_set(Reference *ref, Nonterminal *nt, int *unsolved);
+void reference_solve_first_set(Reference *ref, int *result);
+void reference_solve_return_set(Reference *ref, Nonterminal *nt, int *result);
 
 
 #endif //FSM_H
