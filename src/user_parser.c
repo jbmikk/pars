@@ -8,7 +8,7 @@ static void _identity_init_lexer_fsm(Fsm *fsm)
 {
 	FsmBuilder builder;
 
-	fsm_builder_init(&builder, fsm);
+	fsm_builder_init(&builder, fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_set_mode(&builder, nzs(".default"));
 

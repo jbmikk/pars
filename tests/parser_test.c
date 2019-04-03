@@ -35,7 +35,7 @@ static void _test_identity_init_lexer_fsm(Fsm *fsm)
 {
 	FsmBuilder builder;
 
-	fsm_builder_init(&builder, fsm);
+	fsm_builder_init(&builder, fsm, REF_STRATEGY_MERGE);
 
 	// TODO: Is this still necessary? lexer_done already handles it.
 	fsm_builder_set_mode(&builder, nzs(".default"));
@@ -53,7 +53,7 @@ static void _build_simple_ab_fsm(Fsm *fsm)
 	Symbol *t_down = symbol_table_get(&fix.parser.table, "__tdown", 7);
 	//Symbol *t_up = symbol_table_get(&fix.parser.table, "__tup", 5);
 
-	fsm_builder_init(&builder, fsm);
+	fsm_builder_init(&builder, fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_define(&builder, nzs("rule"));
 	fsm_builder_terminal(&builder, 0);
@@ -75,7 +75,7 @@ static void _build_simple_abc_fsm(Fsm *fsm)
 	Symbol *t_down = symbol_table_get(&fix.parser.table, "__tdown", 7);
 	//Symbol *t_up = symbol_table_get(&fix.parser.table, "__tup", 5);
 
-	fsm_builder_init(&builder, fsm);
+	fsm_builder_init(&builder, fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_define(&builder, nzs("rule"));
 	fsm_builder_terminal(&builder, 0);
@@ -97,7 +97,7 @@ static void _build_child_rule_fsm(Fsm *fsm)
 
 	Symbol *t_down = symbol_table_get(&fix.parser.table, "__tdown", 7);
 
-	fsm_builder_init(&builder, fsm);
+	fsm_builder_init(&builder, fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_define(&builder, nzs("child"));
 	fsm_builder_terminal(&builder, 'b');
@@ -124,7 +124,7 @@ static void _build_siblings_with_children(Fsm *fsm)
 	Symbol *t_down = symbol_table_get(&fix.parser.table, "__tdown", 7);
 	Symbol *t_up = symbol_table_get(&fix.parser.table, "__tup", 5);
 
-	fsm_builder_init(&builder, fsm);
+	fsm_builder_init(&builder, fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_define(&builder, nzs("rule"));
 	fsm_builder_terminal(&builder, 0);

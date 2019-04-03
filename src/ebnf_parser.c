@@ -22,7 +22,7 @@ void ebnf_build_fsm(Fsm *fsm)
 {
 	FsmBuilder builder;
 
-	fsm_builder_init(&builder, fsm);
+	fsm_builder_init(&builder, fsm, REF_STRATEGY_MERGE);
 
 	int META_IDENTIFIER = fsm_get_symbol_id(fsm, nzs("meta_identifier"));
 	int INTEGER = fsm_get_symbol_id(fsm, nzs("integer"));
@@ -168,7 +168,7 @@ void ebnf_build_lexer_fsm(Fsm *fsm)
 {
 	FsmBuilder builder;
 
-	fsm_builder_init(&builder, fsm);
+	fsm_builder_init(&builder, fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_set_mode(&builder, nzs(".default"));
 
@@ -703,7 +703,7 @@ void ebnf_ast_to_fsm(Fsm *fsm, Ast *ast)
 	FsmBuilder builder;
 
 	ast_cursor_init(&cur, ast);
-	fsm_builder_init(&builder, fsm);
+	fsm_builder_init(&builder, fsm, REF_STRATEGY_MERGE);
 
 	int E_SYNTAX_RULE = ast_get_symbol(&cur, nzs("syntax_rule"));
 	while(ast_cursor_depth_next_symbol(&cur, E_SYNTAX_RULE)) {

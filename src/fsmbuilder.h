@@ -16,10 +16,11 @@ typedef struct FsmBuilder {
 	FsmFrame *stack;
 	Symbol *last_symbol;
 	int current_mode;
+	char ref_strategy;
 	Nonterminal *last_nonterminal;
 } FsmBuilder;
 
-void fsm_builder_init(FsmBuilder *builder, Fsm *fsm);
+void fsm_builder_init(FsmBuilder *builder, Fsm *fsm, char ref_strategy);
 void fsm_builder_dispose(FsmBuilder *builder);
 
 

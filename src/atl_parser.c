@@ -13,7 +13,7 @@ void atl_build_fsm(Fsm *fsm)
 {
 	FsmBuilder builder;
 
-	fsm_builder_init(&builder, fsm);
+	fsm_builder_init(&builder, fsm, REF_STRATEGY_MERGE);
 
 	int IDENTIFIER = fsm_get_symbol_id(fsm, nzs("identifier"));
 	int START_BLOCK_SYMBOL = fsm_get_symbol_id(fsm, nzs("start_block_symbol"));
@@ -43,7 +43,7 @@ void atl_build_lexer_fsm(Fsm *fsm)
 {
 	FsmBuilder builder;
 
-	fsm_builder_init(&builder, fsm);
+	fsm_builder_init(&builder, fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_set_mode(&builder, nzs(".default"));
 

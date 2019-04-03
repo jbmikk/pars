@@ -51,7 +51,7 @@ void state_get_states(State *state, BMapState *states)
 	}
 }
 
-void state_add_reference_with_cont(State *state, char type, Symbol *symbol, State *to_state, Nonterminal *nt, State *cont)
+void state_add_reference_with_cont(State *state, char type, char strategy, Symbol *symbol, State *to_state, Nonterminal *nt, State *cont)
 {
 	Reference *ref = malloc(sizeof(Reference));
 	ref->state = state;
@@ -60,6 +60,7 @@ void state_add_reference_with_cont(State *state, char type, Symbol *symbol, Stat
 	ref->symbol = symbol;
 	ref->status = REF_PENDING;
 	ref->type = type;
+	ref->strategy = strategy;
 	ref->nonterminal = nt;
 	ref->cont = cont;
 
@@ -69,9 +70,9 @@ void state_add_reference_with_cont(State *state, char type, Symbol *symbol, Stat
 	state->status |= STATE_INVOKE_REF;
 }
 
-void state_add_reference(State *state, char type, Symbol *symbol, State *to_state)
+void state_add_reference(State *state, char type, char strategy, Symbol *symbol, State *to_state)
 {
-	state_add_reference_with_cont(state, type, symbol, to_state, NULL, NULL);
+	state_add_reference_with_cont(state, type, strategy, symbol, to_state, NULL, NULL);
 }
 
 void state_dispose(State *state)

@@ -12,7 +12,7 @@
 #define NONE 0
 
 
-void fsm_builder_init(FsmBuilder *builder, Fsm *fsm)
+void fsm_builder_init(FsmBuilder *builder, Fsm *fsm, char ref_strategy)
 {
 	builder->fsm = fsm;
 	builder->action = NULL;
@@ -21,6 +21,7 @@ void fsm_builder_init(FsmBuilder *builder, Fsm *fsm)
 	builder->last_symbol = NULL;
 	builder->last_nonterminal = NULL;
 	builder->current_mode = 0;
+	builder->ref_strategy = ref_strategy;
 }
 
 void fsm_builder_dispose(FsmBuilder *builder)
@@ -157,7 +158,7 @@ void fsm_builder_loop_group_start(FsmBuilder *builder)
 
 	State *cont = start;
 
-	state_add_reference(builder->state, REF_TYPE_DEFAULT, NULL, start);
+	state_add_reference(builder->state, REF_TYPE_DEFAULT, builder->ref_strategy, NULL, start);
 
 	trace_state("push", cont, "continuation");
 	_push_frame(builder, start, cont);
@@ -180,7 +181,7 @@ void fsm_builder_option_group_start(FsmBuilder *builder)
 	State *cont = malloc(sizeof(State));
 	state_init(cont);
 
-	state_add_reference(start, REF_TYPE_DEFAULT, NULL, cont);
+	state_add_reference(start, REF_TYPE_DEFAULT, builder->ref_strategy, NULL, cont);
 
 	trace_state("add", cont, "continuation");
 	_push_frame(builder, start, cont);
@@ -316,7 +317,7 @@ void _lexer_nonterminal(FsmBuilder *builder, int symbol_id)
 
 	_ensure_state(builder);
 
-	state_add_reference(builder->state, REF_TYPE_START, NULL, nt->start);
+	state_add_reference(builder->state, REF_TYPE_START, builder->ref_strategy, NULL, nt->start);
 
 	//TODO: For now assume end exists, it should use nonterminal refs.
 	_move_to(builder, nt->end);
@@ -350,7 +351,7 @@ void fsm_builder_copy(FsmBuilder *builder, char *name, int length)
 	State *cont = malloc(sizeof(State));
 	state_init(cont);
 
-	state_add_reference_with_cont(from, REF_TYPE_COPY, NULL, nt->start, nt, cont);
+	state_add_reference_with_cont(from, REF_TYPE_COPY, builder->ref_strategy, NULL, nt->start, nt, cont);
 
 	_move_to(builder, cont);
 }
@@ -365,6 +366,7 @@ void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length)
 
 	_ensure_state(builder);
 
+
 	State *prev = builder->state;
 
 	Action *action = state_add(builder->state, sb->id, ACTION_DROP, NONE);
@@ -372,7 +374,7 @@ void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length)
 
 	//Create reference from last non terminal to the named non terminal
 	//State exists because we already added the terminal
-	state_add_reference(prev, REF_TYPE_SHIFT, sb, nt->start);
+	state_add_reference(prev, REF_TYPE_SHIFT, builder->ref_strategy, sb, nt->start);
 
 	//Create reference to return from the non terminal to the caller
 	//TODO: Should be builder->current->state?

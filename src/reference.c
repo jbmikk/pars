@@ -71,11 +71,12 @@ static int _clone_fs_action(BMapAction *action_set, Reference *ref, int key, Act
 		clone_type = ACTION_START;
 	}
 
+	//TODO: Detect collision for ranges (only testing `key` for now)
 	Action *col = state_get_transition(ref->state, key);
 
 	// TODO: Unify collision detection, skipping and merging with the ones
 	// used in the state functions.
-	if(col) {
+	if(col && ref->strategy == REF_STRATEGY_MERGE) {
 		if(!_compare(*action, *col)) {
 			trace_op(
 				"collision",
@@ -116,8 +117,8 @@ static int _clone_fs_action(BMapAction *action_set, Reference *ref, int key, Act
 		state_init(merge);
 
 		//Merge first set for the actions continuations.
-		state_add_reference(merge, REF_TYPE_DEFAULT, NULL, col->state);
-		state_add_reference(merge, REF_TYPE_DEFAULT, NULL, action->state);
+		state_add_reference(merge, REF_TYPE_DEFAULT, REF_STRATEGY_MERGE, NULL, col->state);
+		state_add_reference(merge, REF_TYPE_DEFAULT, REF_STRATEGY_MERGE, NULL, action->state);
 
 		//Create unified action pointing to merged state.
 		action_init(col, clone_type, col->reduction, merge, col->flags, col->end_symbol);

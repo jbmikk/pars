@@ -94,7 +94,7 @@ void t_teardown(){
 
 void fsm_builder_define__single_get(){
 	FsmBuilder builder;
-	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_MERGE);
 	fsm_builder_define(&builder, nzs("name"));
 	t_assert(builder.state != NULL);
 	fsm_builder_dispose(&builder);
@@ -102,7 +102,7 @@ void fsm_builder_define__single_get(){
 
 void fsm_builder_define__two_gets(){
 	FsmBuilder builder;
-	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_define(&builder, nzs("rule1"));
 	State *state1 = builder.state;
@@ -122,7 +122,7 @@ void fsm_thread_match__shift(){
 	FsmBuilder builder;
 	Transition tran;
 
-	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_define(&builder, nzs("name"));
 	fsm_builder_terminal(&builder, 'a');
@@ -147,7 +147,7 @@ void fsm_thread_match__shift_range(){
 	FsmBuilder builder;
 	Transition tran;
 
-	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_define(&builder, nzs("name"));
 	fsm_builder_terminal_range(&builder, (Range){'a', 'p'});
@@ -180,7 +180,7 @@ void fsm_thread_match__shift_nested_range(){
 	Transition tran;
 	Action action1, action2;
 
-	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_define(&builder, nzs("name"));
 	fsm_builder_group_start(&builder);
@@ -224,7 +224,7 @@ void fsm_thread_match__shift_path_nested_range(){
 	Transition tran;
 	Action action1, action2;
 
-	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_define(&builder, nzs("name"));
 	fsm_builder_group_start(&builder);
@@ -283,7 +283,7 @@ void fsm_thread_match__reduce(){
 	FsmBuilder builder;
 	Transition tran;
 
-	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_define(&builder, nzs("number"));
 	fsm_builder_terminal(&builder, '1');
@@ -311,7 +311,7 @@ void fsm_thread_match__reduce_shift(){
 	FsmBuilder builder;
 	Transition tran;
 
-	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_define(&builder, nzs("number"));
 	fsm_builder_terminal(&builder, '1');
@@ -350,7 +350,7 @@ void fsm_thread_match__reduce_handler(){
 	FsmBuilder builder;
 	Transition tran;
 
-	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_define(&builder, nzs("number"));
 	fsm_builder_terminal(&builder, '1');
@@ -403,7 +403,7 @@ void fsm_thread_match__first_set_collision(){
 	FsmBuilder builder;
 	Transition tran;
 
-	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_define(&builder, nzs("A"));
 	fsm_builder_terminal(&builder, '1');
@@ -453,7 +453,7 @@ void fsm_thread_match__repetition(){
 	FsmBuilder builder;
 	Transition tran;
 
-	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_define(&builder, nzs("nonZeroDigit"));
 	fsm_builder_group_start(&builder);
@@ -534,7 +534,7 @@ void fsm_thread_match__any(){
 	FsmBuilder builder;
 	Transition tran;
 
-	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_set_mode(&builder, nzs(".default"));
 
@@ -568,7 +568,7 @@ void fsm_thread_match__simple_backtrack(){
 	FsmBuilder builder;
 	Transition tran;
 
-	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_MERGE);
 
 	fsm_builder_define(&builder, nzs("A"));
 	fsm_builder_terminal(&builder, 'b');
@@ -613,7 +613,7 @@ void fsm_thread_match__backtrack_with_shift(){
 	FsmBuilder builder;
 	Transition tran;
 
-	fsm_builder_init(&builder, &fix.fsm);
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_SPLIT);
 
 	// First it should match this one.
 	fsm_builder_define(&builder, nzs("A"));

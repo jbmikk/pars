@@ -32,6 +32,9 @@
 #define REF_TYPE_START 2
 #define REF_TYPE_COPY 3
 
+#define REF_STRATEGY_MERGE 0
+#define REF_STRATEGY_SPLIT 1
+
 #define STATE_CLEAR 0
 #define STATE_INVOKE_REF 1
 #define STATE_RETURN_REF 2
@@ -87,6 +90,7 @@ typedef struct Reference {
 	// Used for: nothing
 	Symbol *symbol;
 	char type;
+	char strategy;
 	char status;
 } Reference;
 
@@ -124,8 +128,8 @@ int fsm_get_symbol_id(Fsm *fsm, char *name, int length);
 
 void state_init(State *state);
 void state_get_states(State *state, BMapState *states);
-void state_add_reference(State *state, char type, Symbol *symbol, State *to_state);
-void state_add_reference_with_cont(State *state, char type, Symbol *symbol, State *to_state, Nonterminal *nt, State *cont);
+void state_add_reference(State *state, char type, char strategy, Symbol *symbol, State *to_state);
+void state_add_reference_with_cont(State *state, char type, char strategy, Symbol *symbol, State *to_state, Nonterminal *nt, State *cont);
 Action *state_get_transition(State *state, int symbol);
 Action *state_get_path_transition(State *state, int symbol, int path);
 void state_dispose(State *state);
