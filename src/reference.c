@@ -291,6 +291,16 @@ static void _clone_rs_action(Reference *ref, BMapAction *action_set, Nonterminal
 		Action clone;
 		action_init(&clone, clone_type, sb->id, NULL, action->flags, action->end_symbol);
 
+		// TODO: Empty transitions should not be cloned.
+		// They should be followed recursively to get the whole
+		// follow set.
+		// This happens when:
+		// * A nonterminal is invoked at the end of a repetition and
+		//   the repetition is within a group. An empty transition
+		//   will be created between the repetition and the group,
+		//   when the nonterminal is solved the empty transition will
+		//   be found in the follow-set.
+
 		trace_op(
 			"add",
 			nt->end,
