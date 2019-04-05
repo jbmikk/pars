@@ -602,6 +602,53 @@ void fsm_thread_match__copy(){
 	fsm_thread_dispose(&thread);
 }
 
+void fsm_thread_match__copy_loop(){
+	FsmBuilder builder;
+	Transition tran;
+
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_MERGE);
+
+	fsm_builder_set_mode(&builder, nzs(".default"));
+
+	fsm_builder_define(&builder, nzs("A"));
+	fsm_builder_terminal(&builder, 'a');
+	fsm_builder_terminal(&builder, '1');
+	fsm_builder_end(&builder);
+
+	fsm_builder_define(&builder, nzs("B"));
+	fsm_builder_terminal(&builder, 'b');
+	fsm_builder_loop_group_start(&builder);
+	fsm_builder_copy(&builder, nzs("A"));
+	fsm_builder_or(&builder);
+	fsm_builder_terminal(&builder, 'x');
+	fsm_builder_loop_group_end(&builder);
+	fsm_builder_terminal(&builder, '2');
+	fsm_builder_end(&builder);
+
+	fsm_builder_lexer_done(&builder, '\0');
+
+	fsm_builder_dispose(&builder);
+
+	int b = fsm_get_symbol_id(&fix.fsm, nzs("B"));
+
+	FsmThread thread;
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
+	fsm_thread_start(&thread);
+
+	MATCH_START(thread, 'b');
+	MATCH_DROP(thread, 'a');
+	MATCH_DROP(thread, '1');
+	MATCH_EMPTY(thread, 'x');
+	MATCH_DROP(thread, 'x');
+	MATCH_DROP(thread, 'a');
+	MATCH_DROP(thread, '1');
+	MATCH_EMPTY(thread, '2');
+	MATCH_DROP(thread, '2');
+	MATCH_ACCEPT_WITH(thread, '\0', b);
+
+	fsm_thread_dispose(&thread);
+}
+
 void fsm_thread_match__simple_backtrack(){
 	FsmBuilder builder;
 	Transition tran;
@@ -722,6 +769,7 @@ int main(int argc, char** argv){
 	t_test(fsm_thread_match__repetition);
 	t_test(fsm_thread_match__any);
 	t_test(fsm_thread_match__copy);
+	t_test(fsm_thread_match__copy_loop);
 	t_test(fsm_thread_match__simple_backtrack);
 	t_test(fsm_thread_match__backtrack_with_shift);
 	return t_done();
