@@ -22,8 +22,8 @@ int control_loop_linear(void *object, void *params)
 	check(
 		cont.type != CONTINUATION_ERROR,
 		"Parser error at token "
-		"index: %i with symbol: %i, length: %i",
-		token.index, token.symbol, token.length
+		"index: %i with symbol: %i (%c), length: %i",
+		token.index, token.symbol, token.symbol, token.length
 	);
 
 	return 0;
