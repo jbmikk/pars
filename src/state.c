@@ -312,7 +312,12 @@ State *state_deep_clone(State *state, BMapState *cloned, State *end, State *cont
 		clone = malloc(sizeof(State));
 		state_init(clone);
 
-		bmap_state_insert(cloned, (intptr_t)state, state);
+		if(state == end) {
+			// TODO: Fix possible cont leak?
+			state_add_reference(clone, REF_TYPE_DEFAULT, REF_STRATEGY_SPLIT, NULL, cont);
+		}
+
+		bmap_state_insert(cloned, (intptr_t)state, clone);
 
 		BMapCursorAction cursor;
 		bmap_cursor_action_init(&cursor, &state->actions);
@@ -320,13 +325,13 @@ State *state_deep_clone(State *state, BMapState *cloned, State *end, State *cont
 			BMapEntryAction *entry;
 			entry = bmap_cursor_action_current(&cursor);
 			Action ac = entry->action;
-			if(ac.state && ac.state != end) {
+			if(ac.state) {
 				ac.state = state_deep_clone(ac.state, cloned, end, cont);
-			} else if(ac.state && ac.state == end) {
-				ac.state = cont;
 			}
-			bmap_action_m_append(&clone->actions, entry->key, ac);
-
+			// Skip accept to avoid problems with lexer_nonterminal
+			if(ac.type != ACTION_ACCEPT) {
+				bmap_action_m_append(&clone->actions, entry->key, ac);
+			}
 		}
 		bmap_cursor_action_dispose(&cursor);
 	} else {

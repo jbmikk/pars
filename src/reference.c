@@ -145,23 +145,22 @@ end:
 	return result;
 }
 
-static int _clone_deep(BMapAction *action_set, Reference *ref, int key, Action *action)
+static int _clone_deep(Reference *ref)
 {
 	int result = REF_RESULT_SOLVED;
 
-	int clone_type = action->type;
-
-	Action *col = state_get_transition(ref->state, key);
+	// TODO detect collisions between states' action sets
+	//Action *col = state_get_transition(ref->state, key);
 
 	// TODO: Unify collision detection, skipping and merging with the ones
 	// used in the state functions.
-	if(col) {
+	//if(col) {
 		// TODO: manage collisions
-	} else {
+	//} else {
 		// TODO: if all states ready proceed, otherwise defer
 		BMapState walked_states;
 		bmap_state_init(&walked_states);
-		bool all_ready = state_all_ready(action->state, &walked_states);
+		bool all_ready = state_all_ready(ref->to_state, &walked_states);
 		bmap_state_dispose(&walked_states);
 		if(!all_ready) {
 			result = REF_RESULT_PENDING;
@@ -172,33 +171,28 @@ static int _clone_deep(BMapAction *action_set, Reference *ref, int key, Action *
 		BMapState cloned_states;
 		bmap_state_init(&cloned_states);
 
-		State *state = state_deep_clone(action->state, &cloned_states, ref->nonterminal->end, ref->cont);
+		State *cloned = state_deep_clone(ref->to_state, &cloned_states, ref->nonterminal->end, ref->cont);
 
 		bmap_state_dispose(&cloned_states);
 
-		Action clone;
-		action_init(&clone, clone_type, action->reduction, state, action->flags, action->end_symbol);
+		// Merge cloned fragment
+		_merge_action_set(ref->state, &cloned->actions);
 
-		trace_op(
-			"add",
-			ref->state,
-			&clone,
-			key,
-			"first-set",
-			0
-		);
+		// TODO: Improve cloning, unnecessary malloc/free
+		// Delete root state, we only need its action set
+		state_dispose(cloned);
+		free(cloned);
 
-		bmap_action_m_append(action_set, key, clone);
-	}
+		// Because deep cloning always creates a cont ref (for now)
+		result = REF_RESULT_CHANGED;
+		ref->status = REF_SOLVED;
+	//}
 end:
 	return result;
 }
 
 void reference_solve_first_set(Reference *ref, int *result)
 {
-	BMapCursorAction cursor;
-	BMapEntryAction *entry;
-
 	if(ref->status == REF_SOLVED) {
 		//ref already solved
 		return;
@@ -221,30 +215,33 @@ void reference_solve_first_set(Reference *ref, int *result)
 		""
 	);
 
-	// Add all cloned actions into a clone set, then merge the clone set
-	// into the ref state. It's important to do this in two passes in 
-	// order to avoid having collisions produced by the very actions we
-	// are cloning.
-	BMapAction action_set;
-	bmap_action_init(&action_set);
+	if(ref->type == REF_TYPE_COPY) {
+		*result |= _clone_deep(ref);
+	} else {
+		// Add all cloned actions into a clone set, then merge the clone set
+		// into the ref state. It's important to do this in two passes in 
+		// order to avoid having collisions produced by the very actions we
+		// are cloning.
+		BMapAction action_set;
+		bmap_action_init(&action_set);
 
-	bmap_cursor_action_init(&cursor, &(ref->to_state->actions));
-	while(bmap_cursor_action_next(&cursor)) {
-		entry = bmap_cursor_action_current(&cursor);
-		if(ref->type == REF_TYPE_COPY) {
-			*result |= _clone_deep(&action_set, ref, entry->key, &entry->action);
-		} else {
+		BMapCursorAction cursor;
+		BMapEntryAction *entry;
+
+		bmap_cursor_action_init(&cursor, &(ref->to_state->actions));
+		while(bmap_cursor_action_next(&cursor)) {
+			entry = bmap_cursor_action_current(&cursor);
 			*result |= _clone_fs_action(&action_set, ref, entry->key, &entry->action);
 		}
-	}
-	bmap_cursor_action_dispose(&cursor);
+		bmap_cursor_action_dispose(&cursor);
 
-	if(!(*result & REF_RESULT_PENDING)) {
-		_merge_action_set(ref->state, &action_set);
-		ref->status = REF_SOLVED;
-	}
+		if(!(*result & REF_RESULT_PENDING)) {
+			_merge_action_set(ref->state, &action_set);
+			ref->status = REF_SOLVED;
+		}
 
-	bmap_action_dispose(&action_set);
+		bmap_action_dispose(&action_set);
+	}
 }
 
 static void _clone_rs_action(Reference *ref, BMapAction *action_set, Nonterminal *nt, int key, Action *action)

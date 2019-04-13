@@ -323,6 +323,10 @@ void _lexer_nonterminal(FsmBuilder *builder, int symbol_id)
 	_move_to(builder, nt->end);
 
 	// TODO: Maybe ACTION_ACCEPT should always have a symbol.
+	// TODO: Adding accept here makes it difficult to REF_COPY.
+	// For now we skip accept actions when deep cloning.
+	// Another solution is to clone here instead of modifying the
+	// fragments.
 	Action *action = _add_empty(builder, ACTION_ACCEPT, sb->id);
 
 	// Add mode and flags
