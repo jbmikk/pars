@@ -302,7 +302,7 @@ end:
 /**
  * 
  */
-State *state_deep_clone(State *state, BMapState *cloned, State *end, State *cont)
+State *state_deep_clone(State *state, BMapState *cloned, State *end, State *sibling_end, State *cont)
 {
 	BMapEntryState *in_states = bmap_state_get(cloned, (intptr_t)state);
 	State *clone;
@@ -317,6 +317,19 @@ State *state_deep_clone(State *state, BMapState *cloned, State *end, State *cont
 			state_add_reference(clone, REF_TYPE_DEFAULT, REF_STRATEGY_SPLIT, NULL, cont);
 		}
 
+		// When the start/cont state is also the end state for the 
+		// nonterminal the previous state for the loop also becomes a 
+		// possible end state. When the copy operator clones the end 
+		// state it adds references to the copy continuation, but only 
+		// for the default end state, ignoring this particular case. 
+		// In order to fix this, we need to add a ref from the sibling
+		// end to the continuation
+		if(state == sibling_end) {
+
+			// TODO: Fix possible cont leak?
+			state_add_reference(clone, REF_TYPE_DEFAULT, REF_STRATEGY_SPLIT, NULL, cont);
+		}
+
 		bmap_state_insert(cloned, (intptr_t)state, clone);
 
 		BMapCursorAction cursor;
@@ -326,7 +339,7 @@ State *state_deep_clone(State *state, BMapState *cloned, State *end, State *cont
 			entry = bmap_cursor_action_current(&cursor);
 			Action ac = entry->action;
 			if(ac.state) {
-				ac.state = state_deep_clone(ac.state, cloned, end, cont);
+				ac.state = state_deep_clone(ac.state, cloned, end, sibling_end, cont);
 			}
 			// Skip accept to avoid problems with lexer_nonterminal
 			if(ac.type != ACTION_ACCEPT) {

@@ -171,7 +171,7 @@ static int _clone_deep(Reference *ref)
 		BMapState cloned_states;
 		bmap_state_init(&cloned_states);
 
-		State *cloned = state_deep_clone(ref->to_state, &cloned_states, ref->nonterminal->end, ref->cont);
+		State *cloned = state_deep_clone(ref->to_state, &cloned_states, ref->nonterminal->end, ref->nonterminal->sibling_end, ref->cont);
 
 		bmap_state_dispose(&cloned_states);
 

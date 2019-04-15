@@ -68,6 +68,7 @@ struct State {
 typedef struct Nonterminal {
 	State *start;
 	State *end;
+	State *sibling_end;
 	BMapReference refs;
 	//mode == 0 means no parent mode.
 	int mode;
@@ -137,7 +138,7 @@ Action *state_add(State *from, int symbol, int type, int reduction);
 Action *state_add_range(State *state, Range range, int type, int reduction);
 Action *state_append_action(State *state, int symbol, Action *action);
 int state_solve_references(State *state);
-State *state_deep_clone(State *state, BMapState *cloned, State *end, State *cont);
+State *state_deep_clone(State *state, BMapState *cloned, State *end, State *sibling_end, State *cont);
 bool state_all_ready(State *state, BMapState *walked);
 
 

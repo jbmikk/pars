@@ -6,6 +6,7 @@
 typedef struct FsmFrame {
 	State *start;
 	State *continuation;
+	State *sibling;
 	struct FsmFrame *next;
 } FsmFrame;
 
@@ -13,6 +14,7 @@ typedef struct FsmBuilder {
 	Fsm *fsm;
 	Action *action;
 	State *state;
+	State *sibling;
 	FsmFrame *stack;
 	Symbol *last_symbol;
 	int current_mode;

@@ -17,6 +17,7 @@ void fsm_builder_init(FsmBuilder *builder, Fsm *fsm, char ref_strategy)
 	builder->fsm = fsm;
 	builder->action = NULL;
 	builder->state = NULL;
+	builder->sibling = NULL;
 	builder->stack = NULL;
 	builder->last_symbol = NULL;
 	builder->last_nonterminal = NULL;
@@ -40,11 +41,12 @@ void fsm_builder_dispose(FsmBuilder *builder)
 	builder->fsm = NULL;
 }
 
-static void _push_frame(FsmBuilder *builder, State *start, State *cont) 
+static void _push_frame(FsmBuilder *builder, State *start, State *cont, State *sibling) 
 {
 	FsmFrame *frame = malloc(sizeof(FsmFrame));
 	frame->start = start;
 	frame->continuation = cont;
+	frame->sibling = sibling;
 	frame->next = builder->stack;
 	builder->stack = frame;
 }
@@ -71,10 +73,16 @@ static void _move_to(FsmBuilder *builder, State *state)
 	builder->state = state;
 }
 
+static void _set_sibling(FsmBuilder *builder, State *state)
+{
+	builder->sibling = state;
+}
+
 static void _transition(FsmBuilder *builder, Action *action)
 {
 	builder->action = action;
 	builder->state = NULL;
+	builder->sibling = NULL;
 }
 
 static void _ensure_state(FsmBuilder *builder)
@@ -102,6 +110,7 @@ static void _reset(FsmBuilder *builder)
 {
 	FsmFrame *frame = builder->stack;
 	_move_to(builder, frame->start);
+	_set_sibling(builder, frame->sibling);
 }
 
 static void _join_continuation(FsmBuilder *builder)
@@ -140,7 +149,7 @@ void fsm_builder_group_start(FsmBuilder *builder)
 	state_init(cont);
 
 	trace_state("add", cont, "continuation");
-	_push_frame(builder, start, cont);
+	_push_frame(builder, start, cont, NULL);
 }
 
 void fsm_builder_group_end(FsmBuilder *builder)
@@ -157,13 +166,15 @@ void fsm_builder_loop_group_start(FsmBuilder *builder)
 	state_init(start);
 
 	State *cont = start;
+	State *preloop = builder->state;
 
-	state_add_reference(builder->state, REF_TYPE_DEFAULT, builder->ref_strategy, NULL, start);
+	state_add_reference(preloop, REF_TYPE_DEFAULT, builder->ref_strategy, NULL, start);
 
 	trace_state("push", cont, "continuation");
-	_push_frame(builder, start, cont);
+	_push_frame(builder, start, cont, preloop);
 
 	_move_to(builder, start);
+	_set_sibling(builder, preloop);
 }
 
 void fsm_builder_loop_group_end(FsmBuilder *builder)
@@ -184,7 +195,7 @@ void fsm_builder_option_group_start(FsmBuilder *builder)
 	state_add_reference(start, REF_TYPE_DEFAULT, builder->ref_strategy, NULL, cont);
 
 	trace_state("add", cont, "continuation");
-	_push_frame(builder, start, cont);
+	_push_frame(builder, start, cont, start);
 }
 
 void fsm_builder_option_group_end(FsmBuilder *builder)
@@ -260,8 +271,10 @@ void fsm_builder_end(FsmBuilder *builder)
 			_append_state(builder, builder->last_nonterminal->end);
 		} else {
 			//TODO: implicit fsm_builder_group_end(builder); ??
+			//TODO: Move this logic to the fsm frame?
 			_ensure_state(builder);
 			builder->last_nonterminal->end = builder->state;
+			builder->last_nonterminal->sibling_end = builder->sibling;
 		}
 
 		// Add proper status to the end state to solve references later

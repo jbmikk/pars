@@ -10,6 +10,7 @@ void nonterminal_init(Nonterminal *nonterminal)
 	nonterminal->status = NONTERMINAL_CLEAR;
 	nonterminal->start = NULL;
 	nonterminal->end = NULL;
+	nonterminal->sibling_end = NULL;
 	nonterminal->mode = 0;
 	nonterminal->pushes_mode = 0;
 	nonterminal->pops_mode = 0;
