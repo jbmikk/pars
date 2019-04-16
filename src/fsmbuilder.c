@@ -9,8 +9,6 @@
 
 #include "fsmtrace.h"
 
-#define NONE 0
-
 
 void fsm_builder_init(FsmBuilder *builder, Fsm *fsm, char ref_strategy)
 {
@@ -342,6 +340,7 @@ void _lexer_nonterminal(FsmBuilder *builder, int symbol_id)
 	// fragments.
 	Action *action = _add_empty(builder, ACTION_ACCEPT, sb->id);
 
+	// TODO: Add accept to sibling_end?
 	// Add mode and flags
 	int flags = 0;
 	if(nt->pushes_mode) {

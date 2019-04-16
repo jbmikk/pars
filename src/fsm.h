@@ -20,6 +20,9 @@
 #define ACTION_FLAG_MODE_PUSH 2
 #define ACTION_FLAG_MODE_POP 4
 
+// TODO: Rename to SYMBOL_NONE?
+#define NONE 0
+
 #define REF_PENDING 0
 #define REF_SOLVED 1
 

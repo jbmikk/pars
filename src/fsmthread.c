@@ -292,10 +292,16 @@ static Continuation _build_continuation(Transition t, int error)
 	} else {
 		switch(t.action->type) {
 		case ACTION_START:
-		case ACTION_ACCEPT:
 		case ACTION_SHIFT:
 		case ACTION_DROP:
 			cont.type = CONTINUATION_NEXT; 
+			break;
+		case ACTION_ACCEPT:
+			if(t.action->reduction == NONE) {
+				cont.type = CONTINUATION_NEXT;
+			} else {
+				cont.type = CONTINUATION_RETRY;
+			}
 			break;
 		case ACTION_EMPTY:
 			cont.type = CONTINUATION_RETRY; 
