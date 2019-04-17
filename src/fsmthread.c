@@ -207,6 +207,18 @@ static Transition _start_accept(Transition transition, FsmThread *thread, Transi
 			t.token.index - popped.index,
 			reduction_symbol
 		};
+
+		// Special case for the final accept state in lexers.
+		// We don't want to report the whole stream as accepted, only
+		// the final EOF symbol.
+		// TODO: the initial stach push SA doesn't make sense neither
+		// for lexers (requires this ugly fix) nor parsers (not used).
+		// Rethink this piece of crap. Maybe we need to separate SA
+		// for streams from SA for symbols?
+		if(reduction.symbol == NONE) {
+			reduction.index = t.token.index;
+			reduction.length = 0;
+		}
 		t.reduction = reduction;
 	}
 	return t;
