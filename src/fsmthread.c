@@ -62,6 +62,8 @@ static void _mode_pop(FsmThread *thread)
 	FsmThreadNode popped = _state_pop(thread, FSM_THREAD_NODE_MODE, &is_empty);
 	if(is_empty) {
 		//sentinel("Mode pop fail");
+		printf("FTH %p: mode pop fail\n", thread);
+		exit(1);
 	}
 	thread->start = popped.state;
 }
@@ -99,7 +101,7 @@ int fsm_thread_start(FsmThread *thread)
 	// TODO: Is this initial node really needed for EBNF?
 	// If removed, rewrite fsm_thread_stack_is_empty
 	_state_push(thread, (FsmThreadNode){ 
-		FSM_THREAD_NODE_SR,
+		FSM_THREAD_NODE_SA,
 		thread->transition.to,
 		0
 	});
@@ -140,6 +142,8 @@ static Transition _shift_reduce(Transition transition, FsmThread *thread) {
 		popped = _state_pop(thread, FSM_THREAD_NODE_SR, &is_empty);
 		if(is_empty) {
 			//sentinel("Reduce pop fail");
+			printf("FTH %p: SR pop fail\n", thread);
+			exit(1);
 		}
 		t.to = popped.state;
 
@@ -189,6 +193,8 @@ static Transition _start_accept(Transition transition, FsmThread *thread) {
 		popped = _state_pop(thread, FSM_THREAD_NODE_SA, &is_empty);
 		if(is_empty) {
 			//sentinel("Accept pop fail");
+			printf("FTH %p: SA pop fail\n", thread);
+			exit(1);
 		}
 
 		Token reduction = {
