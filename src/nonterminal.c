@@ -14,6 +14,7 @@ void nonterminal_init(Nonterminal *nonterminal)
 	nonterminal->mode = 0;
 	nonterminal->pushes_mode = 0;
 	nonterminal->pops_mode = 0;
+	nonterminal->type = NONTERMINAL_TYPE_DEFAULT;
 }
 
 void nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *symbol)

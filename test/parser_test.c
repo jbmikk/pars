@@ -40,8 +40,12 @@ static void _test_identity_init_lexer_fsm(Fsm *fsm)
 	// TODO: Is this still necessary? lexer_done already handles it.
 	fsm_builder_set_mode(&builder, nzs(".default"));
 
+	fsm_builder_define(&builder, nzs("any_char"));
+	fsm_builder_terminal_range(&builder, (Range){ 1, 256 });
+	fsm_builder_identity(&builder);
+	fsm_builder_end(&builder);
+
 	fsm_builder_lexer_done(&builder, L_EOF);
-	fsm_builder_lexer_default_input(&builder);
 
 	fsm_builder_dispose(&builder);
 }
@@ -153,7 +157,7 @@ int test_lexer_pipe(void *_context, void *_tran)
 	if(tran->action->type != ACTION_ACCEPT) {
 		return 0;
 	}
-	fsm_thread_match(&context->thread, &tran->token);
+	fsm_thread_match(&context->thread, &tran->reduction);
 	return 0;
 }
 

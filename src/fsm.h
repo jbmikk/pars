@@ -20,6 +20,9 @@
 #define ACTION_FLAG_MODE_PUSH 2
 #define ACTION_FLAG_MODE_POP 4
 
+// Used for identity accept
+#define ACTION_FLAG_IDENTITY 8
+
 // TODO: Rename to SYMBOL_NONE?
 #define NONE 0
 
@@ -44,6 +47,9 @@
 
 #define NONTERMINAL_CLEAR 0
 #define NONTERMINAL_RETURN_REF 1
+
+#define NONTERMINAL_TYPE_DEFAULT 0
+#define NONTERMINAL_TYPE_IDENTITY 1
 
 typedef struct State State;
 
@@ -79,6 +85,7 @@ typedef struct Nonterminal {
 	int pushes_mode;
 	int pops_mode;
 	char status;
+	char type;
 } Nonterminal;
 
 // Invoking refernces are from a concrete state to a symbol (to be resolved to

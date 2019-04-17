@@ -175,7 +175,7 @@ static Transition _shift_reduce(Transition transition, FsmThread *thread) {
 	return t;
 }
 
-static Transition _start_accept(Transition transition, FsmThread *thread) {
+static Transition _start_accept(Transition transition, FsmThread *thread, Transition prev) {
 	Action *action = transition.action;
 	Transition t = transition;
 	FsmThreadNode popped;
@@ -197,10 +197,15 @@ static Transition _start_accept(Transition transition, FsmThread *thread) {
 			exit(1);
 		}
 
+		int reduction_symbol = action->reduction;
+		if (action->flags & ACTION_FLAG_IDENTITY) {
+			reduction_symbol = prev.token.symbol;
+		}
+
 		Token reduction = {
 			popped.index,
 			t.token.index - popped.index,
-			action->reduction
+			reduction_symbol
 		};
 		t.reduction = reduction;
 	}
@@ -281,7 +286,7 @@ void fsm_thread_apply(FsmThread *thread, Transition transition)
 	Transition t = transition;
 	t = _backtrack(t, thread);
 	t = _shift_reduce(t, thread);
-	t = _start_accept(t, thread);
+	t = _start_accept(t, thread, thread->transition);
 	t = _switch_mode(t, thread);
 
 	thread->transition = t;

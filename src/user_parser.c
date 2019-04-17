@@ -12,8 +12,12 @@ static void _identity_init_lexer_fsm(Fsm *fsm)
 
 	fsm_builder_set_mode(&builder, nzs(".default"));
 
+	fsm_builder_define(&builder, nzs("any_char"));
+	fsm_builder_terminal_range(&builder, (Range){ 1, 256 });
+	fsm_builder_identity(&builder);
+	fsm_builder_end(&builder);
+
 	fsm_builder_lexer_done(&builder, L_EOF);
-	fsm_builder_lexer_default_input(&builder);
 
 	fsm_builder_dispose(&builder);
 }
@@ -26,7 +30,7 @@ int user_lexer_pipe(void *_context, void *_tran)
 	if(tran->action->type != ACTION_ACCEPT) {
 		return 0;
 	}
-	Token token = tran->token;
+	Token token = tran->reduction;
 
 	Continuation cont;
 	cont.type = CONTINUATION_NEXT;

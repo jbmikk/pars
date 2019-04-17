@@ -258,6 +258,13 @@ void fsm_builder_mode_pop(FsmBuilder *builder)
 	builder->last_nonterminal->pops_mode = 1;
 }
 
+void fsm_builder_identity(FsmBuilder *builder)
+{
+	if (builder->last_nonterminal) {
+		builder->last_nonterminal->type = NONTERMINAL_TYPE_IDENTITY;
+	}
+}
+
 void fsm_builder_end(FsmBuilder *builder)
 {
 	if (builder->last_nonterminal) {
@@ -339,6 +346,10 @@ void _lexer_nonterminal(FsmBuilder *builder, int symbol_id)
 	// Another solution is to clone here instead of modifying the
 	// fragments.
 	Action *action = _add_empty(builder, ACTION_ACCEPT, sb->id);
+
+	if(nt->type == NONTERMINAL_TYPE_IDENTITY) {
+		action->flags |= ACTION_FLAG_IDENTITY;
+	}
 
 	// TODO: Add accept to sibling_end?
 	// Add mode and flags
@@ -525,14 +536,4 @@ void fsm_builder_lexer_done(FsmBuilder *builder, int eof_symbol) {
 	_set_lexer_start(builder, eof_symbol);
 	_add_error(builder);
 	_solve_references(builder);
-}
-
-// TODO: Is this useful other than for testing purposes?
-void fsm_builder_lexer_default_input(FsmBuilder *builder)
-{
-	State *start = fsm_get_state(builder->fsm, nzs(".default"));
-
-	//Accept any character
-	_move_to(builder, start);
-	_add_empty(builder, ACTION_ACCEPT, NONE);
 }
