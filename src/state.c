@@ -148,7 +148,6 @@ static Action *_state_add_action(State *state, int symbol, Action *action)
 	Action *collision = _state_get_transition(state, symbol, 0);
 	Action *ret;
 	
-	// TODO: Compare all action properties?
 	// TODO: Unify collision detection, skipping and merging strategies
 	// with the ones used in the reference functions. Possible remove
 	// collision detection altogether at this level. We should just let
