@@ -11,6 +11,10 @@ FUNCTIONS(BMap, int, Action, Action, action)
 
 FUNCTIONS(BMap, intptr_t, Reference*, Reference, ref)
 
+// State to number maps for printing
+DEFINE(BMap, intptr_t, int, Number, number)
+FUNCTIONS(BMap, intptr_t, int, Number, number)
+
 void state_init(State *state)
 {
 	bmap_action_init(&state->actions);
@@ -377,3 +381,61 @@ bool state_all_ready(State *state, BMapState *walked)
 
 	return all_ready;
 }
+
+static void _state_print(State *state, BMapNumber *states, int level, int *count)
+{
+	BMapEntryNumber *s_entry = bmap_number_get(states, (intptr_t)state);
+
+	if(state && !s_entry) {
+		bmap_number_insert(states, (intptr_t)state, *count);
+		printf("s%i\n", *count);
+		(*count)++;
+
+		BMapCursorAction cursor;
+		bmap_cursor_action_init(&cursor, &state->actions);
+		while(bmap_cursor_action_next(&cursor)) {
+			BMapEntryAction *entry;
+			entry = bmap_cursor_action_current(&cursor);
+			Action ac = entry->action;
+
+			unsigned char levelstr[level+1];
+			int i;
+			for(i = 0; i < level; i++) {
+				levelstr[i] = '\t';
+			}
+			levelstr[level] = '\0';
+
+			printf(
+				"%s--'%c'%2i--%s-->",
+				levelstr,
+				entry->key >= 0? entry->key:'_',
+				entry->key,
+				ac.type == 0? "st":
+				ac.type == 1? "dr":
+				ac.type == 2? "re":
+				ac.type == 3? "sh":
+				ac.type == 4? "ac":
+				ac.type == 5? "er":
+				ac.type == 6? "em": "un"
+			);
+			_state_print(ac.state, states, level+1, count);
+		}
+		bmap_cursor_action_dispose(&cursor);
+	} else if (state) {
+		printf("s%i\n", s_entry->number);
+	} else {
+		printf("s_\n");
+	}
+}
+
+void state_print(State *state)
+{
+	BMapNumber states;
+	int count = 0;
+
+	bmap_number_init(&states);
+
+	printf("\n");
+	_state_print(state, &states, 0, &count);
+}
+
