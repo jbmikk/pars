@@ -157,13 +157,7 @@ static Action *_state_add_action(State *state, int symbol, Action *action)
 	// instance. And if the strategy allows having alternate paths, then
 	// at the validation or execution/interpreter level we should handle
 	// the multiple paths, such as when backtracking.
-	bool equal = 
-		collision &&
-		collision->type == action->type &&
-		collision->reduction == action->reduction &&
-		collision->flags == action->flags &&
-		collision->state == action->state &&
-		collision->end_symbol == action->end_symbol;
+	bool equal = collision && !action_compare(*action, *collision);
 
 	if(equal) {
 		trace_op(

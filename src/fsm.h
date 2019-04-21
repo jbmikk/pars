@@ -156,6 +156,7 @@ void state_print(State *state);
 //# Action functions
 
 void action_init(Action *action, char type, int reduction, State *state, char flags, int end_symbol);
+int action_compare(Action a1, Action a2);
 Action *action_add(Action *from, int symbol, int type, int reduction);
 
 
