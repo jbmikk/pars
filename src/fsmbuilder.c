@@ -316,9 +316,7 @@ void fsm_builder_any(FsmBuilder *builder)
 {
 	Range range = {1, 100000};
 
-	fsm_builder_loop_group_start(builder);
 	fsm_builder_terminal_range(builder, range);
-	fsm_builder_loop_group_end(builder);
 }
 
 /**

@@ -627,7 +627,9 @@ void fsm_thread_match__any(){
 
 	fsm_builder_define(&builder, nzs("A"));
 	fsm_builder_terminal(&builder, 'a');
+	fsm_builder_loop_group_start(&builder);
 	fsm_builder_any(&builder);
+	fsm_builder_loop_group_end(&builder);
 	fsm_builder_terminal(&builder, 'c');
 	fsm_builder_end(&builder);
 
