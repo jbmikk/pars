@@ -130,8 +130,7 @@ void ebnf_start_parsing__identifier(){
 	Transition tran;
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
-	fsm_thread_start(&thread);
-	thread.transition.to = fsm_get_state(&fix.fsm, nzs("syntactic_primary"));
+	fsm_thread_fake_start(&thread, fsm_get_state(&fix.fsm, nzs("syntactic_primary")));
 
 	MATCH_DROP(thread, fix.META_IDENTIFIER);
 	MATCH_REDUCE(thread, fix.CONCATENATE_SYMBOL, fix.SYNTACTIC_PRIMARY);
@@ -146,8 +145,7 @@ void ebnf_start_parsing__terminal(){
 	Transition tran;
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
-	fsm_thread_start(&thread);
-	thread.transition.to = fsm_get_state(&fix.fsm, nzs("syntactic_primary"));
+	fsm_thread_fake_start(&thread, fsm_get_state(&fix.fsm, nzs("syntactic_primary")));
 
 	MATCH_DROP(thread, fix.TERMINAL_STRING);
 	MATCH_REDUCE(thread, fix.CONCATENATE_SYMBOL, fix.SYNTACTIC_PRIMARY);
@@ -162,8 +160,7 @@ void ebnf_start_parsing__concatenate(){
 	Transition tran;
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
-	fsm_thread_start(&thread);
-	thread.transition.to = fsm_get_state(&fix.fsm, nzs("single_definition"));
+	fsm_thread_fake_start(&thread, fsm_get_state(&fix.fsm, nzs("single_definition")));
 
 	MATCH_SHIFT(thread, fix.META_IDENTIFIER);
 	MATCH_REDUCE(thread, fix.CONCATENATE_SYMBOL, fix.SYNTACTIC_PRIMARY);
@@ -191,8 +188,7 @@ void ebnf_start_parsing__separator(){
 	Transition tran;
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
-	fsm_thread_start(&thread);
-	thread.transition.to = fsm_get_state(&fix.fsm, nzs("definitions_list"));
+	fsm_thread_fake_start(&thread, fsm_get_state(&fix.fsm, nzs("definitions_list")));
 
 	MATCH_SHIFT(thread, fix.META_IDENTIFIER);
 	MATCH_REDUCE(thread, fix.DEFINITION_SEPARATOR_SYMBOL, fix.SYNTACTIC_PRIMARY);
@@ -224,8 +220,7 @@ void ebnf_start_parsing__syntactic_term(){
 	Transition tran;
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
-	fsm_thread_start(&thread);
-	thread.transition.to = fsm_get_state(&fix.fsm, nzs("syntactic_term"));
+	fsm_thread_fake_start(&thread, fsm_get_state(&fix.fsm, nzs("syntactic_term")));
 
 	MATCH_SHIFT(thread, fix.TERMINAL_STRING);
 
@@ -251,8 +246,7 @@ void ebnf_start_parsing__syntax_rule(){
 	Transition tran;
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
-	fsm_thread_start(&thread);
-	thread.transition.to = fsm_get_state(&fix.fsm, nzs("syntax_rule"));
+	fsm_thread_fake_start(&thread, fsm_get_state(&fix.fsm, nzs("syntax_rule")));
 
 	// Should be SHIFT
 	MATCH_DROP(thread, fix.META_IDENTIFIER);
@@ -291,8 +285,8 @@ void ebnf_start_parsing__group(){
 	Transition tran;
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
-	fsm_thread_start(&thread);
-	thread.transition.to = fsm_get_state(&fix.fsm, nzs("syntactic_primary"));
+	fsm_thread_fake_start(&thread, fsm_get_state(&fix.fsm, nzs("syntactic_primary")));
+
 	MATCH_DROP(thread, fix.START_GROUP_SYMBOL);
 	MATCH_SHIFT(thread, fix.TERMINAL_STRING);
 	MATCH_REDUCE(thread, fix.END_GROUP_SYMBOL, fix.SYNTACTIC_PRIMARY);
@@ -318,6 +312,7 @@ void ebnf_start_parsing__syntax(){
 	FsmThread thread;
 	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
 	fsm_thread_start(&thread);
+
 	MATCH_SHIFT(thread, fix.META_IDENTIFIER);
 	MATCH_DROP(thread, fix.DEFINING_SYMBOL);
 	MATCH_SHIFT(thread, fix.TERMINAL_STRING);

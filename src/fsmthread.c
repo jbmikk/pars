@@ -109,6 +109,21 @@ int fsm_thread_start(FsmThread *thread)
 	return 0;
 }
 
+// Testing only
+int fsm_thread_fake_start(FsmThread *thread, State *state)
+{
+	fsm_thread_start(thread);
+	thread->transition.to = state;
+
+	_state_push(thread, (FsmThreadNode){ 
+		FSM_THREAD_NODE_SR,
+		thread->transition.to,
+		0
+	});
+	//TODO: Check errors?
+	return 0;
+}
+
 static void _trace_transition(Transition next, Transition prev) {
 	trace("match", 
 		prev.state, 
