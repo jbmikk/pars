@@ -16,6 +16,7 @@ int action_compare(Action a1, Action a2)
 		a1.state == a2.state &&
 		a1.reduction == a2.reduction &&
 		a1.end_symbol == a2.end_symbol &&
+		a1.mode == a2.mode &&
 		a1.flags == a2.flags? 0: 1;
 }
 
