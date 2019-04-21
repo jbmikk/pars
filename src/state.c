@@ -161,6 +161,8 @@ static Action *_state_add_action(State *state, int symbol, Action *action)
 		collision &&
 		collision->type == action->type &&
 		collision->reduction == action->reduction &&
+		collision->flags == action->flags &&
+		collision->state == action->state &&
 		collision->end_symbol == action->end_symbol;
 
 	if(equal) {
