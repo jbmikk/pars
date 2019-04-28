@@ -77,6 +77,7 @@ Nonterminal *fsm_create_nonterminal(Fsm *fsm, char *name, int length)
 		nonterminal_init(nonterminal);
 		nonterminal->start = malloc(sizeof(State));
 		state_init(nonterminal->start);
+		//TODO: Check insert errors
 		bmap_nonterminal_insert(&fsm->nonterminals, symbol->id, nonterminal);
 		//TODO: Add to nonterminal struct: 
 		// * detect circular references.

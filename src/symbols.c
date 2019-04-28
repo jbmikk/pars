@@ -27,6 +27,7 @@ Symbol *symbol_table_add(SymbolTable *table, char *name, unsigned int length)
 		}
 		symbol->name[i] = '\0';
 		rtree_set(&table->symbols, (unsigned char*)name, length, symbol);
+		//TODO: Check insert errors
 		bmap_symbol_insert(&table->symbols_by_id, symbol->id, symbol);
 	}
 	return symbol;

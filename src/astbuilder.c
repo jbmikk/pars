@@ -21,6 +21,7 @@ static void _node_bind_to_parent(AstNode *node)
 		free(pre->astnode);
 		bmap_astnode_delete(&node->parent->children, node->token.index);
 	}
+	//TODO: Check insert errors
 	bmap_astnode_insert(&node->parent->children, node->token.index, node);
 }
 

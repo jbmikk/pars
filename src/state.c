@@ -27,6 +27,7 @@ void state_get_states(State *state, BMapState *states)
 	BMapEntryState *in_states = bmap_state_get(states, (intptr_t)state);
 
 	if(!in_states) {
+		//TODO: Check insert errors
 		bmap_state_insert(states, (intptr_t)state, state);
 
 		//Jump to other states
@@ -70,6 +71,7 @@ void state_add_reference_with_cont(State *state, char type, char strategy, Symbo
 
 	//Is ref key ok?
 	//TODO: Can refs be overwritten? Possible leak!
+	//TODO: Check insert errors
 	bmap_ref_insert(&state->refs, (intptr_t)ref, ref);
 	state->status |= STATE_INVOKE_REF;
 }
@@ -329,6 +331,7 @@ State *state_deep_clone(State *state, BMapState *cloned, State *end, State *sibl
 			state_add_reference(clone, REF_TYPE_DEFAULT, REF_STRATEGY_SPLIT, NULL, cont);
 		}
 
+		//TODO: Check insert errors
 		bmap_state_insert(cloned, (intptr_t)state, clone);
 
 		BMapCursorAction cursor;
@@ -358,6 +361,7 @@ bool state_all_ready(State *state, BMapState *walked)
 	bool all_ready = state->status == STATE_CLEAR;
 
 	if(!in_states) {
+		//TODO: Check insert errors
 		bmap_state_insert(walked, (intptr_t)state, state);
 
 		BMapCursorAction cursor;
@@ -382,6 +386,7 @@ static void _state_print(State *state, BMapNumber *states, int level, int *count
 	BMapEntryNumber *s_entry = bmap_number_get(states, (intptr_t)state);
 
 	if(state && !s_entry) {
+		//TODO: Check insert errors
 		bmap_number_insert(states, (intptr_t)state, *count);
 		printf("s%i\n", *count);
 		(*count)++;

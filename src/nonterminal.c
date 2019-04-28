@@ -29,7 +29,9 @@ void nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *s
 	ref->cont = NULL;
 
 	//TODO: is ref key ok?
+	//TODO: Check insert errors
 	bmap_ref_insert(&nonterminal->refs, (intptr_t)ref, ref);
+
 	nonterminal->status |= NONTERMINAL_RETURN_REF;
 
 	//Set end state status if exists
