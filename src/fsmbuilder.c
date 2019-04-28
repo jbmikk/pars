@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 #include "fsmtrace.h"
+#include "dbg.h"
 
 
 void fsm_builder_init(FsmBuilder *builder, Fsm *fsm, char ref_strategy)
@@ -384,7 +385,8 @@ void fsm_builder_copy(FsmBuilder *builder, char *name, int length)
 /**
  * Creates a reference to a Nonterminal and shifts the associated symbol.
  */
-void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length)
+// TODO: validate error at all locations
+int fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length)
 {
 	Nonterminal *nt = fsm_create_nonterminal(builder->fsm, name, length);
 	Symbol *sb = fsm_get_symbol(builder->fsm, name, length);
@@ -403,7 +405,11 @@ void fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length)
 
 	//Create reference to return from the non terminal to the caller
 	//TODO: Should be builder->current->state?
-	nonterminal_add_reference(nt, prev, sb);
+	int error = nonterminal_add_reference(nt, prev, sb);
+	check(!error, "Could not add nonterminal ref");
+	return 0;
+error:
+	return -1;
 }
 
 

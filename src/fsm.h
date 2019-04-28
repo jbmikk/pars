@@ -163,7 +163,7 @@ Action *action_add(Action *from, int symbol, int type, int reduction);
 //# Nonterminal functions
 
 void nonterminal_init(Nonterminal *nonterminal);
-void nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *symbol);
+int nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *symbol);
 int nonterminal_solve_references(Nonterminal *nt);
 void nonterminal_dispose(Nonterminal *nonterminal);
 

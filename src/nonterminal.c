@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "fsmtrace.h"
+#include "dbg.h"
 
 void nonterminal_init(Nonterminal *nonterminal)
 {
@@ -17,7 +18,7 @@ void nonterminal_init(Nonterminal *nonterminal)
 	nonterminal->type = NONTERMINAL_TYPE_DEFAULT;
 }
 
-void nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *symbol)
+int nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *symbol)
 {
 	Reference *ref = malloc(sizeof(Reference));
 	ref->state = state;
@@ -30,7 +31,10 @@ void nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *s
 
 	//TODO: is ref key ok?
 	//TODO: Check insert errors
-	bmap_ref_insert(&nonterminal->refs, (intptr_t)ref, ref);
+	Result(BMapEntryReferencePtr) res;
+	res = bmap_ref_insert(&nonterminal->refs, (intptr_t)ref, ref);
+
+	check(TypeOf(res) == Type(Result, Ok), "Could not insert ref");
 
 	nonterminal->status |= NONTERMINAL_RETURN_REF;
 
@@ -38,6 +42,9 @@ void nonterminal_add_reference(Nonterminal *nonterminal, State *state, Symbol *s
 	if(nonterminal->end) {
 		nonterminal->end->status |= STATE_RETURN_REF;
 	}
+	return 0;
+error:
+	return -1;
 }
 
 void nonterminal_dispose(Nonterminal *nonterminal)
