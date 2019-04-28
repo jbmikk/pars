@@ -136,6 +136,57 @@ end:
 	return result;
 }
 
+State *_state_deep_clone(State *state, BMapState *cloned, State *end, State *sibling_end, State *cont)
+{
+	BMapEntryState *in_states = bmap_state_get(cloned, (intptr_t)state);
+	State *clone;
+
+	if(!in_states) {
+		clone = malloc(sizeof(State));
+		state_init(clone);
+
+		if(state == end) {
+			// TODO: Fix possible cont leak?
+			state_add_reference(clone, REF_TYPE_DEFAULT, REF_STRATEGY_SPLIT, NULL, cont);
+		}
+
+		// When the start/cont state is also the end state for the 
+		// nonterminal the previous state for the loop also becomes a 
+		// possible end state. When the copy operator clones the end 
+		// state it adds references to the copy continuation, but only 
+		// for the default end state, ignoring this particular case. 
+		// In order to fix this, we need to add a ref from the sibling
+		// end to the continuation
+		if(state == sibling_end) {
+
+			// TODO: Fix possible cont leak?
+			state_add_reference(clone, REF_TYPE_DEFAULT, REF_STRATEGY_SPLIT, NULL, cont);
+		}
+
+		//TODO: Check insert errors
+		bmap_state_insert(cloned, (intptr_t)state, clone);
+
+		BMapCursorAction cursor;
+		bmap_cursor_action_init(&cursor, &state->actions);
+		while(bmap_cursor_action_next(&cursor)) {
+			BMapEntryAction *entry;
+			entry = bmap_cursor_action_current(&cursor);
+			Action ac = entry->action;
+			if(ac.state) {
+				ac.state = _state_deep_clone(ac.state, cloned, end, sibling_end, cont);
+			}
+			// Skip accept to avoid problems with lexer_nonterminal
+			if(ac.type != ACTION_ACCEPT) {
+				bmap_action_m_append(&clone->actions, entry->key, ac);
+			}
+		}
+		bmap_cursor_action_dispose(&cursor);
+	} else {
+		clone = in_states->state;
+	}
+	return clone;
+}
+
 static int _clone_deep(Reference *ref)
 {
 	int result = REF_RESULT_SOLVED;
@@ -162,7 +213,7 @@ static int _clone_deep(Reference *ref)
 		BMapState cloned_states;
 		bmap_state_init(&cloned_states);
 
-		State *cloned = state_deep_clone(ref->to_state, &cloned_states, ref->nonterminal->end, ref->nonterminal->sibling_end, ref->cont);
+		State *cloned = _state_deep_clone(ref->to_state, &cloned_states, ref->nonterminal->end, ref->nonterminal->sibling_end, ref->cont);
 
 		bmap_state_dispose(&cloned_states);
 
