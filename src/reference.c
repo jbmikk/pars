@@ -143,6 +143,7 @@ end:
 	return result;
 }
 
+// TODO: Make it use from and to states like _merge_deep_next
 State *_deep_clone_next(State *state, BMapState *cloned, State *end, State *sibling_end, State *cont)
 {
 	BMapEntryState *in_states = bmap_state_get(cloned, (intptr_t)state);
@@ -240,6 +241,63 @@ end:
 	return result;
 }
 
+int _merge_deep_next(State *from, State *to, BMapState *cloned)
+{
+	BMapCursorAction cursor;
+	bmap_cursor_action_init(&cursor, &to->actions);
+	while(bmap_cursor_action_next(&cursor)) {
+		BMapEntryAction *entry;
+		entry = bmap_cursor_action_current(&cursor);
+		Action ac = entry->action;
+		if(ac.state) {
+			BMapEntryState *in_states = bmap_state_get(cloned, (intptr_t)ac.state);
+			State *clone;
+			if(in_states) {
+				clone = in_states->state;
+			} else {
+				clone = malloc(sizeof(State));
+				state_init(clone);
+
+				//TODO: Check and return errors
+				bmap_state_insert(cloned, (intptr_t)ac.state, clone);
+				_merge_deep_next(clone, ac.state, cloned);
+			}
+			ac.state = clone;
+		}
+		bmap_action_m_append(&from->actions, entry->key, ac);
+	}
+	bmap_cursor_action_dispose(&cursor);
+	return 0;
+}
+
+static int _ref_merge_deep(Reference *ref)
+{
+	int result = REF_RESULT_SOLVED;
+
+	BMapState walked_states;
+	bmap_state_init(&walked_states);
+	bool all_ready = state_all_ready(ref->to_state, &walked_states);
+	bmap_state_dispose(&walked_states);
+	if(!all_ready) {
+		result = REF_RESULT_PENDING;
+		goto end;
+	}
+
+	//No collision detected, clone the action an add it.
+	BMapState cloned_states;
+	bmap_state_init(&cloned_states);
+
+	_merge_deep_next(ref->state, ref->to_state, &cloned_states);
+
+	bmap_state_dispose(&cloned_states);
+
+	// Because deep cloning always creates a cont ref (for now)
+	result = REF_RESULT_CHANGED;
+	ref->status = REF_SOLVED;
+end:
+	return result;
+}
+
 void reference_solve_first_set(Reference *ref, int *result)
 {
 	if(ref->status == REF_SOLVED) {
@@ -266,6 +324,8 @@ void reference_solve_first_set(Reference *ref, int *result)
 
 	if(ref->type == REF_TYPE_COPY) {
 		*result |= _clone_deep(ref);
+	} else if(ref->type == REF_TYPE_COPY_MERGE) {
+		*result |= _ref_merge_deep(ref);
 	} else {
 		// Add all cloned actions into a clone set, then merge the clone set
 		// into the ref state. It's important to do this in two passes in 

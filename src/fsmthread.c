@@ -229,6 +229,8 @@ static Transition _start_accept(Transition transition, FsmThread *thread, Transi
 			reduction.length = 0;
 		}
 		t.reduction = reduction;
+		break;
+	case ACTION_PARTIAL:
 	}
 	return t;
 }

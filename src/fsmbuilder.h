@@ -50,6 +50,7 @@ int fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length);
 void fsm_builder_copy(FsmBuilder *builder, char *name, int length);
 void fsm_builder_done(FsmBuilder *builder, int eof_symbol);
 void fsm_builder_lexer_done(FsmBuilder *builder, int eof_symbol);
+void fsm_builder_parallel_done(FsmBuilder *builder, int eof_symbol);
 void fsm_builder_lexer_default_input(FsmBuilder *builder);
 
 #endif //FSMBUILDER_H
