@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "fsmtrace.h"
 #include "dbg.h"
@@ -325,26 +326,37 @@ void fsm_builder_any(FsmBuilder *builder)
  * Similar to fsm_builder_nonterminal, but accepts instead of dropping and
  * doesn't have a nonterminal references (accepts on empty transition).
  */
-void _lexer_nonterminal(FsmBuilder *builder, int symbol_id)
+void _lexer_nonterminal(FsmBuilder *builder, int symbol_id, bool parallel)
 {
 	Symbol *sb = fsm_get_symbol_by_id(builder->fsm, symbol_id);
 	Nonterminal *nt = fsm_create_nonterminal(builder->fsm, sb->name, sb->length);
 
-	trace_symbol("Add lexer rule for: ", sb);
-
 	_ensure_state(builder);
 
-	state_add_reference(builder->state, REF_TYPE_START, builder->ref_strategy, NULL, nt->start);
+	Action *action;
+	if(parallel) {
+		trace_symbol("Add parallel rule for: ", sb);
+		state_add_reference(builder->state, REF_TYPE_COPY_MERGE, builder->ref_strategy, NULL, nt->start);
 
-	//TODO: For now assume end exists, it should use nonterminal refs.
-	_move_to(builder, nt->end);
+		//TODO: For now assume end exists, it should use nonterminal refs.
+		//TODO: This is not necessary, we can add ACTION_PARTIAL when COPY_MERGE
+		_move_to(builder, nt->end);
 
-	// TODO: Maybe ACTION_ACCEPT should always have a symbol.
-	// TODO: Adding accept here makes it difficult to REF_COPY.
-	// For now we skip accept actions when deep cloning.
-	// Another solution is to clone here instead of modifying the
-	// fragments.
-	Action *action = _add_empty(builder, ACTION_ACCEPT, sb->id);
+		action = _add_empty(builder, ACTION_PARTIAL, sb->id);
+	} else {
+		trace_symbol("Add lexer rule for: ", sb);
+		state_add_reference(builder->state, REF_TYPE_START, builder->ref_strategy, NULL, nt->start);
+
+		//TODO: For now assume end exists, it should use nonterminal refs.
+		_move_to(builder, nt->end);
+
+		// TODO: Maybe ACTION_ACCEPT should always have a symbol.
+		// TODO: Adding accept here makes it difficult to REF_COPY.
+		// For now we skip accept actions when deep cloning.
+		// Another solution is to clone here instead of modifying the
+		// fragments.
+		action = _add_empty(builder, ACTION_ACCEPT, sb->id);
+	}
 
 	if(nt->type == NONTERMINAL_TYPE_IDENTITY) {
 		action->flags |= ACTION_FLAG_IDENTITY;
@@ -433,7 +445,7 @@ static void _set_start(FsmBuilder *builder, int eof_symbol)
 	fsm_builder_end(builder);
 }
 
-static void _set_lexer_start(FsmBuilder *builder, int eof_symbol)
+static void _set_lexer_start(FsmBuilder *builder, int eof_symbol, bool parallel)
 {
 	BMapCursorNonterminal cursor;
 	BMapEntryNonterminal *entry;
@@ -452,7 +464,7 @@ static void _set_lexer_start(FsmBuilder *builder, int eof_symbol)
 		start = fsm_get_state_by_id(builder->fsm, nt->mode);
 		_move_to(builder, start);
 		//Different kind of nonterminal reference
-		_lexer_nonterminal(builder, entry->key);
+		_lexer_nonterminal(builder, entry->key, parallel);
 	}
 	bmap_cursor_nonterminal_dispose(&cursor);
 
@@ -537,7 +549,14 @@ void fsm_builder_done(FsmBuilder *builder, int eof_symbol) {
 
 void fsm_builder_lexer_done(FsmBuilder *builder, int eof_symbol) {
 
-	_set_lexer_start(builder, eof_symbol);
+	_set_lexer_start(builder, eof_symbol, false);
+	_add_error(builder);
+	_solve_references(builder);
+}
+
+void fsm_builder_parallel_done(FsmBuilder *builder, int eof_symbol) {
+
+	_set_lexer_start(builder, eof_symbol, true);
 	_add_error(builder);
 	_solve_references(builder);
 }

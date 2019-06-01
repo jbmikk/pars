@@ -41,6 +41,17 @@
 	fsm_thread_apply(&(S), tran); \
 	t_assert(tran.action->type == ACTION_POP_SHIFT);
 
+#define MATCH_PARTIAL_AT(S, Y, I) \
+	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	fsm_thread_apply(&(S), tran); \
+	t_assert(tran.action->type == ACTION_PARTIAL);
+
+#define MATCH_PARTIAL_AT_WITH(S, Y, R, I) \
+	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	fsm_thread_apply(&(S), tran); \
+	t_assert(tran.action->type == ACTION_PARTIAL); \
+	t_assert(tran.action->reduction == R);
+
 #define MATCH_ACCEPT_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
@@ -69,6 +80,8 @@
 #define MATCH_REDUCE(S, Y, R) MATCH_REDUCE_AT(S, Y, R, 0)
 #define MATCH_POP(S, Y) MATCH_POP_AT(S, Y, 0)
 #define MATCH_POP_SHIFT(S, Y) MATCH_POP_SHIFT_AT(S, Y, 0)
+#define MATCH_PARTIAL(S, Y) MATCH_PARTIAL_AT(S, Y, 0)
+#define MATCH_PARTIAL_WITH(S, Y, R) MATCH_PARTIAL_AT_WITH(S, Y, R, 0)
 #define MATCH_ACCEPT(S, Y) MATCH_ACCEPT_AT(S, Y, 0)
 #define MATCH_ACCEPT_WITH(S, Y, R) MATCH_ACCEPT_AT_WITH(S, Y, R, 0)
 #define MATCH_EMPTY(S, Y) MATCH_EMPTY_AT(S, Y, 0)
@@ -843,11 +856,15 @@ void fsm_thread_match__simple_backtrack(){
 	fsm_builder_define(&builder, nzs("A"));
 	fsm_builder_terminal(&builder, 'b');
 	fsm_builder_group_start(&builder);
-	// First it should match this one.
+
+	// The most specific (range-wise) match will be evaluated first.
+	// So first it should match this one.
 	fsm_builder_terminal(&builder, 'a');
 	fsm_builder_terminal(&builder, '1');
 	fsm_builder_terminal(&builder, '2');
+
 	fsm_builder_or(&builder);
+
 	// Then it should backtrack and match this one.
 	fsm_builder_any(&builder);
 	fsm_builder_terminal(&builder, '1');
@@ -939,6 +956,56 @@ void fsm_thread_match__backtrack_with_shift(){
 	fsm_thread_dispose(&thread);
 }
 
+void fsm_thread_match__partial_match(){
+	FsmBuilder builder;
+	Transition tran;
+
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_SPLIT);
+
+	fsm_builder_set_mode(&builder, nzs(".default"));
+
+	fsm_builder_define(&builder, nzs("ABC"));
+
+	// Match a
+	fsm_builder_terminal(&builder, 'a');
+
+	// Match any number of symbols, then b
+	fsm_builder_loop_group_start(&builder);
+	fsm_builder_any(&builder);
+	fsm_builder_loop_group_end(&builder);
+	fsm_builder_terminal(&builder, 'b');
+
+	// Match any number of symbols, then c
+	fsm_builder_loop_group_start(&builder);
+	fsm_builder_any(&builder);
+	fsm_builder_loop_group_end(&builder);
+	fsm_builder_terminal(&builder, 'c');
+
+	fsm_builder_end(&builder);
+
+	fsm_builder_parallel_done(&builder, '\0');
+
+	fsm_builder_dispose(&builder);
+
+	int abc = fsm_get_symbol_id(&fix.fsm, nzs("ABC"));
+
+	FsmThread thread;
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
+	fsm_thread_start(&thread);
+
+	MATCH_DROP(thread, 'a');
+	MATCH_DROP(thread, '1');
+	MATCH_DROP(thread, '2');
+	MATCH_DROP(thread, '3');
+	MATCH_DROP(thread, 'b');
+	MATCH_DROP(thread, '1');
+	MATCH_DROP(thread, '2');
+	MATCH_DROP(thread, 'c');
+	MATCH_PARTIAL_WITH(thread, '\0', abc);
+
+	fsm_thread_dispose(&thread);
+}
+
 int main(int argc, char** argv){
 	t_init();
 	t_test(fsm_builder_define__single_get);
@@ -961,6 +1028,7 @@ int main(int argc, char** argv){
 	t_test(fsm_thread_match__copy_loop_inside_skip);
 	t_test(fsm_thread_match__simple_backtrack);
 	t_test(fsm_thread_match__backtrack_with_shift);
+	t_test(fsm_thread_match__partial_match);
 	return t_done();
 }
 
