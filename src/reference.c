@@ -136,7 +136,7 @@ end:
 	return result;
 }
 
-State *_state_deep_clone(State *state, BMapState *cloned, State *end, State *sibling_end, State *cont)
+State *_deep_clone_next(State *state, BMapState *cloned, State *end, State *sibling_end, State *cont)
 {
 	BMapEntryState *in_states = bmap_state_get(cloned, (intptr_t)state);
 	State *clone;
@@ -173,7 +173,7 @@ State *_state_deep_clone(State *state, BMapState *cloned, State *end, State *sib
 			entry = bmap_cursor_action_current(&cursor);
 			Action ac = entry->action;
 			if(ac.state) {
-				ac.state = _state_deep_clone(ac.state, cloned, end, sibling_end, cont);
+				ac.state = _deep_clone_next(ac.state, cloned, end, sibling_end, cont);
 			}
 			// Skip accept to avoid problems with lexer_nonterminal
 			if(ac.type != ACTION_ACCEPT) {
@@ -213,7 +213,7 @@ static int _clone_deep(Reference *ref)
 		BMapState cloned_states;
 		bmap_state_init(&cloned_states);
 
-		State *cloned = _state_deep_clone(ref->to_state, &cloned_states, ref->nonterminal->end, ref->nonterminal->sibling_end, ref->cont);
+		State *cloned = _deep_clone_next(ref->to_state, &cloned_states, ref->nonterminal->end, ref->nonterminal->sibling_end, ref->cont);
 
 		bmap_state_dispose(&cloned_states);
 
