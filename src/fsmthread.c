@@ -230,7 +230,6 @@ static Transition _start_accept(Transition transition, FsmThread *thread, Transi
 		}
 		t.reduction = reduction;
 		break;
-	case ACTION_PARTIAL:
 	}
 	return t;
 }
@@ -328,7 +327,6 @@ void fsm_thread_apply(FsmThread *thread, Transition transition)
 
 	thread->transition = t;
 }
-
 
 Transition fsm_thread_cycle(FsmThread *thread, const Token token)
 {

@@ -49,6 +49,10 @@
 #define STATE_INVOKE_REF 1
 #define STATE_RETURN_REF 2
 
+#define STATE_EVENT_NONE 0
+#define STATE_EVENT_IN 1
+#define STATE_EVENT_OUT 2
+
 #define NONTERMINAL_CLEAR 0
 #define NONTERMINAL_RETURN_REF 1
 
@@ -76,6 +80,7 @@ struct State {
 	BMapAction actions;
 	BMapReference refs;
 	char status;
+	char events;
 };
 
 typedef struct Nonterminal {
