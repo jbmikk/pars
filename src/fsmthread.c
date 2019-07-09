@@ -160,6 +160,22 @@ static Transition _shift_reduce(Transition transition, FsmThread *thread) {
 			printf("FTH %p: SR pop fail\n", thread);
 			exit(1);
 		}
+		// TODO: Figure out how to translate this operation into a
+		// regular PDA transition. Setting the current state to a 
+		// value from the stack does not seem to be possible with a
+		// regular PDA, where actions are something like this: 
+		//   state1--input(pop-symbol1/push-symbol2)-->state2
+		// If we use state2 instead of the stack then the parser is
+		// not LALR anymore (or is it?). When reductions are unaware
+		// of the state the parser transitions to, they work with any
+		// state they pop, which makes LALR more powerful.
+		// Maybe we should add a PDA feature to make use of this kind
+		// of jumps. Something like a flag or a special symbol so
+		// reductions set the current state to the one on top of the 
+		// stack. Something like:
+		//   state1--input(pop-symbol/push-symbol)-->pop-symbol
+		// With this special symbol there's no need to distinguish
+		// shifts from reductions, they become particular cases.
 		t.to = popped.state;
 
 		Token reduction = {
