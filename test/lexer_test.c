@@ -3,7 +3,7 @@
 
 #include "ebnf_parser.h"
 #include "fsmthread.h"
-#include "test.h"
+#include "ctest.h"
 
 #define MATCH_DROP(T, I, L, S) \
 	tran = fsm_thread_match(&(T), &(struct Token){(I), (L), (S)}); \

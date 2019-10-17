@@ -6,7 +6,7 @@
 #include "parsercontext.h"
 #include "astbuilder.h"
 #include "controlloop.h"
-#include "test.h"
+#include "ctest.h"
 
 #define MATCH(S, Y) fsm_thread_match(&(S), &(struct Token){ 0, 0, (Y)});
 #define TEST(S, Y) fsm_thread_test(&(S), &(struct Token){ 0, 0, (Y)});

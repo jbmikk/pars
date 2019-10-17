@@ -4,7 +4,7 @@
 #include "fsm.h"
 #include "ebnf_parser.h"
 #include "fsmthread.h"
-#include "test.h"
+#include "ctest.h"
 
 
 #define MATCH_DROP(S, Y) \

@@ -5,7 +5,7 @@
 #include "source.h"
 #include "ast.h"
 #include "astbuilder.h"
-#include "test.h"
+#include "ctest.h"
 
 char *buffer = "this is a test";
 

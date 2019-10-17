@@ -5,7 +5,7 @@
 #include "fsm.h"
 #include "fsmthread.h"
 #include "fsmbuilder.h"
-#include "test.h"
+#include "ctest.h"
 
 #define nzs(S) (S), (strlen(S))
 

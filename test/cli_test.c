@@ -3,7 +3,7 @@
 #include "cli.h"
 #include "symbols.h"
 #include "parser.h"
-#include "test.h"
+#include "ctest.h"
 
 
 void t_setup(){
