@@ -24,84 +24,35 @@
 #endif
 
 
-FUNCTIONS(Stack, FsmThreadNode, FsmThreadNode, fsmthreadnode);
-
-static void _state_push(FsmThread *thread, FsmThreadNode tnode)
-{
-	stack_fsmthreadnode_push(&thread->stack, tnode);
-}
-
-static FsmThreadNode _state_pop(FsmThread *thread, char type, bool *is_empty)
-{
-	FsmThreadNode top;
-
-	// TODO: replace is_empty with Maybe(FsmThreadNode) generic.
-	while (!(*is_empty = stack_fsmthreadnode_is_empty(&thread->stack))) {
-		top = stack_fsmthreadnode_top(&thread->stack);
-		stack_fsmthreadnode_pop(&thread->stack);
-		if(top.type == type) {
-			break;
-		}
-	}
-	return top;
-}
-
-static void _mode_push(FsmThread *thread, int symbol)
-{
-	_state_push(thread, (FsmThreadNode){ 
-		FSM_THREAD_NODE_MODE,
-		thread->start,
-		0
-	});
-	thread->start = fsm_get_state_by_id(thread->fsm, symbol);
-}
-
-static void _mode_pop(FsmThread *thread)
-{
-	bool is_empty;
-	FsmThreadNode popped = _state_pop(thread, FSM_THREAD_NODE_MODE, &is_empty);
-	if(is_empty) {
-		//sentinel("Mode pop fail");
-		printf("FTH %p: mode pop fail\n", thread);
-		exit(1);
-	}
-	thread->start = popped.state;
-}
-
 void fsm_thread_init(FsmThread *thread, Fsm *fsm, Listener pipe)
 {
 	thread->fsm = fsm;
 	thread->pipe = pipe;
-	thread->start = NULL;
 	thread->path = 0;
-	stack_fsmthreadnode_init(&thread->stack);
+	pdastack_init(&thread->stack);
 }
 
 void fsm_thread_dispose(FsmThread *thread)
 {
-	stack_fsmthreadnode_dispose(&thread->stack);
+	pdastack_dispose(&thread->stack);
 }
 
 bool fsm_thread_stack_is_empty(FsmThread *thread)
 {
-	bool is_empty = stack_fsmthreadnode_is_empty(&thread->stack);
-	bool is_initial = false;
-	if(!is_empty) {
-		is_initial = thread->stack.stack.top->next == NULL;
-	}
-	return is_empty || is_initial;
+	return pdastack_is_empty(&thread->stack);
 }
 
 int fsm_thread_start(FsmThread *thread)
 {
 	int symbol = fsm_get_symbol_id(thread->fsm, nzs(".default"));
-	thread->start = fsm_get_state_by_id(thread->fsm, symbol);
+	State *start = fsm_get_state_by_id(thread->fsm, symbol);
+	pdastack_start(&thread->stack, start);
 	thread->transition.from = NULL;
-	thread->transition.to = thread->start;
+	thread->transition.to = start;
 	// TODO: Is this initial node really needed for EBNF?
 	// If removed, rewrite fsm_thread_stack_is_empty
-	_state_push(thread, (FsmThreadNode){ 
-		FSM_THREAD_NODE_SA,
+	pdastack_state_push(&thread->stack, (PDANode){ 
+		PDA_NODE_SA,
 		thread->transition.to,
 		0
 	});
@@ -115,8 +66,8 @@ int fsm_thread_fake_start(FsmThread *thread, State *state)
 	fsm_thread_start(thread);
 	thread->transition.to = state;
 
-	_state_push(thread, (FsmThreadNode){ 
-		FSM_THREAD_NODE_SR,
+	pdastack_state_push(&thread->stack, (PDANode){ 
+		PDA_NODE_SR,
 		thread->transition.to,
 		0
 	});
@@ -137,12 +88,14 @@ static void _trace_transition(Transition next, Transition prev) {
 static Transition _switch_mode(Transition transition, FsmThread *thread) {
 	Action *action = transition.action;
 	Transition t = transition;
+	State *start;
 	if(action->flags & ACTION_FLAG_MODE_PUSH) {
-		_mode_push(thread, action->mode);
-		t.to = thread->start;
+		start = fsm_get_state_by_id(thread->fsm, action->mode);
+		pdastack_mode_push(&thread->stack, start);
+		t.to = start;
 	} else if(action->flags & ACTION_FLAG_MODE_POP) {
-		_mode_pop(thread);
-		t.to = thread->start;
+		start = pdastack_mode_pop(&thread->stack);
+		t.to = start;
 	}
 	return t;
 }
@@ -150,11 +103,11 @@ static Transition _switch_mode(Transition transition, FsmThread *thread) {
 static Transition _shift_reduce(Transition transition, FsmThread *thread) {
 	Action *action = transition.action;
 	Transition t = transition;
-	FsmThreadNode popped;
+	PDANode popped;
 	bool is_empty;
 	switch(action->type) {
 	case ACTION_REDUCE:
-		popped = _state_pop(thread, FSM_THREAD_NODE_SR, &is_empty);
+		popped = pdastack_state_pop(&thread->stack, PDA_NODE_SR, &is_empty);
 		if(is_empty) {
 			//sentinel("Reduce pop fail");
 			printf("FTH %p: SR pop fail\n", thread);
@@ -197,8 +150,8 @@ static Transition _shift_reduce(Transition transition, FsmThread *thread) {
 		t.reduction = reduction;
 		break;
 	case ACTION_SHIFT:
-		_state_push(thread, (FsmThreadNode) {
-			FSM_THREAD_NODE_SR,
+		pdastack_state_push(&thread->stack, (PDANode) {
+			PDA_NODE_SR,
 			t.from,
 			t.token.index
 		});
@@ -209,19 +162,19 @@ static Transition _shift_reduce(Transition transition, FsmThread *thread) {
 static Transition _start_accept(Transition transition, FsmThread *thread, Transition prev) {
 	Action *action = transition.action;
 	Transition t = transition;
-	FsmThreadNode popped;
+	PDANode popped;
 	bool is_empty;
 	switch(action->type) {
 	case ACTION_START:
-		_state_push(thread, (FsmThreadNode) {
-			FSM_THREAD_NODE_SA,
+		pdastack_state_push(&thread->stack, (PDANode) {
+			PDA_NODE_SA,
 			t.from,
 			t.token.index
 		});
 		break;
 	case ACTION_ACCEPT:
-		t.to = thread->start;
-		popped = _state_pop(thread, FSM_THREAD_NODE_SA, &is_empty);
+		t.to = pdastack_get_start(&thread->stack);
+		popped = pdastack_state_pop(&thread->stack, PDA_NODE_SA, &is_empty);
 		if(is_empty) {
 			//sentinel("Accept pop fail");
 			printf("FTH %p: SA pop fail\n", thread);
@@ -261,8 +214,8 @@ static Transition _backtrack(Transition transition, FsmThread *thread) {
 	Action *alt_action = state_get_path_transition(transition.from, transition.token.symbol, alt_path);
 
 	if(alt_action) {
-		_state_push(thread, (FsmThreadNode) {
-			FSM_THREAD_NODE_BACKTRACK,
+		pdastack_state_push(&thread->stack, (PDANode) {
+			PDA_NODE_BACKTRACK,
 			transition.from,
 			transition.token.index,
 			transition.path
@@ -270,7 +223,7 @@ static Transition _backtrack(Transition transition, FsmThread *thread) {
 	} else if (transition.action->type == ACTION_ERROR) {
 		t.backtrack = 0;
 		bool is_empty;
-		FsmThreadNode popped = _state_pop(thread, FSM_THREAD_NODE_BACKTRACK, &is_empty);
+		PDANode popped = pdastack_state_pop(&thread->stack, PDA_NODE_BACKTRACK, &is_empty);
 		if(!is_empty) {
 			// TODO: Review the backtrack and path variables.
 			// The only problem here: it is not true that we are
