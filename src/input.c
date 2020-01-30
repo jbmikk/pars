@@ -56,7 +56,14 @@ Continuation input_loop(Input *input, FsmThread *thread, const Token token)
 	Token t = token;
 	Continuation cont;
 	do {
-		cont = fsm_thread_cycle(thread, t);
+		Transition transition = fsm_thread_cycle(thread, t);
+
+		int error = fsm_thread_notify(thread, transition);
+
+		// Listener's return value is combined with the transition to
+		// get the continuation.
+		cont = continuation_build(transition, error);
+
 		_apply_continuation(input, &cont);
 	} while (_next(input, &t));
 	return cont;

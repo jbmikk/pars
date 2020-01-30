@@ -5,19 +5,7 @@
 #include "token.h"
 #include "pdastack.h"
 #include "listener.h"
-#include "continuation.h"
-
-
-typedef struct Transition {
-	State *from;
-	State *to;
-	Action *action;
-	char path;
-	Token token;
-	Token reduction;
-	// TODO: If actions weren't pointers we could build a BT action.
-	char backtrack;
-} Transition;
+#include "transition.h"
 
 typedef struct _FsmThread {
 	Fsm *fsm;
@@ -35,7 +23,8 @@ int fsm_thread_start(FsmThread *thread);
 int fsm_thread_fake_start(FsmThread *thread, State *state);
 Transition fsm_thread_match(FsmThread *thread, const Token *token);
 void fsm_thread_apply(FsmThread *thread, Transition transition);
-Continuation fsm_thread_cycle(FsmThread *thread, const Token token);
+Transition fsm_thread_cycle(FsmThread *thread, const Token token);
 bool fsm_thread_stack_is_empty(FsmThread *thread);
+int fsm_thread_notify(FsmThread *thread, Transition transition);
 
 #endif //FSM_THREAD_H

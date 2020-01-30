@@ -6,6 +6,7 @@
 #include "source.h"
 #include "ast.h"
 #include "fsmthread.h"
+#include "continuation.h"
 #include "stack.h"
 
 DEFINE(Stack, Token, Token, token);
