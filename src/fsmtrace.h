@@ -20,7 +20,7 @@
 		M, \
 		T1, \
 		T2, \
-		T2? T2->flags: 0, \
+		T2? ((Action*)T2)->flags: 0, \
 		T2? ((Action*)T2)->state: NULL, \
 		A, \
 		(R != 0)? '>': ' ', \

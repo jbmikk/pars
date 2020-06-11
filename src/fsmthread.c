@@ -77,7 +77,7 @@ int fsm_thread_fake_start(FsmThread *thread, State *state)
 
 static void _trace_transition(Transition next, Transition prev) {
 	trace("match", 
-		prev.state, 
+		prev.from, 
 		next.action,
 		&next.token, 
 		next.action->type, 
