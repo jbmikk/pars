@@ -18,6 +18,15 @@ int ast_parser_pipe(void *_context, void *_cont)
 	case ACTION_REDUCE:
 		ast_builder_reduce(&context->ast_builder, &tran->reduction);
 		break;
+	case ACTION_POP:
+		ast_builder_pop(&context->ast_builder, &tran->popped);
+		break;
+	case ACTION_POP_SHIFT:
+		ast_builder_pop_shift(&context->ast_builder, &tran->popped);
+		break;
+	default:
+		// TODO: sentinel
+		break;
 	}
 	return 0;
 }

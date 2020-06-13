@@ -11,7 +11,6 @@ int control_loop_linear(void *object, void *params)
 	Continuation cont;
 	token_init(&token, 0, 0, 0);
 	token_init(&cont.token, 0, 0, 0);
-	token_init(&cont.token2, 0, 0, 0);
 	cont.type = CONTINUATION_START;
 
 	while(!input_linear_feed(&context->input, &cont, &token)) {
@@ -51,7 +50,6 @@ int control_loop_ast(void *object, void *params)
 
 	Continuation cont;
 	token_init(&cont.token, 0, 0, 0);
-	token_init(&cont.token2, 0, 0, 0);
 	cont.type = CONTINUATION_START;
 
 	while(!input_ast_feed(&context->input, &cont, &cursor, &token)) {

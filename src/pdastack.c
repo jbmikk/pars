@@ -36,6 +36,25 @@ bool pdastack_is_empty(PDAStack *pdastack)
 	return is_empty || is_initial;
 }
 
+bool pdastack_has_reduction(PDAStack *pdastack)
+{
+	if(!stack_pdanode_is_empty(&pdastack->stack)) {
+		PDANode top = stack_pdanode_top(&pdastack->stack);
+		return top.type == PDA_NODE_REDUCTION;
+	}
+	return false;
+}
+
+PDANode pdastack_top(PDAStack *pdastack)
+{
+	return stack_pdanode_top(&pdastack->stack);
+}
+
+void pdastack_pop(PDAStack *pdastack)
+{
+	stack_pdanode_pop(&pdastack->stack);
+}
+
 void pdastack_state_push(PDAStack *pdastack, PDANode tnode)
 {
 	stack_pdanode_push(&pdastack->stack, tnode);
@@ -61,7 +80,7 @@ void pdastack_mode_push(PDAStack *pdastack, State *mode_state)
 	pdastack_state_push(pdastack, (PDANode){ 
 		PDA_NODE_MODE,
 		pdastack->start,
-		0
+		{ 0, 0, 0 }
 	});
 	pdastack->start = mode_state;
 }

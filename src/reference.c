@@ -33,6 +33,7 @@ static int _clone_fs_action(BMapAction *action_set, Reference *ref, int key, Act
 		// that action->type == ACTION_REDUCE
 		clone_type = action->type;
 	} else if(ref->type == REF_TYPE_SHIFT) {
+		// TODO: Maybe shifting should decorate other actions?
 		if (action->type == ACTION_REDUCE) {
 			// This could happen when the start state of a
 			// nonterminal is also an end state.
@@ -45,8 +46,14 @@ static int _clone_fs_action(BMapAction *action_set, Reference *ref, int key, Act
 				0
 			);
 			goto end;
+		} else if (
+			action->type == ACTION_POP ||
+			action->type == ACTION_POP_SHIFT
+		) {
+			clone_type = ACTION_POP_SHIFT;
+		} else {
+			clone_type = ACTION_SHIFT;
 		}
-		clone_type = ACTION_SHIFT;
 	} else if(ref->type == REF_TYPE_START) {
 		if (action->type == ACTION_REDUCE || action->type == ACTION_ACCEPT) {
 			trace_op(

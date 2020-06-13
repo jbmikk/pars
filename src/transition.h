@@ -10,7 +10,9 @@ typedef struct Transition {
 	Action *action;
 	char path;
 	Token token;
+	// Maybe reduction and popped should be a single stack variable
 	Token reduction;
+	Token popped;
 	// TODO: If actions weren't pointers we could build a BT action.
 	char backtrack;
 } Transition;

@@ -131,6 +131,17 @@ void ast_builder_reduce(void *builder_p, const Token *token)
 	builder->current = node->parent;
 }
 
+void ast_builder_pop(void *builder_p, const Token *token)
+{
+	ast_builder_drop(builder_p, token);
+}
+
+void ast_builder_pop_shift(void *builder_p, const Token *token)
+{
+	ast_builder_shift(builder_p, token);
+}
+
+
 void ast_builder_done(AstBuilder *builder)
 {
 	if(builder->previous != NULL) {

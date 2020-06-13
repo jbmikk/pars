@@ -52,9 +52,9 @@ int fsm_thread_start(FsmThread *thread)
 	// TODO: Is this initial node really needed for EBNF?
 	// If removed, rewrite fsm_thread_stack_is_empty
 	pdastack_state_push(&thread->stack, (PDANode){ 
-		PDA_NODE_SA,
-		thread->transition.to,
-		0
+		.type = PDA_NODE_SA,
+		.state = thread->transition.to,
+		.token = { 0, 0, 0 }
 	});
 	//TODO: Check errors?
 	return 0;
@@ -67,9 +67,9 @@ int fsm_thread_fake_start(FsmThread *thread, State *state)
 	thread->transition.to = state;
 
 	pdastack_state_push(&thread->stack, (PDANode){ 
-		PDA_NODE_SR,
-		thread->transition.to,
-		0
+		.type = PDA_NODE_SR,
+		.state = thread->transition.to,
+		.token = { 0, 0, 0 }
 	});
 	//TODO: Check errors?
 	return 0;
@@ -96,6 +96,18 @@ static Transition _switch_mode(Transition transition, FsmThread *thread) {
 	} else if(action->flags & ACTION_FLAG_MODE_POP) {
 		start = pdastack_mode_pop(&thread->stack);
 		t.to = start;
+	}
+	return t;
+}
+
+static Transition _pop_reductions(Transition transition, FsmThread *thread) {
+	Action *action = transition.action;
+	Transition t = transition;
+	switch(action->type) {
+	case ACTION_POP:
+	case ACTION_POP_SHIFT:
+		pdastack_pop(&thread->stack);
+		break;
 	}
 	return t;
 }
@@ -132,8 +144,8 @@ static Transition _shift_reduce(Transition transition, FsmThread *thread) {
 		t.to = popped.state;
 
 		Token reduction = {
-			popped.index,
-			t.token.index - popped.index,
+			popped.token.index,
+			t.token.index - popped.token.index,
 			action->reduction
 		};
 		// TODO: Shouldn't the "input stack" be handled by the input
@@ -148,13 +160,26 @@ static Transition _shift_reduce(Transition transition, FsmThread *thread) {
 		// sort of base input loop upon which we can build other more
 		// specialized loops, maybe we should reify that.
 		t.reduction = reduction;
+		pdastack_state_push(&thread->stack, (PDANode) {
+			.type = PDA_NODE_REDUCTION,
+			.state = NULL,
+			.token = reduction
+		});
+		break;
+	case ACTION_POP_SHIFT:
+		pdastack_state_push(&thread->stack, (PDANode) {
+			.type = PDA_NODE_SR,
+			.state = t.from,
+			.token = { t.popped.index, 0, 0 }
+		});
 		break;
 	case ACTION_SHIFT:
 		pdastack_state_push(&thread->stack, (PDANode) {
-			PDA_NODE_SR,
-			t.from,
-			t.token.index
+			.type = PDA_NODE_SR,
+			.state = t.from,
+			.token = { t.token.index, 0, 0 }
 		});
+		break;
 	}
 	return t;
 }
@@ -167,9 +192,9 @@ static Transition _start_accept(Transition transition, FsmThread *thread, Transi
 	switch(action->type) {
 	case ACTION_START:
 		pdastack_state_push(&thread->stack, (PDANode) {
-			PDA_NODE_SA,
-			t.from,
-			t.token.index
+			.type = PDA_NODE_SA,
+			.state = t.from,
+			.token = { t.token.index, 0, 0 }
 		});
 		break;
 	case ACTION_ACCEPT:
@@ -187,8 +212,8 @@ static Transition _start_accept(Transition transition, FsmThread *thread, Transi
 		}
 
 		Token reduction = {
-			popped.index,
-			t.token.index - popped.index,
+			popped.token.index,
+			t.token.index - popped.token.index,
 			reduction_symbol
 		};
 
@@ -215,10 +240,10 @@ static Transition _backtrack(Transition transition, FsmThread *thread) {
 
 	if(alt_action) {
 		pdastack_state_push(&thread->stack, (PDANode) {
-			PDA_NODE_BACKTRACK,
-			transition.from,
-			transition.token.index,
-			transition.path
+			.type = PDA_NODE_BACKTRACK,
+			.state = transition.from,
+			.token = { transition.token.index, 0, 0 },
+			.path = transition.path
 		});
 	} else if (transition.action->type == ACTION_ERROR) {
 		t.backtrack = 0;
@@ -232,7 +257,7 @@ static Transition _backtrack(Transition transition, FsmThread *thread) {
 			// the world. Maybe we should reify that.
 			// TODO: Communicate we have backtracked!!!!
 			t.to = popped.state;
-			t.token.index = popped.index;
+			t.token.index = popped.token.index;
 			t.backtrack = 1;
 			thread->path = popped.path + 1;
 		}
@@ -247,7 +272,17 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 	Transition next;
 	char path = thread->path;
 
-	action = state_get_path_transition(prev.to, token->symbol, path);
+	int symbol;
+	Token popped = { 0, 0, 0 };
+	if(pdastack_has_reduction(&thread->stack)) {
+		PDANode top = pdastack_top(&thread->stack);
+		popped = top.token;
+		symbol = popped.symbol;
+	} else {
+		symbol = token->symbol;
+	}
+
+	action = state_get_path_transition(prev.to, symbol, path);
 
 	if(action == NULL) {
 		// Attempt empty transition
@@ -265,6 +300,7 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 	next.from = prev.to;
 	next.to = action->state;
 	next.token = *token;
+	next.popped = popped;
 	next.path = path;
 
 	// Reset path
@@ -272,6 +308,8 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 	return next;
 }
 
+// TODO: Add tests for stack and state manipulators (we are mostly testing
+// transitions for now.
 void fsm_thread_apply(FsmThread *thread, Transition transition)
 {
 	// TODO: Consider converting backtracking stack into a loop pipe.
@@ -281,6 +319,7 @@ void fsm_thread_apply(FsmThread *thread, Transition transition)
 	// We should consider which things change and which don't at each step
 	Transition t = transition;
 	t = _backtrack(t, thread);
+	t = _pop_reductions(t, thread);
 	t = _shift_reduce(t, thread);
 	t = _start_accept(t, thread, thread->transition);
 	t = _switch_mode(t, thread);

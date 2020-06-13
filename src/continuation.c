@@ -4,7 +4,6 @@ Continuation continuation_build(Transition t, int error)
 {
 
 	Continuation cont;
-	token_init(&cont.token2, 0, 0, 0);
 	cont.token = t.token;
 
 	if(error) {
@@ -24,11 +23,10 @@ Continuation continuation_build(Transition t, int error)
 			}
 			break;
 		case ACTION_EMPTY:
-			cont.type = CONTINUATION_RETRY; 
-			break;
 		case ACTION_REDUCE:
-			cont.type = CONTINUATION_PUSH; 
-			cont.token2 = t.reduction;
+		case ACTION_POP:
+		case ACTION_POP_SHIFT:
+			cont.type = CONTINUATION_RETRY; 
 			break;
 		case ACTION_ERROR:
 			if(t.backtrack > 0) {

@@ -223,6 +223,10 @@ Action *state_add(State *state, int symbol, int type, int reduction)
 			trace_op("add", state, action, symbol, "shift", 0);
 		} else if(type == ACTION_DROP) {
 			trace_op("add", state, action, symbol, "drop", 0);
+		} else if(type == ACTION_POP) {
+			trace_op("add", state, action, symbol, "pop", 0);
+		} else if(type == ACTION_POP_SHIFT) {
+			trace_op("add", state, action, symbol, "pop-shift", 0);
 		} else if(type == ACTION_REDUCE) {
 			trace_op("add", state, action, symbol, "reduce", 0);
 		} else if(type == ACTION_ACCEPT) {

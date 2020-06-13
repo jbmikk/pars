@@ -31,6 +31,16 @@
 	t_assert(tran.action->type == ACTION_REDUCE); \
 	t_assert(tran.action->reduction == R);
 
+#define MATCH_POP_AT(S, Y, I) \
+	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	fsm_thread_apply(&(S), tran); \
+	t_assert(tran.action->type == ACTION_POP);
+
+#define MATCH_POP_SHIFT_AT(S, Y, I) \
+	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
+	fsm_thread_apply(&(S), tran); \
+	t_assert(tran.action->type == ACTION_POP_SHIFT);
+
 #define MATCH_ACCEPT_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
@@ -57,6 +67,8 @@
 #define MATCH_DROP(S, Y) MATCH_DROP_AT(S, Y, 0)
 #define MATCH_SHIFT(S, Y) MATCH_SHIFT_AT(S, Y, 0)
 #define MATCH_REDUCE(S, Y, R) MATCH_REDUCE_AT(S, Y, R, 0)
+#define MATCH_POP(S, Y) MATCH_POP_AT(S, Y, 0)
+#define MATCH_POP_SHIFT(S, Y) MATCH_POP_SHIFT_AT(S, Y, 0)
 #define MATCH_ACCEPT(S, Y) MATCH_ACCEPT_AT(S, Y, 0)
 #define MATCH_ACCEPT_WITH(S, Y, R) MATCH_ACCEPT_AT_WITH(S, Y, R, 0)
 #define MATCH_EMPTY(S, Y) MATCH_EMPTY_AT(S, Y, 0)
@@ -302,7 +314,7 @@ void fsm_thread_match__reduce(){
 
 	MATCH_SHIFT(thread, '1');
 	MATCH_REDUCE(thread, '\0', number);
-	MATCH_DROP(thread, number);
+	MATCH_POP(thread, '\0');
 	MATCH_ACCEPT(thread, '\0');
 
 	fsm_thread_dispose(&thread);
@@ -337,11 +349,11 @@ void fsm_thread_match__reduce_shift(){
 
 	MATCH_SHIFT(thread, '1');
 	MATCH_REDUCE(thread, '+', number);
-	MATCH_SHIFT(thread, number);
+	MATCH_POP_SHIFT(thread, '+');
 	MATCH_DROP(thread, '+');
 	MATCH_DROP(thread, '2');
 	MATCH_REDUCE(thread, '\0', sum);
-	MATCH_DROP(thread, sum);
+	MATCH_POP(thread, '\0');
 	MATCH_ACCEPT(thread, '\0');
 
 	fsm_thread_dispose(&thread);
@@ -384,7 +396,7 @@ void fsm_thread_match__reduce_handler(){
 
 	MATCH_SHIFT_AT(thread, '1', 0);
 	MATCH_REDUCE_AT(thread, '+', number, 1);
-	MATCH_SHIFT_AT(thread, number, 0);
+	MATCH_POP_SHIFT_AT(thread, number, 0);
 	MATCH_DROP_AT(thread, '+', 1);
 
 	MATCH_SHIFT_AT(thread, 'w', 2);
@@ -392,9 +404,9 @@ void fsm_thread_match__reduce_handler(){
 	MATCH_DROP_AT(thread, 'r', 4);
 	MATCH_DROP_AT(thread, 'd', 5);
 	MATCH_REDUCE_AT(thread, '\0', word, 6);
-	MATCH_DROP_AT(thread, word, 2);
+	MATCH_POP_AT(thread, word, 2);
 	MATCH_REDUCE_AT(thread, '\0', sum, 6);
-	MATCH_DROP_AT(thread, sum, 0);
+	MATCH_POP_AT(thread, sum, 0);
 	MATCH_ACCEPT_AT(thread, '\0', 6);
 
 	fsm_thread_dispose(&thread);
@@ -442,9 +454,9 @@ void fsm_thread_match__first_set_collision(){
 	MATCH_DROP(thread, '2');
 	MATCH_DROP(thread, '3');
 	MATCH_REDUCE(thread, '\0', a);
-	MATCH_SHIFT(thread, a);
+	MATCH_POP_SHIFT(thread, '\0');
 	MATCH_REDUCE(thread, '\0', sequence);
-	MATCH_DROP(thread, sequence);
+	MATCH_POP(thread, '\0');
 	MATCH_ACCEPT(thread, '\0');
 
 	fsm_thread_dispose(&thread);
@@ -595,23 +607,23 @@ void fsm_thread_match__repetition(){
 
 	MATCH_SHIFT(thread, '1');
 	MATCH_REDUCE(thread, '2', nonZeroDigit);
-	MATCH_SHIFT(thread, nonZeroDigit);
+	MATCH_POP_SHIFT(thread, '2');
 
 	MATCH_SHIFT(thread, '2');
 	MATCH_REDUCE(thread, '3', nonZeroDigit);
-	MATCH_SHIFT(thread, nonZeroDigit);
+	MATCH_POP_SHIFT(thread, '3');
 	MATCH_REDUCE(thread, '3', digit);
-	MATCH_DROP(thread, digit);
+	MATCH_POP(thread, '3');
 
 	MATCH_SHIFT(thread, '3');
 	MATCH_REDUCE(thread, '\0', nonZeroDigit);
-	MATCH_SHIFT(thread, nonZeroDigit);
+	MATCH_POP_SHIFT(thread, '\0');
 	MATCH_REDUCE(thread, '\0', digit);
-	MATCH_DROP(thread, digit);
+	MATCH_POP(thread, '\0');
 
 	MATCH_EMPTY(thread, '\0');
 	MATCH_REDUCE(thread, '\0', integer);
-	MATCH_DROP(thread, integer);
+	MATCH_POP(thread, '\0');
 	MATCH_ACCEPT(thread, '\0');
 
 	fsm_thread_dispose(&thread);
@@ -861,7 +873,7 @@ void fsm_thread_match__simple_backtrack(){
 	MATCH_DROP(thread, '1');
 	MATCH_DROP(thread, '3');
 	MATCH_REDUCE(thread, '\0', a);
-	MATCH_DROP(thread, a);
+	MATCH_POP(thread, '\0');
 	MATCH_ACCEPT(thread, '\0');
 
 	fsm_thread_dispose(&thread);
@@ -917,9 +929,9 @@ void fsm_thread_match__backtrack_with_shift(){
 	MATCH_DROP(thread, '1');
 	MATCH_DROP(thread, '3');
 	MATCH_REDUCE(thread, '\0', b);
-	MATCH_SHIFT(thread, b);
+	MATCH_POP_SHIFT(thread, '\0');
 	MATCH_REDUCE(thread, '\0', sequence);
-	MATCH_DROP(thread, sequence);
+	MATCH_POP(thread, '\0');
 	MATCH_ACCEPT(thread, '\0');
 
 	t_assert(fsm_thread_stack_is_empty(&thread));

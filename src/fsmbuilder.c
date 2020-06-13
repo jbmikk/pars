@@ -396,7 +396,7 @@ int fsm_builder_nonterminal(FsmBuilder *builder, char *name, int length)
 
 	State *prev = builder->state;
 
-	Action *action = state_add(builder->state, sb->id, ACTION_DROP, NONE);
+	Action *action = state_add(builder->state, sb->id, ACTION_POP, NONE);
 	_transition(builder, action);
 
 	//Create reference from last non terminal to the named non terminal

@@ -31,10 +31,6 @@ void input_set_source_ast(Input *input, Ast *ast)
 static void _apply_continuation(Input *input, const Continuation *cont)
 {
 	switch(cont->type) {
-	case CONTINUATION_PUSH:
-		stack_token_push(&input->token_stack, cont->token);
-		stack_token_push(&input->token_stack, cont->token2);
-		break;
 	case CONTINUATION_RETRY:
 		stack_token_push(&input->token_stack, cont->token);
 		break;

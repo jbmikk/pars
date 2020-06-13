@@ -20,5 +20,7 @@ void ast_builder_done(AstBuilder *builder);
 void ast_builder_drop(void *builder_p, const Token *token);
 void ast_builder_shift(void *builder_p, const Token *token);
 void ast_builder_reduce(void *builder_p, const Token *token);
+void ast_builder_pop(void *builder_p, const Token *token);
+void ast_builder_pop_shift(void *builder_p, const Token *token);
 
 #endif //ASTBUILDER_H
