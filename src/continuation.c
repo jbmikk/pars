@@ -9,6 +9,8 @@ Continuation continuation_build(Transition t, int error)
 	if(error) {
 		cont.type = CONTINUATION_ERROR; 
 	} else {
+		// TODO: maybe actions can have an input operation, something
+		// like: Consume, Lookahead(do nothing), something else?
 		switch(t.action->type) {
 		case ACTION_START:
 		case ACTION_SHIFT:
