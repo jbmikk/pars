@@ -9,7 +9,7 @@ echo ""
 echo "PARSE GRAMMARS:"
 echo "--------------"
 
-run_test $MODE $PATTERN "./pars ./test/grammars/empty_file.txt"
+run_test $MODE $PATTERN "./pars ./test/grammars/empty_file.txt" 255
 run_test $MODE $PATTERN "./pars ./test/grammars/ab-grammar.txt ./test/grammars/ab-source.txt"
 run_test $MODE $PATTERN "./pars ./test/grammars/except-grammar.txt ./test/grammars/except-source.txt"
 run_test $MODE $PATTERN "./pars ./test/grammars/factor-grammar.txt ./test/grammars/factor-source.txt"

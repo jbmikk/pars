@@ -8,6 +8,7 @@ ROOT=$PWD
 run_test()
 {
 	VALOPTIONS="--suppressions=$ROOT/suppressions.supp --leak-check=full --show-leak-kinds=all --track-origins=yes"
+	EXPECTED=${4:-0} 
 
 	# test if command matches pattern
 	if [ "$2" = "no-pattern" ]; then
@@ -23,25 +24,30 @@ run_test()
 		if [ "$1" = "leaks" -o "$1" = "leaktrace" ]; then
 			echo $3
 			OUTPUT=$(valgrind $VALOPTIONS $3)
+			STATUS=$?
 		fi
 
 		if [ "$1" = "calls" ]; then
 			echo $3
 			OUTPUT=$(valgrind --tool=callgrind $3)
+			STATUS=$?
 			echo "Usage: callgrind_annotate --auto=yes callgrind.out.pid"
 		fi
 
 		if [ "$1" = "cache" ]; then
 			echo $3
 			OUTPUT=$(valgrind --tool=callgrind --simulate-cache=yes $3)
+			STATUS=$?
 			echo "Usage: callgrind_annotate --auto=yes callgrind.out.pid"
 		fi
 
 		if [ "$1" = "run" -o "$1" = "trace" ]; then
 			echo $3
 			$3
+			STATUS=$?
 		fi
-
+		[ $STATUS -eq $EXPECTED ] && echo -e "$3 \e[32mOK\e[0m" || echo -e "$3 \e[31mERROR\e[0m"
+		[ $STATUS -eq $EXPECTED ] || exit 1
 	fi
 }
 
