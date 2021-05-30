@@ -77,6 +77,10 @@ int input_linear_feed(Input *input, const Continuation *cont, Token *token)
 	case CONTINUATION_NEXT:
 		// Is this ok? Shouldn't it be cont->token?
 		if(token->symbol == L_EOF) {
+			// EOF means the entire input was consumed without 
+			// errors. If an EOF symbol was found early it would
+			// force an error because there is no transition 
+			// capable of consuming it. (Be careful with ranges!)
 			ret = -3;
 			break;
 		}
