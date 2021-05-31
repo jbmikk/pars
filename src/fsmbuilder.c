@@ -434,7 +434,7 @@ static void _set_start(FsmBuilder *builder, int eof_symbol)
 	fsm_builder_nonterminal(builder, sb->name, sb->length);
 
 	_ensure_state(builder);
-	Action *action = state_add(builder->state, eof_symbol, ACTION_ACCEPT, NONE);
+	Action *action = state_add(builder->state, eof_symbol, ACTION_DROP, NONE);
 
 	_transition(builder, action);
 	//Is the final accept state necessary? The accept action already 

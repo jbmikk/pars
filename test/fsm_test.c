@@ -328,7 +328,7 @@ void fsm_thread_match__reduce(){
 	MATCH_SHIFT(thread, '1');
 	MATCH_REDUCE(thread, '\0', number);
 	MATCH_POP(thread, '\0');
-	MATCH_ACCEPT(thread, '\0');
+	MATCH_DROP(thread, '\0');
 
 	fsm_thread_dispose(&thread);
 }
@@ -367,7 +367,7 @@ void fsm_thread_match__reduce_shift(){
 	MATCH_DROP(thread, '2');
 	MATCH_REDUCE(thread, '\0', sum);
 	MATCH_POP(thread, '\0');
-	MATCH_ACCEPT(thread, '\0');
+	MATCH_DROP(thread, '\0');
 
 	fsm_thread_dispose(&thread);
 }
@@ -420,7 +420,7 @@ void fsm_thread_match__reduce_handler(){
 	MATCH_POP_AT(thread, word, 2);
 	MATCH_REDUCE_AT(thread, '\0', sum, 6);
 	MATCH_POP_AT(thread, sum, 0);
-	MATCH_ACCEPT_AT(thread, '\0', 6);
+	MATCH_DROP_AT(thread, '\0', 6);
 
 	fsm_thread_dispose(&thread);
 }
@@ -470,7 +470,7 @@ void fsm_thread_match__first_set_collision(){
 	MATCH_POP_SHIFT(thread, '\0');
 	MATCH_REDUCE(thread, '\0', sequence);
 	MATCH_POP(thread, '\0');
-	MATCH_ACCEPT(thread, '\0');
+	MATCH_DROP(thread, '\0');
 
 	fsm_thread_dispose(&thread);
 }
@@ -637,7 +637,7 @@ void fsm_thread_match__repetition(){
 	MATCH_EMPTY(thread, '\0');
 	MATCH_REDUCE(thread, '\0', integer);
 	MATCH_POP(thread, '\0');
-	MATCH_ACCEPT(thread, '\0');
+	MATCH_DROP(thread, '\0');
 
 	fsm_thread_dispose(&thread);
 }
@@ -891,7 +891,7 @@ void fsm_thread_match__simple_backtrack(){
 	MATCH_DROP(thread, '3');
 	MATCH_REDUCE(thread, '\0', a);
 	MATCH_POP(thread, '\0');
-	MATCH_ACCEPT(thread, '\0');
+	MATCH_DROP(thread, '\0');
 
 	fsm_thread_dispose(&thread);
 }
@@ -949,7 +949,7 @@ void fsm_thread_match__backtrack_with_shift(){
 	MATCH_POP_SHIFT(thread, '\0');
 	MATCH_REDUCE(thread, '\0', sequence);
 	MATCH_POP(thread, '\0');
-	MATCH_ACCEPT(thread, '\0');
+	MATCH_DROP(thread, '\0');
 
 	t_assert(fsm_thread_stack_is_empty(&thread));
 

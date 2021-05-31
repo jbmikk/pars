@@ -189,6 +189,7 @@ static Transition _start_accept(Transition transition, FsmThread *thread, Transi
 	Transition t = transition;
 	PDANode popped;
 	bool is_empty;
+	// Only lexers have SA actions
 	switch(action->type) {
 	case ACTION_START:
 		pdastack_state_push(&thread->stack, (PDANode) {
@@ -220,10 +221,8 @@ static Transition _start_accept(Transition transition, FsmThread *thread, Transi
 		// Special case for the final accept state in lexers.
 		// We don't want to report the whole stream as accepted, only
 		// the final EOF symbol.
-		// TODO: the initial stach push SA doesn't make sense neither
-		// for lexers (requires this ugly fix) nor parsers (not used).
-		// Rethink this piece of crap. Maybe we need to separate SA
-		// for streams from SA for symbols?
+		// TODO: the initial stack push SA doesn't make sense (requires
+		// this ugly fix)
 		if(reduction.symbol == NONE) {
 			reduction.index = t.token.index;
 			reduction.length = 0;

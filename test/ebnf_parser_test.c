@@ -361,7 +361,7 @@ void ebnf_start_parsing__syntax(){
 	MATCH_REDUCE(thread, L_EOF, fix.SYNTAX);
 	MATCH_POP(thread, fix.SYNTAX);
 
-	MATCH_ACCEPT(thread, L_EOF);
+	MATCH_DROP(thread, L_EOF);
 
 	fsm_thread_dispose(&thread);
 }
