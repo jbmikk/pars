@@ -74,6 +74,10 @@
 	fsm_thread_apply(&(S), tran); \
 	t_assert((S).transition.backtrack == 1);
 
+#define ASSERT_REDUCTION(S, I, L) \
+	t_assert((S).transition.reduction.index == I); \
+	t_assert((S).transition.reduction.length == L);
+
 #define MATCH_START(S, Y) MATCH_START_AT(S, Y, 0)
 #define MATCH_DROP(S, Y) MATCH_DROP_AT(S, Y, 0)
 #define MATCH_SHIFT(S, Y) MATCH_SHIFT_AT(S, Y, 0)
@@ -501,17 +505,20 @@ void fsm_thread_match__simple_repetition(){
 	fsm_thread_start(&thread);
 
 	MATCH_START(thread, 'a');
-	MATCH_ACCEPT_WITH(thread, '\0', test);
+	MATCH_ACCEPT_WITH(thread, 'a', test);
 
 	MATCH_START(thread, 'a');
 	MATCH_DROP(thread, 'b');
 	MATCH_DROP(thread, 'b');
 	MATCH_DROP(thread, 'b');
-	MATCH_ACCEPT_WITH(thread, '\0', test);
+	MATCH_ACCEPT_WITH(thread, 'a', test);
 
 	MATCH_START(thread, 'a');
 	MATCH_DROP(thread, 'b');
 	MATCH_ACCEPT_WITH(thread, '\0', test);
+
+	MATCH_ACCEPT_AT_WITH(thread, '\0', '\0', 7);
+	ASSERT_REDUCTION(thread, 7, 0);
 
 	fsm_thread_dispose(&thread);
 }
@@ -544,19 +551,21 @@ void fsm_thread_match__simple_repetition_middle(){
 
 	MATCH_START(thread, 'a');
 	MATCH_DROP(thread, 'c');
-	MATCH_ACCEPT_WITH(thread, '\0', test);
+	MATCH_ACCEPT_WITH(thread, 'a', test);
 
 	MATCH_START(thread, 'a');
 	MATCH_DROP(thread, 'b');
 	MATCH_DROP(thread, 'b');
 	MATCH_DROP(thread, 'b');
 	MATCH_DROP(thread, 'c');
-	MATCH_ACCEPT_WITH(thread, '\0', test);
+	MATCH_ACCEPT_WITH(thread, 'a', test);
 
 	MATCH_START(thread, 'a');
 	MATCH_DROP(thread, 'b');
 	MATCH_DROP(thread, 'c');
 	MATCH_ACCEPT_WITH(thread, '\0', test);
+	MATCH_ACCEPT_AT_WITH(thread, '\0', '\0', 9);
+	ASSERT_REDUCTION(thread, 9, 0);
 
 	fsm_thread_dispose(&thread);
 }
@@ -674,6 +683,8 @@ void fsm_thread_match__any(){
 	MATCH_DROP(thread, 'z');
 	MATCH_DROP(thread, 'c');
 	MATCH_ACCEPT_WITH(thread, '\0', a);
+	MATCH_ACCEPT_AT_WITH(thread, '\0', '\0', 5);
+	ASSERT_REDUCTION(thread, 5, 0);
 
 	fsm_thread_dispose(&thread);
 }
@@ -712,6 +723,8 @@ void fsm_thread_match__copy(){
 	MATCH_DROP(thread, '1');
 	MATCH_DROP(thread, '2');
 	MATCH_ACCEPT_WITH(thread, '\0', b);
+	MATCH_ACCEPT_AT_WITH(thread, '\0', '\0', 4);
+	ASSERT_REDUCTION(thread, 4, 0);
 
 	fsm_thread_dispose(&thread);
 }
@@ -762,6 +775,8 @@ void fsm_thread_match__copy_loop_outside(){
 	MATCH_DROP(thread, 'x');
 	MATCH_DROP(thread, '2');
 	MATCH_ACCEPT_WITH(thread, '\0', b);
+	MATCH_ACCEPT_AT_WITH(thread, '\0', '\0', 11);
+	ASSERT_REDUCTION(thread, 11, 0);
 
 	fsm_thread_dispose(&thread);
 }
@@ -804,6 +819,8 @@ void fsm_thread_match__copy_loop_inside(){
 	MATCH_DROP(thread, '1');
 	MATCH_DROP(thread, '2');
 	MATCH_ACCEPT_WITH(thread, '\0', b);
+	MATCH_ACCEPT_AT_WITH(thread, '\0', '\0', 6);
+	ASSERT_REDUCTION(thread, 6, 0);
 
 	fsm_thread_dispose(&thread);
 }
@@ -843,6 +860,8 @@ void fsm_thread_match__copy_loop_inside_skip(){
 	MATCH_DROP(thread, '1');
 	MATCH_DROP(thread, '2');
 	MATCH_ACCEPT_WITH(thread, '\0', b);
+	MATCH_ACCEPT_AT_WITH(thread, '\0', '\0', 3);
+	ASSERT_REDUCTION(thread, 3, 0);
 
 	fsm_thread_dispose(&thread);
 }

@@ -49,13 +49,6 @@ int fsm_thread_start(FsmThread *thread)
 	pdastack_start(&thread->stack, start);
 	thread->transition.from = NULL;
 	thread->transition.to = start;
-	// TODO: Is this initial node really needed for EBNF?
-	// If removed, rewrite fsm_thread_stack_is_empty
-	pdastack_state_push(&thread->stack, (PDANode){ 
-		.type = PDA_NODE_SA,
-		.state = thread->transition.to,
-		.token = { 0, 0, 0 }
-	});
 	//TODO: Check errors?
 	return 0;
 }
@@ -201,31 +194,33 @@ static Transition _start_accept(Transition transition, FsmThread *thread, Transi
 	case ACTION_ACCEPT:
 		t.to = pdastack_get_start(&thread->stack);
 		popped = pdastack_state_pop(&thread->stack, PDA_NODE_SA, &is_empty);
-		if(is_empty) {
-			//sentinel("Accept pop fail");
-			printf("FTH %p: SA pop fail\n", thread);
-			exit(1);
-		}
 
 		int reduction_symbol = action->reduction;
 		if (action->flags & ACTION_FLAG_IDENTITY) {
 			reduction_symbol = prev.token.symbol;
 		}
-
-		Token reduction = {
-			popped.token.index,
-			t.token.index - popped.token.index,
-			reduction_symbol
-		};
-
-		// Special case for the final accept state in lexers.
-		// We don't want to report the whole stream as accepted, only
-		// the final EOF symbol.
-		// TODO: the initial stack push SA doesn't make sense (requires
-		// this ugly fix)
-		if(reduction.symbol == NONE) {
-			reduction.index = t.token.index;
-			reduction.length = 0;
+		
+		Token reduction;
+		if (is_empty) {
+			if (reduction_symbol != '\0') {
+				//sentinel("Accept pop fail");
+				printf("FTH %p: SA pop fail\n", thread);
+				exit(1);
+			}
+			// Assume self accepting symbol.
+			// TODO: Maybe it would be safer to have a different
+			// action? A start-accept double action?
+			reduction = (Token) {
+				t.token.index,
+				0,
+				reduction_symbol
+			};
+		} else {
+			reduction = (Token) {
+				popped.token.index,
+				t.token.index - popped.token.index,
+				reduction_symbol
+			};
 		}
 		t.reduction = reduction;
 		break;

@@ -28,12 +28,7 @@ State *pdastack_get_start(PDAStack *pdastack)
 
 bool pdastack_is_empty(PDAStack *pdastack)
 {
-	bool is_empty = stack_pdanode_is_empty(&pdastack->stack);
-	bool is_initial = false;
-	if(!is_empty) {
-		is_initial = pdastack->stack.stack.top->next == NULL;
-	}
-	return is_empty || is_initial;
+	return stack_pdanode_is_empty(&pdastack->stack);
 }
 
 bool pdastack_has_reduction(PDAStack *pdastack)
