@@ -225,6 +225,7 @@ static Transition _start_accept(Transition transition, FsmThread *thread, Transi
 		t.reduction = reduction;
 		break;
 	case ACTION_PARTIAL:
+		// Missing reduced token
 		break;
 	}
 	return t;

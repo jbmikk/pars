@@ -46,6 +46,8 @@
 	fsm_thread_apply(&(S), tran); \
 	t_assert(tran.action->type == ACTION_PARTIAL);
 
+// Shouldn't we be using the tran.reduction token? Is it guaranteed to be
+// Equal to the reduction symbol from the action?
 #define MATCH_PARTIAL_AT_WITH(S, Y, R, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
