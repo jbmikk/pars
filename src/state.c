@@ -20,6 +20,7 @@ void state_init(State *state)
 	bmap_action_init(&state->actions);
 	bmap_ref_init(&state->refs);
 	state->status = STATE_CLEAR;
+	state->flags = STATE_FLAG_NONE;
 }
 
 void state_get_states(State *state, BMapState *states)

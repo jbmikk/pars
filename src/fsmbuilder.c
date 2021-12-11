@@ -106,6 +106,19 @@ static Action *_add_empty(FsmBuilder *builder, int type, int reduction)
 	return action;
 }
 
+static Action *_add_partial(FsmBuilder *builder, int type, int reduction)
+{
+	Fsm *fsm = builder->fsm;
+	Symbol *symbol = symbol_table_add(fsm->table, "__partial", 9);
+
+	_ensure_state(builder);
+	builder->state->flags = STATE_FLAG_PARTIAL;
+	Action *action = state_add(builder->state, symbol->id, type, reduction);
+	_transition(builder, action);
+
+	return action;
+}
+
 static void _reset(FsmBuilder *builder) 
 {
 	FsmFrame *frame = builder->stack;
@@ -342,7 +355,7 @@ void _lexer_nonterminal(FsmBuilder *builder, int symbol_id, bool parallel)
 		//TODO: This is not necessary, we can add ACTION_PARTIAL when COPY_MERGE
 		_move_to(builder, nt->end);
 
-		action = _add_empty(builder, ACTION_PARTIAL, sb->id);
+		action = _add_partial(builder, ACTION_PARTIAL, sb->id);
 	} else {
 		trace_symbol("Add lexer rule for: ", sb);
 		state_add_reference(builder->state, REF_TYPE_START, builder->ref_strategy, NULL, nt->start);

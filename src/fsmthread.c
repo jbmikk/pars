@@ -272,7 +272,11 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 
 	int symbol;
 	Token popped = { 0, 0, 0 };
-	if(pdastack_has_reduction(&thread->stack)) {
+	// TODO: does it metter how we arrived?
+	// what if there is a reduction on the top of the stack?
+	if(prev.to->flags == STATE_FLAG_PARTIAL) {
+		symbol = fsm_get_symbol_id(thread->fsm, nzs("__partial"));
+	} else if(pdastack_has_reduction(&thread->stack)) {
 		PDANode top = pdastack_top(&thread->stack);
 		popped = top.token;
 		symbol = popped.symbol;

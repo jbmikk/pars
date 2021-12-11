@@ -152,6 +152,8 @@ State *_deep_clone_next(State *state, BMapState *cloned, State *end, State *sibl
 	if(!in_states) {
 		clone = malloc(sizeof(State));
 		state_init(clone);
+		// TODO: are there other places that need this?
+		clone->flags = state->flags;
 
 		if(state == end) {
 			// TODO: Fix possible cont leak?
@@ -257,6 +259,8 @@ int _merge_deep_next(State *from, State *to, BMapState *cloned)
 			} else {
 				clone = malloc(sizeof(State));
 				state_init(clone);
+				// TODO: are there other places that need this?
+				clone->flags = ac.state->flags;
 
 				//TODO: Check and return errors
 				bmap_state_insert(cloned, (intptr_t)ac.state, clone);
