@@ -231,6 +231,34 @@ static Transition _start_accept(Transition transition, FsmThread *thread, Transi
 	return t;
 }
 
+static Transition _partials(Transition transition, FsmThread *thread, Transition prev) {
+	Action *action = transition.action;
+	Transition t = transition;
+	if(t.to && t.to->flags == STATE_FLAG_PARTIAL) {
+		int symbol = fsm_get_symbol_id(thread->fsm, nzs("__partial"));
+		Token token = {
+			t.token.index,
+			0,
+			symbol
+		};
+		// TODO: avoid infinite loop, we should not push each
+		// time we pass through a particulra state.
+		// PDA_NODE_REDUCTION should be named _SYMBOL so it  can be 
+		// used both for reductions and other pseudo-symbols
+		pdastack_state_push(&thread->stack, (PDANode) {
+			.type = PDA_NODE_REDUCTION,
+			.state = NULL,
+			.token = token
+		});
+	}
+	switch(action->type) {
+	case ACTION_PARTIAL:
+		// Missing reduced token
+		break;
+	}
+	return t;
+}
+
 static Transition _backtrack(Transition transition, FsmThread *thread) {
 	Transition t = transition;
 	char alt_path = transition.path + 1;
@@ -272,11 +300,7 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 
 	int symbol;
 	Token popped = { 0, 0, 0 };
-	// TODO: does it metter how we arrived?
-	// what if there is a reduction on the top of the stack?
-	if(prev.to->flags == STATE_FLAG_PARTIAL) {
-		symbol = fsm_get_symbol_id(thread->fsm, nzs("__partial"));
-	} else if(pdastack_has_reduction(&thread->stack)) {
+	if(pdastack_has_reduction(&thread->stack)) {
 		PDANode top = pdastack_top(&thread->stack);
 		popped = top.token;
 		symbol = popped.symbol;
@@ -324,6 +348,7 @@ void fsm_thread_apply(FsmThread *thread, Transition transition)
 	t = _pop_reductions(t, thread);
 	t = _shift_reduce(t, thread);
 	t = _start_accept(t, thread, thread->transition);
+	t = _partials(t, thread, thread->transition);
 	t = _switch_mode(t, thread);
 
 	thread->transition = t;

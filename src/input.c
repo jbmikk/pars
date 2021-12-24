@@ -34,6 +34,10 @@ static void _apply_continuation(Input *input, const Continuation *cont)
 	case CONTINUATION_RETRY:
 		stack_token_push(&input->token_stack, cont->token);
 		break;
+		// This seems wrong, should we use the input as a stack?
+		// Shouldn't it be the just the pda stack
+		// Generating input does make sense in some cases, but is this
+		// one of those cases?
 	}
 }
 
