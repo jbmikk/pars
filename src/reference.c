@@ -320,17 +320,14 @@ void reference_solve_first_set(Reference *ref, int *result)
 	}
 
 	//solve reference
-	trace_state(
-		"append first set from",
-		ref->to_state,
-		""
-	);
-
 	if(ref->type == REF_TYPE_COPY) {
+		trace_state("first-set deep copy from", ref->to_state, "");
 		*result |= _clone_deep(ref);
 	} else if(ref->type == REF_TYPE_COPY_MERGE) {
+		trace_state("first-set merge from", ref->to_state, "");
 		*result |= _ref_merge_deep(ref);
 	} else {
+		trace_state("first-set clone from", ref->to_state, "");
 		// Add all cloned actions into a clone set, then merge the clone set
 		// into the ref state. It's important to do this in two passes in 
 		// order to avoid having collisions produced by the very actions we
