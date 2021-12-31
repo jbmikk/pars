@@ -131,6 +131,7 @@ static Action *_state_get_transition(State *state, int symbol, int path)
 					if(count < path) {
 						count++;
 					} else {
+						trace_match(range->state, symbol, path, count);
 						action = range;
 						break;
 					}
@@ -138,8 +139,8 @@ static Action *_state_get_transition(State *state, int symbol, int path)
 			}
 		}
 		bmap_cursor_action_dispose(&cur);
-
 	} else {
+		trace_match(entry->action.state, symbol, path, -1);
 		action = &entry->action;
 	}
 	return action;
@@ -232,6 +233,8 @@ Action *state_add(State *state, int symbol, int type, int reduction)
 			trace_op("add", state, action, symbol, "reduce", 0);
 		} else if(type == ACTION_ACCEPT) {
 			trace_op("add", state, action, symbol, "accept", 0);
+		} else if(type == ACTION_PARTIAL) {
+			trace_op("add", state, action, symbol, "partial", 0);
 		} else {
 			trace_op("add", state, action, symbol, "action", 0);
 		}
