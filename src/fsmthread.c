@@ -272,7 +272,6 @@ static Transition _backtrack(Transition transition, FsmThread *thread) {
 			.path = transition.path
 		});
 	} else if (transition.action->type == ACTION_ERROR) {
-		t.backtrack = 0;
 		bool is_empty;
 		PDANode popped = pdastack_state_pop(&thread->stack, PDA_NODE_BACKTRACK, &is_empty);
 		if(!is_empty) {
@@ -328,6 +327,7 @@ Transition fsm_thread_match(FsmThread *thread, const Token *token)
 	next.token = *token;
 	next.popped = popped;
 	next.path = path;
+	next.backtrack = 0;
 
 	// Reset path
 	thread->path = 0;
