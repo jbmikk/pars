@@ -22,24 +22,24 @@ run_test()
 	if [ $MATCHES -eq 0 ]; then
 
 		if [ "$1" = "leaks" -o "$1" = "leaktrace" ]; then
-			OUTPUT=$(valgrind $VALOPTIONS $3)
+			OUTPUT=$(valgrind $VALOPTIONS $3 2>&1)
 			STATUS=$?
 		fi
 
 		if [ "$1" = "calls" ]; then
-			OUTPUT=$(valgrind --tool=callgrind $3)
+			OUTPUT=$(valgrind --tool=callgrind $3 2>&1)
 			STATUS=$?
 			echo "Usage: callgrind_annotate --auto=yes callgrind.out.pid"
 		fi
 
 		if [ "$1" = "cache" ]; then
-			OUTPUT=$(valgrind --tool=callgrind --simulate-cache=yes $3)
+			OUTPUT=$(valgrind --tool=callgrind --simulate-cache=yes $3 2>&1)
 			STATUS=$?
 			echo "Usage: callgrind_annotate --auto=yes callgrind.out.pid"
 		fi
 
 		if [ "$1" = "run" -o "$1" = "trace" ]; then
-			OUTPUT=$($3)
+			OUTPUT=$($3 2>&1)
 			STATUS=$?
 		fi
 
@@ -47,6 +47,7 @@ run_test()
 			echo -e "$3 \e[32mOK\e[0m"
 		else
 			echo "$OUTPUT"
+			echo "EXIT STATUS=$STATUS"
 			echo -e "$3 \e[31mERROR\e[0m"
 			exit 1
 		fi
