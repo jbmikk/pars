@@ -13,38 +13,45 @@
 #define MATCH_START_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
-	t_assert(tran.action->type == ACTION_START);
+	t_assert(tran.action->type == ACTION_START); \
+	t_assert((S).transition.action->type != ACTION_ERROR);
 
 #define MATCH_DROP_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
-	t_assert(tran.action->type == ACTION_DROP);
+	t_assert(tran.action->type == ACTION_DROP); \
+	t_assert((S).transition.action->type != ACTION_ERROR);
 
 #define MATCH_SHIFT_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
-	t_assert(tran.action->type == ACTION_SHIFT);
+	t_assert(tran.action->type == ACTION_SHIFT); \
+	t_assert((S).transition.action->type != ACTION_ERROR);
 
 #define MATCH_REDUCE_AT(S, Y, R, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
 	t_assert(tran.action->type == ACTION_REDUCE); \
-	t_assert(tran.action->reduction == R);
+	t_assert(tran.action->reduction == R); \
+	t_assert((S).transition.action->type != ACTION_ERROR);
 
 #define MATCH_POP_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
-	t_assert(tran.action->type == ACTION_POP);
+	t_assert(tran.action->type == ACTION_POP); \
+	t_assert((S).transition.action->type != ACTION_ERROR);
 
 #define MATCH_POP_SHIFT_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
-	t_assert(tran.action->type == ACTION_POP_SHIFT);
+	t_assert(tran.action->type == ACTION_POP_SHIFT); \
+	t_assert((S).transition.action->type != ACTION_ERROR);
 
 #define MATCH_PARTIAL_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
-	t_assert(tran.action->type == ACTION_PARTIAL);
+	t_assert(tran.action->type == ACTION_PARTIAL); \
+	t_assert((S).transition.action->type != ACTION_ERROR);
 
 // Shouldn't we be using the tran.reduction token? Is it guaranteed to be
 // Equal to the reduction symbol from the action?
@@ -52,29 +59,34 @@
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
 	t_assert(tran.action->type == ACTION_PARTIAL); \
-	t_assert(tran.action->reduction == R);
+	t_assert(tran.action->reduction == R); \
+	t_assert((S).transition.action->type != ACTION_ERROR);
 
 #define MATCH_ACCEPT_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
-	t_assert(tran.action->type == ACTION_ACCEPT);
+	t_assert(tran.action->type == ACTION_ACCEPT); \
+	t_assert((S).transition.action->type != ACTION_ERROR);
 
 #define MATCH_ACCEPT_AT_WITH(S, Y, R, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
 	t_assert(tran.action->type == ACTION_ACCEPT); \
-	t_assert(tran.action->reduction == R);
+	t_assert(tran.action->reduction == R); \
+	t_assert((S).transition.action->type != ACTION_ERROR);
 
 #define MATCH_EMPTY_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
-	t_assert(tran.action->type == ACTION_EMPTY);
+	t_assert(tran.action->type == ACTION_EMPTY); \
+	t_assert((S).transition.action->type != ACTION_ERROR);
 
 
 #define MATCH_BACKTRACK_AT(S, Y, I) \
 	tran = fsm_thread_match(&(S), &(struct Token){ (I), 0, (Y)}); \
 	fsm_thread_apply(&(S), tran); \
-	t_assert((S).transition.backtrack == 1);
+	t_assert((S).transition.backtrack == 1); \
+	t_assert((S).transition.action->type != ACTION_ERROR);
 
 #define ASSERT_REDUCTION(S, I, L) \
 	t_assert((S).transition.reduction.index == I); \
