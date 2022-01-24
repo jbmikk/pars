@@ -351,13 +351,6 @@ void fsm_thread_apply(FsmThread *thread, Transition transition)
 	t = _partials(t, thread, thread->transition);
 	t = _switch_mode(t, thread);
 
-	if(t.to == NULL) {
-		// This could happen if the stack is bad
-		int empty = fsm_get_symbol_id(thread->fsm, nzs("__empty"));
-		State *error = fsm_get_state(thread->fsm, nzs(".error"));
-		t.action = state_get_transition(error, empty);
-	}
-
 	thread->transition = t;
 }
 
