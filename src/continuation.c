@@ -28,6 +28,8 @@ Continuation continuation_build(Transition t, int error)
 		case ACTION_REDUCE:
 		case ACTION_POP:
 		case ACTION_POP_SHIFT:
+		// TODO: add coverage for partials
+		case ACTION_PARTIAL:
 			cont.type = CONTINUATION_RETRY; 
 			break;
 		case ACTION_ERROR:

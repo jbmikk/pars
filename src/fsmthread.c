@@ -224,9 +224,6 @@ static Transition _start_accept(Transition transition, FsmThread *thread, Transi
 		}
 		t.reduction = reduction;
 		break;
-	case ACTION_PARTIAL:
-		// Missing reduced token
-		break;
 	}
 	return t;
 }
@@ -234,26 +231,34 @@ static Transition _start_accept(Transition transition, FsmThread *thread, Transi
 static Transition _partials(Transition transition, FsmThread *thread, Transition prev) {
 	Action *action = transition.action;
 	Transition t = transition;
-	if(t.to && t.to->flags == STATE_FLAG_PARTIAL) {
-		int symbol = fsm_get_symbol_id(thread->fsm, nzs("__partial"));
-		Token token = {
-			t.token.index,
-			0,
-			symbol
-		};
-		// TODO: avoid infinite loop, we should not push each
-		// time we pass through a particulra state.
-		// PDA_NODE_REDUCTION should be named _SYMBOL so it  can be 
-		// used both for reductions and other pseudo-symbols
-		pdastack_state_push(&thread->stack, (PDANode) {
-			.type = PDA_NODE_REDUCTION,
-			.state = NULL,
-			.token = token
-		});
-	}
 	switch(action->type) {
 	case ACTION_PARTIAL:
-		// Missing reduced token
+		// pop symbol (reduction)
+		pdastack_pop(&thread->stack);
+
+		// TODO: backtracking should happen naturally on errors (if necessary)
+		t.to = t.from;
+		break;
+	default:
+		// On any action, except partial itself to avoid infinite loops
+		if(t.to && t.to->flags == STATE_FLAG_PARTIAL) {
+			int symbol = fsm_get_symbol_id(thread->fsm, nzs("__partial"));
+			Token token = {
+				t.token.index,
+				0,
+				symbol
+			};
+			// TODO: avoid other possible infinite loops, we should
+			// not push each time we pass through a particulr state
+			// TODO: PDA_NODE_REDUCTION should be named _SYMBOL so
+			// it  can be used both for reductions and other
+			// pseudo-symbols
+			pdastack_state_push(&thread->stack, (PDANode) {
+				.type = PDA_NODE_REDUCTION,
+				.state = NULL,
+				.token = token
+			});
+		}
 		break;
 	}
 	return t;
@@ -344,6 +349,8 @@ void fsm_thread_apply(FsmThread *thread, Transition transition)
 	// context structure?
 	// We should consider which things change and which don't at each step
 	Transition t = transition;
+	// Order matters, should BACKTRACK nodes be combined with others into
+	// a single stack node with multiple uses?
 	t = _backtrack(t, thread);
 	t = _pop_reductions(t, thread);
 	t = _shift_reduce(t, thread);
