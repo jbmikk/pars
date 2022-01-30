@@ -1068,6 +1068,40 @@ void fsm_thread_match__partial_backtrack(){
 	fsm_thread_dispose(&thread);
 }
 
+void fsm_thread_match__partial_backtrack_order(){
+	FsmBuilder builder;
+	Transition tran;
+
+	printf("PARTIAL-BT start\n");
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_SPLIT);
+
+	fsm_builder_set_mode(&builder, nzs(".default"));
+
+	fsm_builder_define(&builder, nzs("A1"));
+	fsm_builder_terminal(&builder, 'a');
+	fsm_builder_terminal(&builder, '1');
+	fsm_builder_end(&builder);
+
+	fsm_builder_define(&builder, nzs("A2"));
+	fsm_builder_terminal(&builder, 'a');
+	fsm_builder_terminal(&builder, '2');
+	fsm_builder_end(&builder);
+
+	fsm_builder_parallel_done(&builder, '\0');
+	fsm_builder_dispose(&builder);
+
+	int a1 = fsm_get_symbol_id(&fix.fsm, nzs("A1"));
+
+	FsmThread thread;
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
+	fsm_thread_start(&thread);
+
+	MATCH_DROP(thread, 'a');
+	MATCH_DROP(thread, '1');
+	MATCH_PARTIAL_WITH(thread, '\0', a1);
+	fsm_thread_dispose(&thread);
+}
+
 int main(int argc, char** argv){
 	t_init();
 	t_test(fsm_builder_define__single_get);
@@ -1092,6 +1126,7 @@ int main(int argc, char** argv){
 	t_test(fsm_thread_match__backtrack_with_shift);
 	t_test(fsm_thread_match__partial_match);
 	t_test(fsm_thread_match__partial_backtrack);
+	t_test(fsm_thread_match__partial_backtrack_order);
 	return t_done();
 }
 

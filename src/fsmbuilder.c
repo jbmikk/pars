@@ -465,6 +465,7 @@ static void _set_lexer_start(FsmBuilder *builder, int eof_symbol, bool parallel)
 	Nonterminal *nt;
 	State *start;
 	bmap_cursor_nonterminal_init(&cursor, &builder->fsm->nonterminals);
+	bmap_cursor_nonterminal_revert(&cursor);
 
 	while(bmap_cursor_nonterminal_next(&cursor)) {
 		entry = bmap_cursor_nonterminal_current(&cursor);
@@ -508,6 +509,8 @@ retry:
 
 	some_unsolved = 0;
 	bmap_cursor_nonterminal_init(&cursor, &builder->fsm->nonterminals);
+	// We try to preserve the definition order (symbols grow negatively)
+	bmap_cursor_nonterminal_revert(&cursor);
 	while(bmap_cursor_nonterminal_next(&cursor)) {
 		nt = bmap_cursor_nonterminal_current(&cursor)->nonterminal;
 		/* keys are symbol ids, not strings.
