@@ -1030,7 +1030,6 @@ void fsm_thread_match__partial_backtrack(){
 	FsmBuilder builder;
 	Transition tran;
 
-	printf("PARTIAL-BT start\n");
 	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_SPLIT);
 
 	fsm_builder_set_mode(&builder, nzs(".default"));
@@ -1046,12 +1045,9 @@ void fsm_thread_match__partial_backtrack(){
 	fsm_builder_terminal(&builder, 'c');
 	fsm_builder_end(&builder);
 
-	printf("PARTIAL-BT done\n");
 	fsm_builder_parallel_done(&builder, '\0');
 
-	printf("PARTIAL-BT dispose\n");
 	fsm_builder_dispose(&builder);
-	printf("PARTIAL-BT built\n");
 
 	int ab = fsm_get_symbol_id(&fix.fsm, nzs("AB"));
 	int xbc = fsm_get_symbol_id(&fix.fsm, nzs("XBC"));
