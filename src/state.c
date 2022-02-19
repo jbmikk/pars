@@ -101,49 +101,53 @@ void state_dispose(State *state)
 
 static Action *_state_get_transition(State *state, int symbol, int path)
 {
-	Action *action = NULL;
-	Action *range;
+	Action *result = NULL;
+	Action *action;
 	
-	BMapEntryAction *entry = bmap_action_m_get(&state->actions, symbol);
+	BMapEntryAction *entry = bmap_action_m_get_last(&state->actions, symbol);
 	BMapCursorAction cur;
 
 	int count = 0;
 
 	if(!entry || path != 0) {
-		if(entry) {
-			count++;
-		}
 		// TODO: We should have a loop to recursively test outer 
 		// ranges. The first match wins.
 		bmap_cursor_action_init(&cur, &state->actions);
 		bmap_cursor_action_revert(&cur);
 		bmap_cursor_action_move_gt(&cur, symbol);
-
 		while(bmap_cursor_action_next(&cur)) {
 			entry = bmap_cursor_action_current(&cur);
-			range = &entry->action;
-			if(range && (range->flags & ACTION_FLAG_RANGE)) {
+			action = &entry->action;
+			if(action && (action->flags & ACTION_FLAG_RANGE)) {
 				//TODO: Fix negative symbols in transitions.
 				//negative symbols are interpreted as unsigned chars
 				//when doing scans, but as signed ints when converted
 				//to ints, we ignore negative numbers for now.
-				if(symbol > 0 && symbol <= range->end_symbol) {
+				if(symbol > 0 && symbol <= action->end_symbol) {
 					if(count < path) {
 						count++;
 					} else {
-						trace_match(range->state, symbol, path, count);
-						action = range;
+						trace_match(action->state, symbol, path, count);
+						result = action;
 						break;
 					}
+				}
+			} else if (action && entry->key == symbol) {
+				if(count < path) {
+					count++;
+				} else {
+					//trace_match(action->state, symbol, path, count);
+					result = action;
+					break;
 				}
 			}
 		}
 		bmap_cursor_action_dispose(&cur);
 	} else {
 		trace_match(entry->action.state, symbol, path, -1);
-		action = &entry->action;
+		result = &entry->action;
 	}
-	return action;
+	return result;
 }
 
 static Action *_state_add_action(State *state, int symbol, Action *action)

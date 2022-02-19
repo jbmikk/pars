@@ -137,7 +137,7 @@ static int _clone_fs_action(BMapAction *action_set, Reference *ref, int key, Act
 			0
 		);
 
-		bmap_action_m_append(action_set, key, clone);
+		bmap_action_m_prepend(action_set, key, clone);
 	}
 end:
 	return result;
@@ -187,7 +187,7 @@ State *_deep_clone_next(State *state, BMapState *cloned, State *end, State *sibl
 			}
 			// Skip accept to avoid problems with lexer_nonterminal
 			if(ac.type != ACTION_ACCEPT) {
-				bmap_action_m_append(&clone->actions, entry->key, ac);
+				bmap_action_m_prepend(&clone->actions, entry->key, ac);
 			}
 		}
 		bmap_cursor_action_dispose(&cursor);
@@ -268,7 +268,7 @@ int _merge_deep_next(State *from, State *to, BMapState *cloned)
 			}
 			ac.state = clone;
 		}
-		bmap_action_m_append(&from->actions, entry->key, ac);
+		bmap_action_m_prepend(&from->actions, entry->key, ac);
 	}
 	bmap_cursor_action_dispose(&cursor);
 	return 0;
@@ -417,7 +417,7 @@ static void _clone_rs_action(Reference *ref, BMapAction *action_set, Nonterminal
 			0
 		);
 
-		bmap_action_m_append(action_set, key, clone);
+		bmap_action_m_prepend(action_set, key, clone);
 	}
 end:
 	return;

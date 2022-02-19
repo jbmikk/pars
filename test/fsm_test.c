@@ -1072,7 +1072,6 @@ void fsm_thread_match__partial_backtrack_order(){
 	FsmBuilder builder;
 	Transition tran;
 
-	printf("PARTIAL-BT start\n");
 	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_SPLIT);
 
 	fsm_builder_set_mode(&builder, nzs(".default"));
@@ -1102,6 +1101,76 @@ void fsm_thread_match__partial_backtrack_order(){
 	fsm_thread_dispose(&thread);
 }
 
+void fsm_thread_match__partial_backtrack_shared_prefix(){
+	FsmBuilder builder;
+	Transition tran;
+
+	fsm_builder_init(&builder, &fix.fsm, REF_STRATEGY_SPLIT);
+
+	fsm_builder_set_mode(&builder, nzs(".default"));
+
+	fsm_builder_define(&builder, nzs("AB"));
+
+	// Match a
+	fsm_builder_terminal(&builder, 'a');
+
+	// Match any number of symbols, then b
+	fsm_builder_loop_group_start(&builder);
+	fsm_builder_any(&builder);
+	fsm_builder_loop_group_end(&builder);
+	fsm_builder_terminal(&builder, 'b');
+
+	fsm_builder_end(&builder);
+
+	fsm_builder_define(&builder, nzs("AC"));
+
+	// Match a
+	fsm_builder_terminal(&builder, 'a');
+
+	// Match any number of symbols, then c
+	fsm_builder_loop_group_start(&builder);
+	fsm_builder_any(&builder);
+	fsm_builder_loop_group_end(&builder);
+	fsm_builder_terminal(&builder, 'c');
+
+	fsm_builder_end(&builder);
+
+	fsm_builder_parallel_done(&builder, '\0');
+
+	fsm_builder_dispose(&builder);
+
+	int ab = fsm_get_symbol_id(&fix.fsm, nzs("AB"));
+	int ac = fsm_get_symbol_id(&fix.fsm, nzs("AC"));
+
+	FsmThread thread;
+	fsm_thread_init(&thread, &fix.fsm, (Listener) { .function = NULL });
+	fsm_thread_start(&thread);
+
+	// Input a123bc\0
+	MATCH_DROP(thread, 'a');
+	MATCH_DROP(thread, '1');
+	MATCH_DROP(thread, '2');
+	MATCH_DROP(thread, '3');
+	MATCH_DROP(thread, 'b');
+	MATCH_PARTIAL_WITH(thread, 'c', ab);
+	MATCH_BACKTRACK(thread, 'c');
+	MATCH_DROP(thread, 'b');
+	MATCH_DROP(thread, 'c');
+	MATCH_BACKTRACK(thread, '\0');
+	MATCH_DROP(thread, 'a');
+	MATCH_DROP(thread, '1');
+	MATCH_DROP(thread, '2');
+	MATCH_DROP(thread, '3');
+	MATCH_DROP(thread, 'b');
+	MATCH_DROP(thread, 'c');
+	MATCH_PARTIAL_WITH(thread, '\0', ac);
+	MATCH_BACKTRACK(thread, '\0');
+	// TODO: How should it end?
+	//MATCH_DROP(thread, '\0');
+
+	fsm_thread_dispose(&thread);
+}
+
 int main(int argc, char** argv){
 	t_init();
 	t_test(fsm_builder_define__single_get);
@@ -1127,6 +1196,7 @@ int main(int argc, char** argv){
 	t_test(fsm_thread_match__partial_match);
 	t_test(fsm_thread_match__partial_backtrack);
 	t_test(fsm_thread_match__partial_backtrack_order);
+	t_test(fsm_thread_match__partial_backtrack_shared_prefix);
 	return t_done();
 }
 
