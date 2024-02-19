@@ -11,17 +11,29 @@
 #include <stddef.h>
 #include <stdio.h>
 
+static int _parse_source(Parser *parser, Source *source, Ast *ast)
+{
+	ParserContext context;
+	parser_context_init(&context, parser);
+
+	parser_context_set_ast(&context, ast);
+	parser_context_set_source(&context, source);
+
+	int error = parser_context_execute(&context);
+	check(!error, "Could not build ast for source.");
+
+	parser_context_dispose(&context);
+	return 0;
+error:
+	parser_context_dispose(&context);
+	return -1;
+}
 
 static int _parse_grammar(Parser *ebnf_parser, Source *source, Parser *parser)
 {
 	Ast ast;
-	ParserContext context;
-	parser_context_init(&context, ebnf_parser);
 
-	parser_context_set_ast(&context, &ast);
-	parser_context_set_source(&context, source);
-
-	int error = parser_context_execute(&context);
+	int error = _parse_source(ebnf_parser, source, &ast);
 	check(!error, "Could not build ebnf ast.");
 
 	//TODO: make optional under a -v flag
@@ -29,12 +41,10 @@ static int _parse_grammar(Parser *ebnf_parser, Source *source, Parser *parser)
 
 	ebnf_ast_to_fsm(&parser->fsm, &ast);
 
-	//Must be disposed always, unless parser_execute fails?
 	ast_dispose(&ast);
-	parser_context_dispose(&context);
 	return 0;
 error:
-	parser_context_dispose(&context);
+	//TODO: verify what happens parser_execute fails? should probably dispose AST
 	return -1;
 }
 
@@ -69,25 +79,7 @@ error:
 
 #define nzs(S) (S), (strlen(S))
 
-static int _parse_source(Parser *parser, Source *source, Ast *ast)
-{
-	ParserContext context;
-	parser_context_init(&context, parser);
-
-	parser_context_set_ast(&context, ast);
-	parser_context_set_source(&context, source);
-
-	int error = parser_context_execute(&context);
-	check(!error, "Could not build ast for source.");
-
-	parser_context_dispose(&context);
-	return 0;
-error:
-	parser_context_dispose(&context);
-	return -1;
-}
-
-int cli_load_source(Params *params, Parser *parser, Ast *ast)
+int cli_load_target(Params *params, Parser *parser, Ast *ast)
 {
 	Source source;
 	int error;
@@ -126,9 +118,9 @@ int main(int argc, char** argv){
 		check(!error, "Could not load grammar.");
 
 		if(argc > 2) {
-			log_info("Parsing source.");
+			log_info("Parsing target.");
 			Params params2 = { argv[2] };
-			error = cli_load_source(&params2, &parser, &ast);
+			error = cli_load_target(&params2, &parser, &ast);
 
 			//TODO: no need to dispose on parsing error
 			//Safe to dispose twice anyway.
@@ -138,7 +130,7 @@ int main(int argc, char** argv){
 		parser_dispose(&parser);
 	} else {
 		log_info("Usage:");
-		log_info("pars <grammar-file> [<source-file>]");
+		log_info("pars <grammar-file> [<target-file>]");
 	}
 	return 0;
 error:
