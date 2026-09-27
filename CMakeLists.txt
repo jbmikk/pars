@@ -1,9 +1,8 @@
-cmake_minimum_required (VERSION 3.2.0)
-project (pars)
+cmake_minimum_required (VERSION 3.20.0)
+project (pars LANGUAGES C)
 
 include(ExternalProject)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 
 # Traces
 # ------
@@ -31,8 +30,6 @@ endif(PROFILE)
 # Include externals
 # -----------------
 
-include_directories("${CMAKE_BINARY_DIR}/dbg-prefix/src/dbg")
-
 externalproject_add(
         dbg
         GIT_REPOSITORY git@github.com:jbmikk/dbg.git
@@ -44,8 +41,6 @@ externalproject_add(
 )
 
 
-include_directories("${CMAKE_BINARY_DIR}/xdstlib-prefix/src/xdstlib/src")
-
 externalproject_add(
         xdstlib
         GIT_REPOSITORY git@github.com:jbmikk/dstlib.git
@@ -55,9 +50,6 @@ externalproject_add(
         INSTALL_COMMAND ""
         UPDATE_DISCONNECTED 1
 )
-
-
-include_directories("${CMAKE_BINARY_DIR}/ctest-prefix/src/ctest/src")
 
 externalproject_add(
         ctest
@@ -113,7 +105,20 @@ set(PARS_FLAGS "${FSM_TRACE_FLAGS} ${AST_TRACE_FLAGS}")
 file(GLOB SOURCES src/*.c)
 
 add_library(parslib ${SOURCES})
+target_include_directories(parslib PRIVATE
+        "${PROJECT_SOURCE_DIR}/src"
+        "${CMAKE_BINARY_DIR}/dbg-prefix/src/dbg"
+        "${CMAKE_BINARY_DIR}/xdstlib-prefix/src/xdstlib/src"
+)
+target_compile_options(parslib PRIVATE -Wall)
+
 add_executable (pars  ${SOURCES})
+target_include_directories(pars PRIVATE
+        "${PROJECT_SOURCE_DIR}/src"
+        "${CMAKE_BINARY_DIR}/dbg-prefix/src/dbg"
+        "${CMAKE_BINARY_DIR}/xdstlib-prefix/src/xdstlib/src"
+)
+target_compile_options(pars PRIVATE -Wall)
 
 target_link_libraries(parslib dstlib)
 target_link_libraries(pars dstlib)
@@ -130,34 +135,29 @@ set_target_properties(pars PROPERTIES COMPILE_FLAGS "${PARS_FLAGS}")
 # Tests
 # -----
 
-include_directories("${PROJECT_SOURCE_DIR}/src")
+set(TEST_TARGETS
+        cli_test
+        source_test
+        lexer_test
+        ebnf_parser_test
+        fsm_test
+        parser_test
+        ast_test
+        astquery_test
+)
 
-add_executable(cli_test test/cli_test.c)
-add_executable(source_test test/source_test.c)
-add_executable(lexer_test test/lexer_test.c)
-add_executable(ebnf_parser_test test/ebnf_parser_test.c)
-add_executable(fsm_test test/fsm_test.c)
-add_executable(parser_test test/parser_test.c)
-add_executable(ast_test test/ast_test.c)
-add_executable(astquery_test test/astquery_test.c)
+foreach(test_target IN LISTS TEST_TARGETS)
+        add_executable(${test_target} test/${test_target}.c)
 
-add_dependencies(cli_test ctest)
-add_dependencies(source_test ctest)
-add_dependencies(lexer_test ctest)
-add_dependencies(ebnf_parser_test ctest)
-add_dependencies(fsm_test ctest)
-add_dependencies(parser_test ctest)
-add_dependencies(ast_test ctest)
-add_dependencies(astquery_test ctest)
+        target_include_directories(${test_target} PRIVATE
+                "${PROJECT_SOURCE_DIR}/src"
+                "${CMAKE_BINARY_DIR}/xdstlib-prefix/src/xdstlib/src"
+                "${CMAKE_BINARY_DIR}/ctest-prefix/src/ctest/src"
+        )
+        target_compile_options(${test_target} PRIVATE -Wall)
+        target_link_libraries(${test_target} parslib)
+endforeach()
 
-target_link_libraries(cli_test parslib)
-target_link_libraries(source_test parslib)
-target_link_libraries(lexer_test parslib)
-target_link_libraries(ebnf_parser_test parslib)
-target_link_libraries(fsm_test parslib)
-target_link_libraries(parser_test parslib)
-target_link_libraries(ast_test parslib)
-target_link_libraries(astquery_test parslib)
 
 message(STATUS "Copy Grammars")
 file(COPY test/grammars DESTINATION .)
