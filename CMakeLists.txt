@@ -1,7 +1,11 @@
 cmake_minimum_required (VERSION 3.20.0)
 project (pars LANGUAGES C)
 
-include(ExternalProject)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS ON) # Only needed for typeof
+
+include(FetchContent)
 
 
 # Traces
@@ -30,59 +34,26 @@ endif(PROFILE)
 # Include externals
 # -----------------
 
-externalproject_add(
+FetchContent_Declare(
         dbg
         GIT_REPOSITORY git@github.com:jbmikk/dbg.git
-        GIT_TAG 1.0.0
-        DOWNLOAD_NAME dbg
-        DOWNLOAD_DIR dbg
-        INSTALL_COMMAND ""
-        UPDATE_DISCONNECTED 1
+        GIT_TAG 1.0.1
 )
 
 
-externalproject_add(
-        xdstlib
+FetchContent_Declare(
+        dstlib
         GIT_REPOSITORY git@github.com:jbmikk/dstlib.git
-        GIT_TAG 0.14.1
-        DOWNLOAD_NAME dstlib
-        DOWNLOAD_DIR dstlib
-        INSTALL_COMMAND ""
-        UPDATE_DISCONNECTED 1
+        GIT_TAG 0.15.0
 )
 
-externalproject_add(
+FetchContent_Declare(
         ctest
         GIT_REPOSITORY git@github.com:jbmikk/ctest.git
-        DOWNLOAD_NAME ctest
-        DOWNLOAD_DIR ctest
-        INSTALL_COMMAND ""
-        UPDATE_DISCONNECTED 1
+        GIT_TAG 1.0.1
 )
 
-
-# Add dstlib static library
-# -------------------------
-
-set(DSTLIB_DIR "${CMAKE_BINARY_DIR}/xdstlib-prefix/src/xdstlib-build")
-
-add_library(dstlib STATIC IMPORTED GLOBAL) 
-
-set_property(
-        TARGET dstlib
-        PROPERTY IMPORTED_LOCATION "${DSTLIB_DIR}/libdstlib.a"
-)
-
-
-# Add dstlib update target
-# ------------------------
-
-externalproject_add_steptargets(xdstlib update)
-
-add_custom_target(
-        update 
-        DEPENDS xdstlib-update
-)
+FetchContent_MakeAvailable(dbg dstlib ctest)
 
 
 # Flags
@@ -104,29 +75,25 @@ set(PARS_FLAGS "${FSM_TRACE_FLAGS} ${AST_TRACE_FLAGS}")
 
 file(GLOB SOURCES src/*.c)
 
+# automatically available to any target that links the library
+target_include_directories(dstlib PUBLIC "${dstlib_SOURCE_DIR}/src")
+
 add_library(parslib ${SOURCES})
 target_include_directories(parslib PRIVATE
         "${PROJECT_SOURCE_DIR}/src"
-        "${CMAKE_BINARY_DIR}/dbg-prefix/src/dbg"
-        "${CMAKE_BINARY_DIR}/xdstlib-prefix/src/xdstlib/src"
+        "${dbg_SOURCE_DIR}"
 )
 target_compile_options(parslib PRIVATE -Wall)
 
 add_executable (pars  ${SOURCES})
 target_include_directories(pars PRIVATE
         "${PROJECT_SOURCE_DIR}/src"
-        "${CMAKE_BINARY_DIR}/dbg-prefix/src/dbg"
-        "${CMAKE_BINARY_DIR}/xdstlib-prefix/src/xdstlib/src"
+        "${dbg_SOURCE_DIR}"
 )
 target_compile_options(pars PRIVATE -Wall)
 
 target_link_libraries(parslib dstlib)
 target_link_libraries(pars dstlib)
-
-# Force download before compiling otherwise can't find headers (why?)
-# This was not necessary when including subdirectories.
-add_dependencies(parslib xdstlib dbg)
-add_dependencies(pars xdstlib dbg)
 
 set_target_properties(parslib PROPERTIES COMPILE_FLAGS "-DLIBRARY ${PARS_FLAGS}")
 set_target_properties(pars PROPERTIES COMPILE_FLAGS "${PARS_FLAGS}")
@@ -151,8 +118,7 @@ foreach(test_target IN LISTS TEST_TARGETS)
 
         target_include_directories(${test_target} PRIVATE
                 "${PROJECT_SOURCE_DIR}/src"
-                "${CMAKE_BINARY_DIR}/xdstlib-prefix/src/xdstlib/src"
-                "${CMAKE_BINARY_DIR}/ctest-prefix/src/ctest/src"
+                "${ctest_SOURCE_DIR}/src"
         )
         target_compile_options(${test_target} PRIVATE -Wall)
         target_link_libraries(${test_target} parslib)
